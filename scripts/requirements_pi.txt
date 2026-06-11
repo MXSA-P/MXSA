@@ -35,5 +35,5 @@ psutil==6.1.0
 # utils
 pyyaml==6.0.2
 requests==2.32.3
-ultralytics>=8.0.0
+
 Flask-HTTPAuth==4.8.0
