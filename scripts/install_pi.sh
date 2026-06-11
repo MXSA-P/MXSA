@@ -224,6 +224,9 @@ else
     echo -e "${GREEN}  ✓ ollama already installed${NC}"
 fi
 
+echo -e "${YELLOW}  waiting for ollama daemon to initialize...${NC}"
+sleep 5
+systemctl start ollama 2>/dev/null || true
 echo -e "${YELLOW}  pulling qwen2.5:0.5b model via ollama (~350mb)...${NC}"
 ollama pull qwen2.5:0.5b || echo -e "${RED}ollama pull failed${NC}"
 echo -e "${GREEN}  ✓ qwen2.5:0.5b model ready${NC}"
