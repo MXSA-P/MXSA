@@ -1,0 +1,122 @@
+<!-- _max_cyan_ — project_mxsa -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simba Hardware Control</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/static/css/hardware.css">
+</head>
+<body>
+
+    <div class="header">
+        <h1>Hardware Command Center</h1>
+        <div class="nav-links">
+            <a href="/">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="grid">
+        <!-- Vision Panel -->
+        <div class="card">
+            <h2>Vision <span id="cam-status" style="font-size: 0.8rem; color: #00ff00;">● LIVE</span></h2>
+            <div class="camera-container">
+                <img src="{{ camera_url }}" alt="Robot Camera Feed">
+            </div>
+            
+            <h2 style="margin-top: 20px;">IMU Telemetry</h2>
+            <div class="imu-data" id="imu-display">
+                Waiting for telemetry...
+            </div>
+        </div>
+
+        <!-- Motion Panel -->
+        <div class="card">
+            <h2>Chassis Motors</h2>
+            
+            <div class="slider-group" style="margin-top: 20px;">
+                <div class="slider-header">
+                    <span>Motor Speed</span>
+                    <span class="slider-value" id="val-speed">50%</span>
+                </div>
+                <input type="range" id="motor-speed" min="20" max="100" value="50" oninput="updateSpeedVal(this.value)">
+            </div>
+
+            <div class="dpad">
+                <button class="up" onmousedown="motor('forward')" onmouseup="motor('stop')" ontouchstart="motor('forward')" ontouchend="motor('stop')">W</button>
+                <button class="left" onmousedown="motor('left')" onmouseup="motor('stop')" ontouchstart="motor('left')" ontouchend="motor('stop')">A</button>
+                <button class="stop" onclick="motor('stop')">STOP</button>
+                <button class="right" onmousedown="motor('right')" onmouseup="motor('stop')" ontouchstart="motor('right')" ontouchend="motor('stop')">D</button>
+                <button class="down" onmousedown="motor('backward')" onmouseup="motor('stop')" ontouchstart="motor('backward')" ontouchend="motor('stop')">S</button>
+            </div>
+            
+            <button class="btn-brake" style="width: 100%; margin-top: 10px;" onclick="motor('brake')">ACTIVE BRAKE</button>
+            <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 10px;">Press and hold WASD to move. Stop = Coast. Brake = Lock Motors.</p>
+        </div>
+
+        <!-- Servos Panel -->
+        <div class="card">
+            <h2>Arm & Hand Servos</h2>
+            
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Base Rotation</span>
+                    <span class="slider-value" id="val-rotation">90°</span>
+                </div>
+                <input type="range" min="0" max="180" value="90" onchange="arm('rotation', this.value)" oninput="updateVal('val-rotation', this.value)">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Elbow</span>
+                    <span class="slider-value" id="val-elbow">90°</span>
+                </div>
+                <input type="range" min="0" max="180" value="90" onchange="arm('elbow', this.value)" oninput="updateVal('val-elbow', this.value)">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Elbow 2</span>
+                    <span class="slider-value" id="val-elbow2">90°</span>
+                </div>
+                <input type="range" min="0" max="180" value="90" onchange="arm('elbow_2', this.value)" oninput="updateVal('val-elbow2', this.value)">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Wrist</span>
+                    <span class="slider-value" id="val-wrist">90°</span>
+                </div>
+                <input type="range" min="0" max="180" value="90" onchange="arm('wrist', this.value)" oninput="updateVal('val-wrist', this.value)">
+            </div>
+
+            <h2 style="margin-top: 30px;">Hand</h2>
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Grip</span>
+                    <span class="slider-value" id="val-grip">50%</span>
+                </div>
+                <input type="range" min="0" max="100" value="50" onchange="handGrip(this.value)" oninput="updateVal('val-grip', this.value + '%')">
+            </div>
+
+            <div class="gestures">
+                <button onclick="handAction('rock')">Rock ✊</button>
+                <button onclick="handAction('paper')">Paper ✋</button>
+                <button onclick="handAction('scissors')">Scissors ✌️</button>
+                <button onclick="handAction('thumbs_up')">Thumbs 👍</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        _max_cyan_ — project_mxsa
+    </div>
+
+    <script src="/static/js/hardware.js"></script>
+</body>
+</html>

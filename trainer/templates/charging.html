@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<!-- _max_cyan_ — project_mxsa -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>simba trainer — charging pad enrollment</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/trainer.css">
+    <style>
+        body { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 40px; }
+        .camera-container {
+            width: 100%;
+            max-width: 640px;
+            background: rgba(0,0,0,0.4);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        video {
+            width: 100%;
+            display: block;
+        }
+        .controls { margin-top: 20px; margin-bottom: 40px; display: flex; gap: 15px; justify-content: center; align-items: center; }
+        
+        .gallery-container {
+            width: 100%;
+            max-width: 1000px;
+            text-align: left;
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .gallery-item {
+            position: relative;
+            aspect-ratio: 4/3;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .gallery-item .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(255,0,0,0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        #snap-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--cyan);
+            border: 4px solid white;
+            box-shadow: 0 0 20px rgba(0,212,255,0.4);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        #snap-btn:active {
+            transform: scale(0.9);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>⚡ dock training</h1>
+        <p>capture various angles and lighting conditions of your physical charging pad</p>
+    </header>
+
+    <div class="camera-container">
+        <video id="video" autoplay playsinline></video>
+    </div>
+
+    <div class="controls">
+        <a href="/" class="btn btn-secondary">← back to trainer</a>
+        <button id="snap-btn" title="snap photo"></button>
+        <button class="btn btn-primary" onclick="startCamera()" id="start-cam-btn">start camera</button>
+    </div>
+
+    <div class="gallery-container">
+        <h3>saved captures (<span id="count">0</span>)</h3>
+        <p class="muted" style="font-size:14px;">images are automatically saved to the <code>charging_pad</code> class.</p>
+        <div class="gallery-grid" id="gallery">
+            <!-- thumbnails injected here -->
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const snapBtn = document.getElementById('snap-btn');
+        const gallery = document.getElementById('gallery');
+        const countSpan = document.getElementById('count');
+        const startCamBtn = document.getElementById('start-cam-btn');
+        let stream = null;
+
+        async function startCamera() {
+            if (stream) return;
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Camera API is not supported in this browser or context (HTTPS required).");
+                return;
+            }
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment', width: { ideal: 1280, max: 1920 }, height: { ideal: 720, max: 1080 }, frameRate: { ideal: 30, max: 60 } } 
+                });
+                video.srcObject = stream;
+                startCamBtn.style.display = 'none';
+            } catch (err) {
+                alert("camera access denied: " + err.message);
+            }
+        }
+
+        async function loadGallery() {
+            try {
+                const res = await fetch('/api/objects/charging_pad/images');
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const data = await res.json();
+                gallery.innerHTML = '';
+                
+                if (data.images && data.images.length > 0) {
+                    countSpan.innerText = data.images.length;
+                    data.images.forEach(imgName => {
+                        const div = document.createElement('div');
+                        div.className = 'gallery-item';
+                        div.innerHTML = `
+                            <img src="/api/object_thumbnail/charging_pad/${imgName}" loading="lazy" decoding="async">
+                            <button class="remove-btn" onclick="removeImage('${imgName}')">✕</button>
+                        `;
+                        gallery.appendChild(div);
+                    });
+                } else {
+                    countSpan.innerText = "0";
+                }
+            } catch (e) {
+                console.error("failed to load gallery", e);
+            }
+        }
+
+        async function removeImage(filename) {
+            if (!confirm('delete this image permanently?')) return;
+            try {
+                const res = await fetch(`/api/objects/charging_pad/${filename}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+                loadGallery();
+            } catch (err) {
+                alert("failed to delete: " + err.message);
+            }
+        }
+
+        snapBtn.addEventListener('click', () => {
+            if (!stream) {
+                alert("start camera first!");
+                return;
+            }
+            
+            // canvas capture
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const base64Image = canvas.toDataURL('image/jpeg', 0.8);
+
+            // ui flash effect
+            document.body.style.backgroundColor = "white";
+            setTimeout(() => document.body.style.backgroundColor = "", 100);
+
+            // send to backend directly to charging_pad class
+            fetch('/api/camera_capture', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'charging_pad', image: base64Image })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+                loadGallery(); // refresh gallery
+            })
+            .catch(err => {
+                alert("failed to save: " + err.message);
+            });
+        });
+
+        // initial load
+        loadGallery();
+    </script>
+</body>
+</html>

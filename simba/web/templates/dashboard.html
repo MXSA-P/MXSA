@@ -1,0 +1,325 @@
+<!-- _max_cyan_ — project_mxsa -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>simba — command center</title>
+    <meta name="description" content="Simba bionic arm robot — real-time command center dashboard with servo visualization, motor control, and AI status monitoring.">
+
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- stylesheet -->
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+
+    <!-- favicon — lion -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦁</text></svg>">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- ================================================================
+         header
+         ================================================================ -->
+    <header class="header">
+        <div class="header__brand">
+            <h1 class="header__name">simba</h1>
+            <span class="header__emotion" id="emotion-emoji">🔍</span>
+        </div>
+        <div class="header__meta">
+            <span class="connection-dot" id="connection-dot" title="connection status"></span>
+            <span class="header__uptime">uptime: <span id="uptime-display">0m 0s</span></span>
+        </div>
+    </header>
+
+    <!-- ================================================================
+         grid
+         ================================================================ -->
+    <div class="grid">
+
+        <!-- ---- servo visualization ---- -->
+        <div class="card" id="servo-card">
+            <div class="card__title">
+                <span class="icon">⚙️</span> servo control
+            </div>
+
+            <!-- arm silhouette visualization -->
+            <div class="arm-visual" id="arm-visual">
+                <div class="arm-segment" id="arm-base"></div>
+                <div class="arm-segment" id="arm-upper">
+                    <div class="arm-segment" id="arm-lower">
+                        <div class="arm-segment" id="arm-hand"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- servo gauges -->
+            <div class="servo-gauges">
+                <!-- rotation gauge -->
+                <div class="servo-gauge">
+                    <div class="servo-gauge__wrapper">
+                        <svg class="servo-gauge__svg" viewBox="0 0 120 70">
+                            <path class="servo-gauge__track" d="M 10,65 A 50,50 0 0,1 110,65" />
+                            <path class="servo-gauge__fill" id="servo-rotation-fill" d="M 10,65 A 50,50 0 0,1 110,65" />
+                        </svg>
+                        <span class="servo-gauge__value" id="servo-rotation-val">90°</span>
+                    </div>
+                    <span class="servo-gauge__label">rotation</span>
+                </div>
+                <!-- elbow gauge -->
+                <div class="servo-gauge">
+                    <div class="servo-gauge__wrapper">
+                        <svg class="servo-gauge__svg" viewBox="0 0 120 70">
+                            <path class="servo-gauge__track" d="M 10,65 A 50,50 0 0,1 110,65" />
+                            <path class="servo-gauge__fill" id="servo-elbow-fill" d="M 10,65 A 50,50 0 0,1 110,65" />
+                        </svg>
+                        <span class="servo-gauge__value" id="servo-elbow-val">90°</span>
+                    </div>
+                    <span class="servo-gauge__label">elbow</span>
+                </div>
+                <!-- wrist gauge -->
+                <div class="servo-gauge">
+                    <div class="servo-gauge__wrapper">
+                        <svg class="servo-gauge__svg" viewBox="0 0 120 70">
+                            <path class="servo-gauge__track" d="M 10,65 A 50,50 0 0,1 110,65" />
+                            <path class="servo-gauge__fill" id="servo-wrist-fill" d="M 10,65 A 50,50 0 0,1 110,65" />
+                        </svg>
+                        <span class="servo-gauge__value" id="servo-wrist-val">90°</span>
+                    </div>
+                    <span class="servo-gauge__label">wrist</span>
+                </div>
+            </div>
+
+            <!-- sensory palm visualizer -->
+            <div class="sensory-palm">
+                <div class="palm-core">
+                    <div class="palm-eye"></div>
+                    <div class="palm-mic" title="Microphone"></div>
+                </div>
+                <div class="palm-finger palm-finger--1" id="finger-1">F1: 30°</div>
+                <div class="palm-finger palm-finger--2" id="finger-2">F2: 30°</div>
+                <div class="palm-finger palm-finger--3" id="finger-3">F3: 30°</div>
+            </div>
+
+            <div class="grip-state">
+                grip: <span id="grip-state-display">OPEN</span>
+            </div>
+        </div>
+
+        <!-- ---- spatial radar map ---- -->
+        <div class="card" id="radar-card">
+            <div class="card__title">
+                <span class="icon">🧭</span> spatial radar
+            </div>
+            <div class="radar-container" id="radar-container">
+                <div class="radar-sweep"></div>
+                <div class="radar-center"></div>
+                <!-- objects will be injected here -->
+            </div>
+        </div>
+
+        <!-- ---- motor status ---- -->
+        <div class="card" id="motor-card">
+            <div class="card__title">
+                <span class="icon">🏎️</span> motor status
+            </div>
+
+            <div class="motor-bars">
+                <div class="motor-bar-group">
+                    <span class="motor-speed-text" id="motor-left-speed">0%</span>
+                    <div class="motor-bar">
+                        <div class="motor-bar__fill" id="motor-left-fill"></div>
+                    </div>
+                    <span class="motor-bar__label">LEFT</span>
+                </div>
+                <div class="motor-bar-group">
+                    <span class="motor-speed-text" id="motor-right-speed">0%</span>
+                    <div class="motor-bar">
+                        <div class="motor-bar__fill" id="motor-right-fill"></div>
+                    </div>
+                    <span class="motor-bar__label">RIGHT</span>
+                </div>
+            </div>
+
+            <div class="direction-display">
+                <div class="direction-arrow" id="direction-arrow">▲</div>
+                <span id="direction-label">STOPPED</span>
+            </div>
+
+            <div class="imu-row">
+                <span>orientation: <span class="imu-value" id="imu-orientation">level</span></span>
+                <span>tilt: <span class="imu-value" id="imu-tilt">0°</span></span>
+            </div>
+        </div>
+
+        <!-- ---- emotion display ---- -->
+        <div class="card" id="emotion-card">
+            <div class="card__title">
+                <span class="icon">💫</span> emotion
+            </div>
+            <div class="emotion-display">
+                <span class="emotion-emoji-large" id="emotion-emoji-large">🔍</span>
+                <span id="emotion-name">curious</span>
+                <div class="intensity-row">
+                    <span class="intensity-label">intensity</span>
+                    <span id="intensity-value">70%</span>
+                </div>
+                <div class="intensity-bar">
+                    <div class="intensity-bar__fill" id="intensity-fill" style="width: 70%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ---- ai thinking ---- -->
+        <div class="card" id="thinking-card">
+            <div class="card__title">
+                <span class="icon">🧠</span> ai thinking
+            </div>
+            <div class="thinking-box" id="thinking-text">
+                <span class="thinking-cursor"></span>
+            </div>
+            <div class="state-row">
+                <span class="state-badge state-badge--idle" id="state-badge">
+                    <span class="state-dot"></span>
+                    idle
+                </span>
+                <span id="state-context-text">waiting for input</span>
+            </div>
+            <div class="last-command-row">
+                last command: <span id="last-command-text">—</span>
+            </div>
+        </div>
+
+        <!-- ---- camera feed ---- -->
+        <div class="card" id="camera-card">
+            <div class="card__title">
+                <span class="icon">📷</span> camera feed
+            </div>
+            <div class="camera-container" id="camera-container">
+                <img id="camera-feed" src="/video_feed" alt="simba camera feed">
+                <div class="camera-overlay">
+                    <span class="rec-dot"></span>
+                    LIVE
+                </div>
+            </div>
+            <div class="object-chips" id="object-chips">
+                <!-- filled dynamically -->
+            </div>
+        </div>
+
+        <!-- ---- system monitor ---- -->
+        <div class="card" id="system-card">
+            <div class="card__title">
+                <span class="icon">📊</span> system monitor
+            </div>
+            <div class="gauges">
+                <!-- cpu gauge -->
+                <div class="gauge">
+                    <div class="gauge__wrapper">
+                        <svg class="gauge__ring" viewBox="0 0 100 100">
+                            <circle class="gauge__track" cx="50" cy="50" r="40"></circle>
+                            <circle class="gauge__fill" id="cpu-gauge-fill" cx="50" cy="50" r="40"></circle>
+                        </svg>
+                        <span class="gauge__center-text" id="cpu-value">0%</span>
+                    </div>
+                    <span class="gauge__label">cpu</span>
+                </div>
+                <!-- ram gauge -->
+                <div class="gauge">
+                    <div class="gauge__wrapper">
+                        <svg class="gauge__ring" viewBox="0 0 100 100">
+                            <circle class="gauge__track" cx="50" cy="50" r="40"></circle>
+                            <circle class="gauge__fill gauge__fill--ram" id="ram-gauge-fill" cx="50" cy="50" r="40"></circle>
+                        </svg>
+                        <span class="gauge__center-text" id="ram-value">0%</span>
+                    </div>
+                    <span class="gauge__label">ram</span>
+                </div>
+                <!-- temp gauge -->
+                <div class="gauge">
+                    <div class="gauge__wrapper">
+                        <svg class="gauge__ring" viewBox="0 0 100 100">
+                            <circle class="gauge__track" cx="50" cy="50" r="40"></circle>
+                            <circle class="gauge__fill gauge__fill--temp" id="temp-gauge-fill" cx="50" cy="50" r="40"></circle>
+                        </svg>
+                        <span class="gauge__center-text" id="temp-value">—</span>
+                    </div>
+                    <span class="gauge__label">temp</span>
+                </div>
+            </div>
+            <div class="stat-row" style="justify-content: center; margin-top: 14px;">
+                <span>ram:</span>
+                <span class="stat-value" id="ram-detail">—</span>
+            </div>
+        </div>
+
+        <!-- ---- object memory ---- -->
+        <div class="card" id="memory-card">
+            <div class="card__title">
+                <span class="icon">💾</span> object memory
+            </div>
+            <table class="memory-table">
+                <thead>
+                    <tr>
+                        <th>object</th>
+                        <th>seen</th>
+                        <th>confidence</th>
+                        <th>last seen</th>
+                    </tr>
+                </thead>
+                <tbody id="memory-body">
+                    <!-- filled dynamically -->
+                </tbody>
+            </table>
+            <div class="memory-empty" id="memory-empty">
+                no objects in memory yet
+            </div>
+        </div>
+
+        <!-- ---- activity log ---- -->
+        <div class="card" id="log-card">
+            <div class="card__title">
+                <span class="icon">📜</span> activity log
+            </div>
+            <div class="log-container" id="log-container">
+                <!-- filled dynamically -->
+            </div>
+        </div>
+
+        <!-- ---- command input ---- -->
+        <div class="card card--wide" id="command-card">
+            <div class="card__title">
+                <span class="icon">⌨️</span> command
+            </div>
+            <div class="command-wrapper">
+                <input
+                    type="text"
+                    class="command-input"
+                    id="command-input"
+                    placeholder="type a command for simba..."
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+                <button class="command-btn" id="command-btn">SEND</button>
+            </div>
+        </div>
+
+    </div><!-- /grid -->
+
+</div><!-- /dashboard -->
+
+<!-- socket.io client -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"
+        integrity="sha512-luMnTJZ7oEchNDZAtQhgjomP1eZefnl82ruTH/3Oj/Yu5qYtwL7+dVRccACS/Snp1lFXq174KM1pm7XcO5q/Q=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+
+<!-- dashboard logic -->
+<script src="/static/js/dashboard.js"></script>
+
+</body>
+</html>

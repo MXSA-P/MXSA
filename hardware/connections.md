@@ -1,0 +1,54 @@
+# SIMBA BIONIC ARM ROBOT — HARDWARE CONNECTIONS GUIDE
+
+## Easy Pinout Summary
+
+**Motor Driver (L298N 6-pin)**
+*   ENA -> GPIO 12 (Motor A PWM Speed)
+*   IN1 -> GPIO 5 (Motor A Forward: High, Reverse: Low)
+*   IN2 -> GPIO 6 (Motor A Reverse: High, Forward: Low)
+*   IN3 -> GPIO 16 (Motor B Forward: High, Reverse: Low)
+*   IN4 -> GPIO 26 (Motor B Reverse: High, Forward: Low)
+*   ENB -> GPIO 13 (Motor B PWM Speed)
+
+**Logic Table: Motor A (Left Wheel)**
+| State | IN1 (GPIO 5) | IN2 (GPIO 6) | ENA (GPIO 12) |
+| :--- | :--- | :--- | :--- |
+| **Forward** | `1` (HIGH) | `0` (LOW) | PWM |
+| **Reverse** | `0` (LOW) | `1` (HIGH) | PWM |
+| **Stop** | `0` (LOW) | `0` (LOW) | `0` |
+| **Brake** | `1` (HIGH) | `1` (HIGH) | `255` |
+
+**Logic Table: Motor B (Right Wheel)**
+| State | IN3 (GPIO 16) | IN4 (GPIO 26) | ENB (GPIO 13) |
+| :--- | :--- | :--- | :--- |
+| **Forward** | `1` (HIGH) | `0` (LOW) | PWM |
+| **Reverse** | `0` (LOW) | `1` (HIGH) | PWM |
+| **Stop** | `0` (LOW) | `0` (LOW) | `0` |
+| **Brake** | `1` (HIGH) | `1` (HIGH) | `255` |
+
+**Arm Servos (7x SG90)**
+*   Arm Rotation -> GPIO 22
+*   Arm Elbow 1 -> GPIO 23
+*   Arm Elbow 2 -> GPIO 25
+*   Arm Wrist -> GPIO 24
+*   Finger 1 -> GPIO 4
+*   Finger 2 -> GPIO 17
+*   Finger 3 -> GPIO 27
+
+**Sensors & Audio**
+*   MPU6050 SDA -> GPIO 2
+*   MPU6050 SCL -> GPIO 3
+*   INMP441 BCLK -> GPIO 18
+*   INMP441 LRCLK -> GPIO 19
+*   INMP441 DIN -> GPIO 20
+*   Camera -> CSI Port Ribbon
+
+---
+
+## Power Connections
+
+*   **Batteries:** 2x 18650 parallel pack (3.7V) powers the TP4056, L298N VCC terminal, and the massive 7-Servo Power Rail.
+*   **Raspberry Pi:** Powered by 5V Powerbank.
+*   **IMPORTANT:** You must connect the Pi GND to the Battery/L298N GND to share a common ground, otherwise signals will float.
+
+_max_cyan_ — project_mxsa
