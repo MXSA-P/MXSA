@@ -29,8 +29,7 @@ soundfile==0.12.1
 flask==3.1.0
 flask-cors==4.0.1
 flask-socketio==5.4.1
-gevent==24.2.1
-gevent-websocket==0.10.1
+
 psutil==6.1.0
 
 # utils
