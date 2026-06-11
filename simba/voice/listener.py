@@ -232,11 +232,10 @@ class VoiceListener:
                     callback=self._audio_callback,
                 )
             except Exception as e_default:
-                logger.warning("failed to open default audio device (%s), trying device 0...", e_default)
+                logger.warning("failed to open 1-channel audio stream (%s), trying 2 channels...", e_default)
                 self._stream = sd.InputStream(
-                    device=0,
                     samplerate=self.sample_rate,
-                    channels=self.channels,
+                    channels=2,  # Fallback to stereo for generic I2S mics
                     dtype="float32",
                     blocksize=self.chunk_size,
                     callback=self._audio_callback,
