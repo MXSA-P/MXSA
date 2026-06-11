@@ -168,7 +168,7 @@ if ! pip install --prefer-binary -r scripts/requirements_pi.txt; then
         || echo -e "${RED}  failed numpy/ml${NC}"
     pip install --prefer-binary ai-edge-litert \
         || echo -e "${YELLOW}  ⚠ ai-edge-litert unavailable (no Python ${PY_VER} wheel) — tflite disabled${NC}"
-    pip install --prefer-binary flask flask-socketio gevent gevent-websocket flask-cors Flask-HTTPAuth \
+    pip install --prefer-binary flask flask-socketio flask-cors Flask-HTTPAuth \
         || echo -e "${RED}  failed flask stack${NC}"
     pip install --prefer-binary vosk sounddevice librosa soundfile \
         || echo -e "${YELLOW}  ⚠ vosk may lack a Python ${PY_VER} wheel — speech features may be disabled${NC}"
