@@ -40,12 +40,21 @@ fi
 
 # check and start ollama if available
 if systemctl list-unit-files | grep -q "ollama.service"; then
-    echo -e "${YELLOW}  checking ollama daemon...${NC}"
+    echo -e "${YELLOW}  checking ollama daemon (systemd)...${NC}"
     if ! systemctl is-active --quiet ollama; then
         sudo systemctl start ollama
         echo -e "${GREEN}  ✓ ollama service started${NC}"
     else
         echo -e "${GREEN}  ✓ ollama service is running${NC}"
+    fi
+elif command -v ollama &> /dev/null; then
+    if ! pgrep -x "ollama" > /dev/null; then
+        echo -e "${YELLOW}  starting ollama daemon manually (ollama serve)...${NC}"
+        ollama serve > /dev/null 2>&1 &
+        sleep 5
+        echo -e "${GREEN}  ✓ ollama manual daemon started${NC}"
+    else
+        echo -e "${GREEN}  ✓ ollama manual daemon is already running${NC}"
     fi
 fi
 
