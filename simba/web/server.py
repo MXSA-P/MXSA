@@ -495,6 +495,8 @@ def api_diagnostics_run():
     if not isinstance(data, dict):
         return jsonify({"error": "invalid payload format"}), 400
     test_name = data.get("test")
+    if test_name:
+        test_name = test_name.lower().replace(" ", "_")
     
     if test_name == "arm_sweep":
         try:
@@ -680,7 +682,7 @@ def handle_connect():
 
 
 @socketio.on("disconnect")
-def handle_disconnect():
+def handle_disconnect(*args):
     """log when a client disconnects."""
     logger.info("dashboard client disconnected")
 
