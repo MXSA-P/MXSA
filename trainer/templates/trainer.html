@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<!-- _max_cyan_ — project_mxsa -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>simba trainer — _max_cyan_</title>
+    <meta name="description" content="training interface for simba bionic arm robot">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/trainer.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦁</text></svg>">
+</head>
+<body>
+    <!-- header -->
+    <header class="header">
+        <div class="header-brand">
+            <span class="header-lion">🦁</span>
+            <h1 class="header-title">simba <span class="accent">trainer</span></h1>
+            <span class="header-version">v2.0 — _max_cyan_</span>
+        </div>
+        <div class="header-actions">
+            <div class="header-status" id="status-indicator">
+                <span class="status-dot"></span>
+                <span id="status-text">ready</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- toast container -->
+    <div id="toast-container"></div>
+
+    <!-- main grid -->
+    <main class="main-grid">
+
+        <!-- object training section -->
+        <section class="card card-wide" id="object-section">
+            <div class="card-header">
+                <h2><span class="icon">🔍</span> object training</h2>
+                <div class="card-actions">
+                    
+                    <button class="btn btn-primary" onclick="openAddObjectModal()">+ add object</button>
+                    <button class="btn btn-accent" onclick="trainVision()" id="train-vision-btn">train model</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="object-grid" id="object-grid">
+                    <div class="empty-state" id="no-objects">
+                        <span class="empty-icon">📦</span>
+                        <p>no objects added yet</p>
+                        <p class="muted">click "+ add object" to start</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- voice enrollment section -->
+        <section class="card" id="voice-section">
+            <div class="card-header">
+                <h2><span class="icon">🎤</span> voice enrollment</h2>
+            </div>
+            <div class="card-body">
+                <p class="section-desc">
+                    Record your voice so Simba only responds to you. 
+                    <br><br>
+                    <strong>Instructions:</strong> It does not matter what words you say. The AI only learns the biometric pitch of your vocal cords. Click 'Start Recording' and read the sentence below out loud:<br>
+                    <em style="color: #00d4ff;">"When the sunlight strikes raindrops in the air, they act like a prism and form a rainbow. The rainbow is a division of white light into many beautiful colors."</em>
+                </p>
+                <div class="voice-controls">
+                    <button class="btn btn-record" id="record-btn" onclick="toggleRecording()">
+                        <span class="record-dot"></span>
+                        <span id="record-text">start recording</span>
+                    </button>
+                    <span class="recording-time" id="recording-time">0:00</span>
+                </div>
+                <div class="voice-samples" id="voice-samples"></div>
+                <button class="btn btn-accent" onclick="trainVoice()" id="train-voice-btn">train voice model</button>
+            </div>
+        </section>
+
+        <!-- voice test section -->
+        <section class="card" id="voice-test-section">
+            <div class="card-header">
+                <h2><span class="icon">💬</span> test command recognition</h2>
+            </div>
+            <div class="card-body">
+                <p class="muted">Speak or type to test what commands the robot would hear.</p>
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <input type="text" id="voice-test-input" placeholder="e.g. 'simba get me the wrench'" autocomplete="off" style="flex: 1;">
+                    <button class="btn btn-primary" onclick="testVoiceCommand()" id="voice-test-btn">
+                        <span class="btn-icon">🎤</span> dictate
+                    </button>
+                    <button class="btn btn-accent" onclick="submitVoiceTest()">test</button>
+                </div>
+                <div class="test-result" id="voice-test-result" style="display: none; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; margin-top: 15px; border: 1px solid rgba(0,212,255,0.2);">
+                    <div style="color: #00d4ff; margin-bottom: 5px;">> <span id="vt-heard"></span></div>
+                    <div style="color: #ffd700;" id="vt-parsed"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- owner profile section -->
+        <section class="card" id="owner-section">
+            <div class="card-header">
+                <h2><span class="icon">👑</span> owner profile</h2>
+            </div>
+            <div class="card-body">
+                <p class="muted">Tell Simba who you are so it recognizes its creator.</p>
+                <div class="form-group">
+                    <label for="owner-name">your name</label>
+                    <input type="text" id="owner-name" placeholder="e.g. John" autocomplete="off">
+                </div>
+                <button class="btn btn-primary" onclick="saveOwner()" id="owner-btn">
+                    <span class="btn-icon">💾</span> save identity
+                </button>
+            </div>
+        </section>
+
+        <!-- deploy to pi section -->
+        <section class="card" id="deploy-section">
+            <div class="card-header">
+                <h2><span class="icon">🚀</span> deploy to pi</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="pi-host">raspberry pi ip</label>
+                    <input type="text" id="pi-host" placeholder="192.168.1.X" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="pi-user">username</label>
+                    <input type="text" id="pi-user" placeholder="pi" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="pi-pass">password</label>
+                    <input type="password" id="pi-pass" placeholder="***" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="pi-path">remote models path</label>
+                    <input type="text" id="pi-path" placeholder="/home/pi/MXSA/models" autocomplete="off">
+                </div>
+                <button class="btn btn-primary btn-large" onclick="deployToPi()" id="deploy-btn">
+                    <span class="btn-icon">📡</span> upload to pi
+                </button>
+                <div class="deploy-status" id="deploy-status" style="display:none;">
+                    <div class="progress-bar-container"><div class="progress-bar" id="deploy-progress"></div></div>
+                    <p id="deploy-message">connecting...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- export section -->
+        <section class="card" id="export-section">
+            <div class="card-header">
+                <h2><span class="icon">📦</span> export & stats</h2>
+            </div>
+            <div class="card-body">
+                <div class="export-stats" id="export-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">objects</span>
+                        <span class="stat-value" id="stat-objects">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">voice</span>
+                        <span class="stat-value" id="stat-voice">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">models</span>
+                        <span class="stat-value" id="stat-size">—</span>
+                    </div>
+                </div>
+                <div class="model-list" id="model-list"></div>
+                <button class="btn btn-primary" onclick="exportModels()" id="export-btn">export to .zip</button>
+                <div class="download-link" id="download-area" style="display:none;">
+                    <a href="#" id="download-link" class="btn btn-accent">⬇ download .zip</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- training progress -->
+        <section class="card card-wide" id="progress-section" style="display:none;">
+            <div class="card-header">
+                <h2><span class="icon">⚙️</span> training progress</h2>
+            </div>
+            <div class="card-body">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+                </div>
+                <p class="progress-text" id="progress-text">preparing...</p>
+            </div>
+        </section>
+    </main>
+
+    <div class="modal-overlay" id="add-object-modal" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>add new object</h3>
+                <button class="modal-close" onclick="closeAddObjectModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="object-name">object name (lowercase)</label>
+                    <input type="text" id="object-name" placeholder="e.g. screwdriver" autocomplete="off">
+                </div>
+
+                <!-- camera capture -->
+                <div class="form-group">
+                    <label>📸 capture from camera</label>
+                    <div class="camera-box" id="camera-box">
+                        <video id="camera-preview" autoplay playsinline style="display:none;"></video>
+                        <canvas id="camera-canvas" style="display:none;"></canvas>
+                        <div class="camera-placeholder" id="camera-placeholder">
+                            <span>📷</span>
+                            <p>click to open camera</p>
+                        </div>
+                        <div class="camera-controls" id="camera-controls" style="display:none;">
+                            <button class="btn btn-primary btn-snap" onclick="snapPhoto()">📸 snap</button>
+                            <button class="btn btn-secondary" onclick="stopCamera()">close camera</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- drag and drop -->
+                <div class="form-group">
+                    <label>or drag & drop images</label>
+                    <div class="drop-zone" id="drop-zone">
+                        <span class="drop-icon">🖼️</span>
+                        <p>drag & drop or click to browse</p>
+                        <input type="file" id="image-input" multiple accept="image/*" style="display:none;">
+                    </div>
+                </div>
+
+                <!-- preview -->
+                <div class="image-preview" id="image-preview"></div>
+                <p class="muted" id="image-count"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeAddObjectModal()">cancel</button>
+                <button class="btn btn-primary" onclick="submitObject()">add object</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- manage object modal -->
+    <div class="modal-overlay" id="manage-object-modal" style="display:none;">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h3 id="manage-modal-title">manage object</h3>
+                <button class="modal-close" onclick="closeManageObjectModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="manage-toolbar">
+                    <button class="btn btn-primary" id="manage-add-btn" onclick="openAddObjectModalFromManage()">+ add images</button>
+                    <button class="btn btn-danger" id="manage-delete-class-btn">🗑️ delete entire class</button>
+                </div>
+                <div class="manage-image-grid" id="manage-image-grid">
+                    <!-- images populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>project_mxsa — _max_cyan_ — proprietary software</p>
+    </footer>
+
+    <script src="/static/js/trainer.js"></script>
+</body>
+</html>

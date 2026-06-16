@@ -1,0 +1,147 @@
+ai:
+  confidence_threshold: 0.6
+  llm_context_length: 512
+  llm_max_tokens: 128
+  llm_provider: ollama
+  llm_temperature: 0.7
+  max_memory_items: 500
+  memory_db_path: data/memory.json
+  object_classifier_path: models/object_classifier.joblib
+  object_label_map_path: models/object_labels.json
+  ollama_model: qwen2.5:0.5b
+  ollama_url: http://localhost:11434/api/chat
+  scan_sweep_angles:
+  - 0
+  - 45
+  - 90
+  - 135
+  - 180
+  vision_model_path: models/mobilenetv2_feature_extractor.tflite
+behavior:
+  boot_scan: true
+  max_fetch_retries: 2
+  play_mode_timeout: 120
+  roam_interval: 30
+  roam_when_idle: true
+  scan_after_fetch_fail: true
+camera:
+  format: rgb888
+  framerate: 30
+  hardware_profile: csi_5mp
+  jpeg_quality: 85
+  max_resolution:
+  - 2592
+  - 1944
+  resolution:
+  - 1280
+  - 720
+  stream_resolution:
+  - 640
+  - 480
+charging:
+  auto_return_minutes: 30
+  charge_rest_minutes: 15
+  return_to_pad_on_low: true
+emotions:
+  default_mood: curious
+  excitement_threshold: 0.8
+  mood_decay_rate: 0.01
+  mood_update_interval: 5
+  reactions:
+    curious:
+      head_tilt: 15
+      scan_speed: 1.0
+    excited:
+      arm_wiggle_speed: 4.0
+      speed_modifier: 1.5
+    happy:
+      arm_wiggle_range: 15
+      arm_wiggle_speed: 3.0
+      duration: 1.5
+    hello:
+      action: handshake
+      duration: 2.0
+    love:
+      arm_wiggle_range: 30
+      arm_wiggle_speed: 5.0
+      duration: 3.0
+    sad:
+      arm_droop_angle: 30
+      speed_modifier: 0.5
+  sadness_threshold: 0.3
+imu:
+  accel_range: 2
+  calibration_samples: 100
+  gyro_range: 250
+  i2c_address: 104
+  sample_rate: 50
+motors:
+  acceleration: 5
+  cruise_speed: 60
+  max_speed: 100
+  slow_speed: 30
+  turn_speed: 45
+pins:
+  arm_elbow: 23
+  arm_elbow_2: 25
+  arm_rotation: 22
+  arm_wrist: 24
+  finger_1: 4
+  finger_2: 17
+  finger_3: 27
+  i2c_scl: 3
+  i2c_sda: 2
+  i2s_bclk: 18
+  i2s_din: 20
+  i2s_lrclk: 19
+  motor_a_en: 12
+  motor_a_in1: 5
+  motor_a_in2: 6
+  motor_b_en: 13
+  motor_b_in3: 16
+  motor_b_in4: 26
+robot:
+  name: simba
+  owner_name: Max
+  version: 1.0.0
+  watermark: _max_cyan_
+servos:
+  arm_limits:
+    elbow_2_max: 170
+    elbow_2_min: 10
+    elbow_max: 170
+    elbow_min: 10
+    move_speed: 1.5
+    rotation_max: 180
+    rotation_min: 0
+    wrist_max: 150
+    wrist_min: 0
+  finger_limits:
+    closed: 150
+    grab_speed: 2.0
+    open: 30
+  frequency: 50
+  home_position:
+    arm_elbow: 90
+    arm_elbow_2: 90
+    arm_rotation: 90
+    arm_wrist: 90
+    finger_1: 30
+    finger_2: 30
+    finger_3: 30
+  pulse_max: 2500
+  pulse_min: 500
+voice:
+  channels: 1
+  chunk_size: 4000
+  command_timeout: 5.0
+  sample_rate: 16000
+  silence_threshold: 500
+  speaker_model_path: models/speaker_model.joblib
+  speaker_threshold: 0.65
+  vosk_model_path: models/vosk-model-small-en-us-0.15
+web:
+  debug: false
+  host: 0.0.0.0
+  port: 8080
+  update_interval: 1.0

@@ -1,0 +1,80 @@
+<!-- _max_cyan_ — project_mxsa -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MXSA - Hardware Diagnostics</title>
+    <link rel="stylesheet" href="/static/css/diagnostics.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-effects">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+        <div class="glow-orb orb-3"></div>
+    </div>
+
+    <main class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Hardware Diagnostics <span class="badge">LIVE</span></h1>
+            <p>System analysis and component testing suite</p>
+        </header>
+
+        <section class="control-panel">
+            <div class="glass-card">
+                <h2>Test Modules</h2>
+                <div class="button-grid">
+                    <button class="diag-btn" data-test="Arm Sweep">
+                        <span class="icon">🤖</span>
+                        <span class="text">Arm Sweep</span>
+                        <div class="btn-glow"></div>
+                    </button>
+                    <button class="diag-btn" data-test="Chassis Spin">
+                        <span class="icon">⚙️</span>
+                        <span class="text">Chassis Spin</span>
+                        <div class="btn-glow"></div>
+                    </button>
+                    <button class="diag-btn" data-test="Camera Feed">
+                        <span class="icon">📷</span>
+                        <span class="text">Camera Feed</span>
+                        <div class="btn-glow"></div>
+                    </button>
+                    <button class="diag-btn" data-test="Voice Module">
+                        <span class="icon">🎙️</span>
+                        <span class="text">Voice Module</span>
+                        <div class="btn-glow"></div>
+                    </button>
+                    <button class="diag-btn" data-test="Ollama LLM">
+                        <span class="icon">🧠</span>
+                        <span class="text">Ollama LLM</span>
+                        <div class="btn-glow"></div>
+                    </button>
+                    <button class="diag-btn" data-test="Path Recorder">
+                        <span class="icon">🗺️</span>
+                        <span class="text">Path Recorder</span>
+                        <div class="btn-glow"></div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-card terminal-card">
+                <div class="terminal-header">
+                    <div class="dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="terminal-title">system_output.sh</span>
+                </div>
+                <div class="terminal-window" id="terminal-output">
+                    <div class="terminal-line"><span class="prompt">root@mxsa:~#</span> Initializing diagnostics suite...</div>
+                    <div class="terminal-line success"><span class="prompt">root@mxsa:~#</span> Ready. Awaiting commands.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/js/diagnostics.js"></script>
+</body>
+</html>

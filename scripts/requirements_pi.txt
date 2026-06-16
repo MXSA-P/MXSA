@@ -1,0 +1,39 @@
+# _max_cyan_ — project_mxsa
+# _max_cyan_ — project_mxsa — raspberry pi dependencies
+# install: pip install -r requirements_pi.txt
+
+# hardware control
+pigpio==1.78
+smbus2==0.4.3
+
+# camera
+picamera2==0.3.36
+
+# ai / ml
+scikit-learn==1.5.2
+joblib==1.4.2
+numpy==1.26.4
+ai-edge-litert==2.1.5
+
+# vision
+opencv-python-headless==4.10.0.84
+Pillow==10.4.0
+
+# voice
+vosk==0.3.45
+sounddevice==0.5.1
+librosa==0.10.2
+soundfile==0.12.1
+
+# web dashboard
+flask==3.1.0
+flask-cors==5.0.0
+flask-socketio==5.6.1
+Flask-HTTPAuth==4.8.0
+
+psutil==6.1.0
+
+# utils
+pyyaml==6.0.2
+requests==2.32.3
+
