@@ -163,9 +163,11 @@ class ArmController:
             angle: target angle (elbow_min to elbow_max)
         """
         angle1 = max(self.elbow_min, min(self.elbow_max, angle))
-        angle2 = max(self.elbow_2_min, min(self.elbow_2_max, angle))
+        # Invert elbow 2 since it's physically mirrored
+        inverted_angle = 180 - angle1
+        angle2 = max(self.elbow_2_min, min(self.elbow_2_max, inverted_angle))
         self.move_smooth({"elbow": angle1, "elbow_2": angle2})
-        log_event("motion", f"arm elbows to {angle}°")
+        log_event("motion", f"arm elbows to {angle}° (elbow_2 inverted to {angle2}°)")
 
     def wrist(self, angle):
         """move wrist up/down."""

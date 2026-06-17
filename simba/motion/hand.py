@@ -83,7 +83,9 @@ class HandController:
     def _set_finger(self, finger_id, angle):
         """set individual finger to angle."""
         if 0 <= finger_id < 3:
-            pw = self._angle_to_pulse(angle)
+            # Finger 1 (index 0) is the top finger mounted upside down relative to the bottom two
+            actual_angle = (180 - angle) if finger_id == 0 else angle
+            pw = self._angle_to_pulse(actual_angle)
             try:
                 self.pi.set_servo_pulsewidth(self.finger_pins[finger_id], pw)
             except Exception as e:

@@ -152,7 +152,7 @@ After=network.target
 [Service]
 Type=forking
 PIDFile=/var/run/pigpio.pid
-ExecStart=/usr/local/bin/pigpiod
+ExecStart=/usr/local/bin/pigpiod -t 0
 ExecStop=/bin/kill -SIGINT $MAINPID
 Restart=on-failure
 
