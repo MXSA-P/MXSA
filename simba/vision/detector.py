@@ -105,7 +105,12 @@ class ObjectDetector:
         if not os.path.isfile(self._feature_model_path):
             fallback_path = _resolve_path("models/mobilenet_v2_1.0_224.tflite")
             if os.path.isfile(fallback_path):
-                self._feature_model_path = fallback_path
+                try:
+                    os.rename(fallback_path, self._feature_model_path)
+                    logger.info(f"Renamed {fallback_path} to {self._feature_model_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to rename model, using fallback path: {e}")
+                    self._feature_model_path = fallback_path
 
         self._classifier_path: str = _resolve_path(
             ai_cfg.get(

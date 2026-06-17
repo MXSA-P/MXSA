@@ -99,3 +99,126 @@
 {"timestamp": "2026-06-17T15:17:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 11.2s)"}
 {"timestamp": "2026-06-17T15:18:06", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 18.8s)"}
 {"timestamp": "2026-06-17T15:18:16", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 10.3s)"}
+{"timestamp": "2026-06-17T15:18:36", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 19.7s)"}
+{"timestamp": "2026-06-17T15:18:44", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 8.1s)"}
+{"timestamp": "2026-06-17T15:19:06", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 21.9s)"}
+{"timestamp": "2026-06-17T15:24:04", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan at current position"}
+{"timestamp": "2026-06-17T15:24:04", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan \u2014 0 detections"}
+{"timestamp": "2026-06-17T15:24:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 298.4s)"}
+{"timestamp": "2026-06-17T15:24:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 0.4s)"}
+{"timestamp": "2026-06-17T15:24:16", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 11.2s)"}
+{"timestamp": "2026-06-17T15:24:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 18.8s)"}
+{"timestamp": "2026-06-17T15:24:58", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 23.3s)"}
+{"timestamp": "2026-06-17T15:25:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 6.7s)"}
+{"timestamp": "2026-06-17T15:25:13", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 8.8s)"}
+{"timestamp": "2026-06-17T15:25:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 21.3s)"}
+{"timestamp": "2026-06-17T15:25:43", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan at current position"}
+{"timestamp": "2026-06-17T15:25:43", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan \u2014 0 detections"}
+{"timestamp": "2026-06-17T15:25:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 8.4s)"}
+{"timestamp": "2026-06-17T15:26:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 21.6s)"}
+{"timestamp": "2026-06-17T15:26:11", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 6.5s)"}
+{"timestamp": "2026-06-17T15:26:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 23.5s)"}
+{"timestamp": "2026-06-17T15:26:44", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 9.5s)"}
+{"timestamp": "2026-06-17T15:27:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 20.5s)"}
+{"timestamp": "2026-06-17T15:27:13", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 8.7s)"}
+{"timestamp": "2026-06-17T15:27:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 21.4s)"}
+{"timestamp": "2026-06-17T15:27:41", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 6.1s)"}
+{"timestamp": "2026-06-17T15:28:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 23.9s)"}
+{"timestamp": "2026-06-17T15:28:13", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 8.6s)"}
+{"timestamp": "2026-06-17T15:28:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 21.4s)"}
+{"timestamp": "2026-06-17T15:28:41", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan at current position"}
+{"timestamp": "2026-06-17T15:28:41", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan \u2014 0 detections"}
+{"timestamp": "2026-06-17T15:28:41", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 6.5s)"}
+{"timestamp": "2026-06-17T15:29:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 23.5s)"}
+{"timestamp": "2026-06-17T15:29:09", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 3.9s)"}
+{"timestamp": "2026-06-17T15:29:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 26.1s)"}
+{"timestamp": "2026-06-17T15:29:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 7.8s)"}
+{"timestamp": "2026-06-17T15:30:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 22.2s)"}
+{"timestamp": "2026-06-17T15:30:11", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 6.0s)"}
+{"timestamp": "2026-06-17T15:30:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 24.0s)"}
+{"timestamp": "2026-06-17T15:30:39", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 4.3s)"}
+{"timestamp": "2026-06-17T15:31:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 25.7s)"}
+{"timestamp": "2026-06-17T15:31:12", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 6.9s)"}
+{"timestamp": "2026-06-17T15:31:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 23.1s)"}
+{"timestamp": "2026-06-17T15:31:41", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 5.9s)"}
+{"timestamp": "2026-06-17T15:32:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 24.2s)"}
+{"timestamp": "2026-06-17T15:32:12", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 6.5s)"}
+{"timestamp": "2026-06-17T15:32:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 23.5s)"}
+{"timestamp": "2026-06-17T15:32:41", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 6.1s)"}
+{"timestamp": "2026-06-17T15:33:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 23.9s)"}
+{"timestamp": "2026-06-17T15:33:13", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan at current position"}
+{"timestamp": "2026-06-17T15:33:13", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan \u2014 0 detections"}
+{"timestamp": "2026-06-17T15:33:13", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 8.1s)"}
+{"timestamp": "2026-06-17T15:33:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 21.9s)"}
+{"timestamp": "2026-06-17T15:33:41", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 6.4s)"}
+{"timestamp": "2026-06-17T15:34:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 23.7s)"}
+{"timestamp": "2026-06-17T15:34:11", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 6.2s)"}
+{"timestamp": "2026-06-17T15:34:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 23.8s)"}
+{"timestamp": "2026-06-17T15:34:42", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 7.2s)"}
+{"timestamp": "2026-06-17T15:35:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 22.8s)"}
+{"timestamp": "2026-06-17T15:35:12", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 7.2s)"}
+{"timestamp": "2026-06-17T15:35:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 22.8s)"}
+{"timestamp": "2026-06-17T15:35:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 7.4s)"}
+{"timestamp": "2026-06-17T15:36:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 22.6s)"}
+{"timestamp": "2026-06-17T15:36:14", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan at current position"}
+{"timestamp": "2026-06-17T15:36:14", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan \u2014 0 detections"}
+{"timestamp": "2026-06-17T15:36:14", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 8.4s)"}
+{"timestamp": "2026-06-17T15:36:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 21.6s)"}
+{"timestamp": "2026-06-17T15:36:44", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan at current position"}
+{"timestamp": "2026-06-17T15:36:44", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan \u2014 0 detections"}
+{"timestamp": "2026-06-17T15:36:44", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 9.0s)"}
+{"timestamp": "2026-06-17T15:37:05", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 21.0s)"}
+{"timestamp": "2026-06-17T15:37:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 5.0s)"}
+{"timestamp": "2026-06-17T15:37:35", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 25.1s)"}
+{"timestamp": "2026-06-17T15:37:41", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 5.4s)"}
+{"timestamp": "2026-06-17T16:36:49", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 3548.6s)"}
+{"timestamp": "2026-06-17T16:36:49", "level": "INFO", "name": "simba.core.emotions", "message": "emotion changed: neutral (0.50) -> sleepy (0.50)"}
+{"timestamp": "2026-06-17T16:36:49", "level": "INFO", "name": "simba.core.emotions", "message": "event 'idle_long' -> emotion 'sleepy' (0.50)"}
+{"timestamp": "2026-06-17T16:37:16", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> RETURNING (was in ROAMING for 27.0s)"}
+{"timestamp": "2026-06-17T16:37:34", "level": "WARNING", "name": "simba.core.brain", "message": "Ollama error (falling back to simple response): HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=45)"}
+{"timestamp": "2026-06-17T16:38:01", "level": "WARNING", "name": "simba.core.brain", "message": "Ollama error (falling back to simple response): HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=45)"}
+{"timestamp": "2026-06-17T16:38:01", "level": "INFO", "name": "simba.core.emotions", "message": "emotion changed: sleepy (0.38) -> determined (0.90)"}
+{"timestamp": "2026-06-17T16:38:01", "level": "INFO", "name": "simba.core.emotions", "message": "event 'mission_start' -> emotion 'determined' (0.90)"}
+{"timestamp": "2026-06-17T16:38:01", "level": "INFO", "name": "simba.core.path_recorder", "message": "starting return journey: 37 steps to retrace"}
+{"timestamp": "2026-06-17T16:38:01", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 1/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:38:02", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 2/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:38:04", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 3/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:38:05", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 4/37: turn_left spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:38:35", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 5/37: turn_right spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:38:36", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 6/37: turn_left spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:38:37", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 7/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:38:39", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 8/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:38:40", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 9/37: turn_left spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:39:02", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 10/37: turn_right spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:39:03", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 11/37: turn_right spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:39:04", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 12/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:39:05", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 13/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:39:06", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 14/37: turn_right spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:39:36", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 15/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:39:37", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 16/37: turn_left spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:39:38", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 17/37: turn_right spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:39:39", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 18/37: turn_right spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:39:40", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 19/37: turn_left spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:40:15", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 20/37: turn_left spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:40:16", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 21/37: turn_right spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:40:17", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 22/37: turn_right spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:40:18", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 23/37: turn_right spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:40:19", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 24/37: turn_left spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:41:05", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 25/37: turn_right spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:41:06", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 26/37: turn_right spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:41:07", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 27/37: turn_left spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:41:08", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 28/37: turn_left spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:41:09", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 29/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:41:38", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 30/37: turn_right spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:41:39", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 31/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:41:40", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 32/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:41:42", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 33/37: turn_left spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:41:43", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 34/37: turn_left spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:42:12", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 35/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:42:13", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 36/37: turn_left spd=25 dur=0.8s"}
+{"timestamp": "2026-06-17T16:42:43", "level": "INFO", "name": "simba.core.path_recorder", "message": "step 37/37: backward spd=30 dur=1.0s"}
+{"timestamp": "2026-06-17T16:42:44", "level": "INFO", "name": "simba.core.path_recorder", "message": "return journey complete \u2014 path stack cleared"}
+{"timestamp": "2026-06-17T16:43:30", "level": "WARNING", "name": "simba.core.brain", "message": "Ollama error (falling back to simple response): HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=45)"}
+{"timestamp": "2026-06-17T16:43:30", "level": "INFO", "name": "simba.core.emotions", "message": "emotion changed: determined (0.41) -> happy (0.80)"}
+{"timestamp": "2026-06-17T16:43:30", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: RETURNING -> CHARGING (was in RETURNING for 373.4s)"}
+{"timestamp": "2026-06-17T16:43:59", "level": "INFO", "name": "simba.core.emotions", "message": "emotion changed: happy (0.76) -> sleepy (0.60)"}

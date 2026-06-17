@@ -100,10 +100,20 @@ class VisionTrainer:
                 "tflite runtime is required. install with: "
                 "pip install ai-edge-litert"
             )
-        if not os.path.exists(self.model_path):
-            raise FileNotFoundError(
-                f"mobilenetv2 tflite model not found at: {self.model_path}"
-            )
+        if not os.path.isfile(self.model_path):
+            fallback_path = os.path.join(os.path.dirname(self.model_path), "mobilenet_v2_1.0_224.tflite")
+            if os.path.isfile(fallback_path):
+                # Auto-rename the fallback model to the expected name
+                try:
+                    os.rename(fallback_path, self.model_path)
+                    logger.info(f"Renamed {fallback_path} to {self.model_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to rename model, using fallback path: {e}")
+                    self.model_path = fallback_path
+            else:
+                raise FileNotFoundError(
+                    f"mobilenetv2 tflite model not found at: {self.model_path}"
+                )
 
         self.interpreter = tflite.Interpreter(model_path=self.model_path)
         self.interpreter.allocate_tensors()

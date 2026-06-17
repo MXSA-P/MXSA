@@ -272,7 +272,10 @@ class VoiceListener:
                         callback=self._audio_callback,
                     )
                 except Exception as e_fallback:
-                    logger.error("failed to open 2-channel audio fallback: %s", e_fallback)
+                    if "device -1" in str(e_fallback) or "Error querying device" in str(e_fallback):
+                        logger.warning("No microphone detected (device -1). Voice listener disabled.")
+                    else:
+                        logger.error("failed to open 2-channel audio fallback: %s", e_fallback)
                     return False
             self._stream.start()
             self._listening = True

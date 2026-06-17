@@ -892,7 +892,6 @@ def api_path():
 
 
 @app.route("/video_feed")
-@auth.login_required
 def video_feed():
     """serve mjpeg camera stream."""
     return Response(
