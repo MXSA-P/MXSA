@@ -19,6 +19,11 @@ echo ""
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$DIR"
 
+echo -e "${YELLOW}Cleaning up any dangling zombie processes...${NC}"
+pkill -f "python.*simba.main" 2>/dev/null || true
+fuser -k 8080/tcp 2>/dev/null || true
+sleep 1
+
 # Dependency Validation
 if ! command -v python3 &> /dev/null; then
     echo -e "${RED}Error: python3 is not installed.${NC}"

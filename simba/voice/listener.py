@@ -127,8 +127,11 @@ class VoiceListener:
             if np.isnan(indata).any():
                 return
                 
-            # Average channels to support both L/R INMP441 wiring
-            audio_data = np.mean(indata, axis=1)
+            # INMP441 wired with L/R to GND outputs exclusively on the Left channel (index 0)
+            if indata.shape[1] >= 2:
+                audio_data = indata[:, 0]
+            else:
+                audio_data = indata[:, 0]
 
             # calculate rms energy
             energy = float(np.sqrt(np.mean(audio_data**2)))
@@ -223,6 +226,7 @@ class VoiceListener:
 
         try:
             device_id = None
+            is_i2s = False
             try:
                 devices = sd.query_devices()
                 for i, dev in enumerate(devices):
@@ -230,6 +234,12 @@ class VoiceListener:
                     if dev['max_input_channels'] > 0 and ('i2s' in name or 'inmp441' in name or 'snd' in name or 'mic' in name):
                         device_id = i
                         logger.info("Found potential I2S microphone at device index %d: %s", i, dev['name'])
+                        if 'i2s' in name or 'snd' in name or 'voicehat' in name:
+                            is_i2s = True
+                            self.channels = 2
+                            self.sample_rate = 48000
+                            from vosk import KaldiRecognizer
+                            self.recognizer = KaldiRecognizer(self.model, self.sample_rate)
                         break
             except Exception as e:
                 logger.warning("Failed to query devices for I2S mic: %s", e)
@@ -244,12 +254,13 @@ class VoiceListener:
                     callback=self._audio_callback,
                 )
             except Exception as e_default:
-                logger.warning("failed to open 1-channel audio stream (device=%s): %s", device_id, e_default)
-                if "sample rate" in str(e_default).lower():
-                    logger.warning("Falling back to 48000Hz for I2S microphone compatibility.")
-                    self.sample_rate = 48000
-                    from vosk import KaldiRecognizer
-                    self.recognizer = KaldiRecognizer(self.model, self.sample_rate)
+                if not is_i2s:
+                    logger.warning("failed to open audio stream (device=%s): %s", device_id, e_default)
+                    if "sample rate" in str(e_default).lower():
+                        logger.warning("Falling back to 48000Hz for compatibility.")
+                        self.sample_rate = 48000
+                        from vosk import KaldiRecognizer
+                        self.recognizer = KaldiRecognizer(self.model, self.sample_rate)
 
                 try:
                     self._stream = sd.InputStream(

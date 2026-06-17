@@ -124,11 +124,18 @@ class CameraController:
 
         # Initialize picamera2 right before starting to prevent stale locks
         if self.camera is None and Picamera2 is not None:
-            try:
-                self.camera = Picamera2()
-            except Exception as exc:
-                logger.error("failed to initialise picamera2: %s", exc)
-                self.camera = None
+            import time
+            for attempt in range(3):
+                try:
+                    self.camera = Picamera2()
+                    break
+                except Exception as exc:
+                    logger.warning("Picamera2 init attempt %d failed: %s", attempt + 1, exc)
+                    self.camera = None
+                    time.sleep(1.0)
+            
+            if self.camera is None:
+                logger.error("failed to initialise picamera2 after 3 attempts.")
 
         if self.camera is not None:
             import time

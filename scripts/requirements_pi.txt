@@ -36,4 +36,7 @@ psutil==6.1.0
 # utils
 pyyaml==6.0.2
 requests==2.32.3
+Flask-SQLAlchemy>=3.0.1
+matplotlib>=3.8
+pandas-stubs
 

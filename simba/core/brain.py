@@ -1506,7 +1506,9 @@ class SimbaBrain:
                 "stream": False,
                 "options": {
                     "temperature": self.config["ai"].get("llm_temperature", 0.7),
-                    "num_predict": self.config["ai"].get("llm_max_tokens", 128)
+                    "num_predict": self.config["ai"].get("llm_max_tokens", 128),
+                    "num_ctx": 512,
+                    "num_thread": 2
                 }
             }
             # send request to local ollama daemon
@@ -1519,6 +1521,9 @@ class SimbaBrain:
 
             log_event("ai", f"llm thought: {answer[:100]}")
             return answer
+        except requests.exceptions.HTTPError as e:
+            logger.warning("Ollama HTTP Error %s: %s", e.response.status_code, e.response.text)
+            return self._simple_response(prompt)
         except requests.exceptions.ConnectionError:
             logger.warning("Ollama daemon is not running or unreachable at %s. Falling back to simple responses.", self.ollama_url)
             return self._simple_response(prompt)
