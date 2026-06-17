@@ -100,8 +100,13 @@ class ObjectDetector:
         cfg = _load_config()
         ai_cfg = cfg.get("ai", {})
 
-        self._feature_model_path: str = _resolve_path(ai_cfg.get(
-            "vision_model_path", "models/mobilenetv2_feature_extractor.tflite"))
+        feature_model = ai_cfg.get("vision_model_path", "models/mobilenetv2_feature_extractor.tflite")
+        self._feature_model_path: str = _resolve_path(feature_model)
+        if not os.path.isfile(self._feature_model_path):
+            fallback_path = _resolve_path("models/mobilenet_v2_1.0_224.tflite")
+            if os.path.isfile(fallback_path):
+                self._feature_model_path = fallback_path
+
         self._classifier_path: str = _resolve_path(
             ai_cfg.get(
                 "object_classifier_path",
@@ -224,7 +229,7 @@ class ObjectDetector:
             return False
 
         if not os.path.isfile(self._classifier_path):
-            logger.warning("classifier not found: %s", self._classifier_path)
+            logger.info("classifier not found (expected on fresh install, falling back to YOLO): %s", self._classifier_path)
             return False
 
         try:
@@ -358,7 +363,9 @@ class ObjectDetector:
         detections: List[Dict] = []
         
         if hasattr(self, 'yolo') and self.yolo and self.yolo.model is not None:
-            detections.extend(self.yolo.detect_objects(frame))
+            yolo_dets = self.yolo.detect_objects(frame)
+            if yolo_dets is not None:
+                detections.extend(yolo_dets)
 
         if self.classifier is not None and self.interpreter is not None:
             label, conf = self.classify(frame)
@@ -427,6 +434,8 @@ class ObjectDetector:
             (found, confidence, bbox) — bbox is [x, y, w, h] or empty list.
         """
         detections = self.detect_objects(frame)
+        if detections is None:
+            detections = []
         for det in detections:
             if det["label"].lower() == target_label.lower():
                 return (True, det["confidence"], det["bbox"])

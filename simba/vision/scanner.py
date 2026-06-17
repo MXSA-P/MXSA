@@ -254,6 +254,8 @@ class AreaScanner:
             return []
 
         detections = self.detector.detect_objects(frame)
+        if detections is None:
+            detections = []
 
         # tag with current rotation angle
         current_angle = self.arm.current.get("rotation", 90)
@@ -362,6 +364,8 @@ class AreaScanner:
             return None
 
         detections = self.detector.detect_objects(frame)
+        if detections is None:
+            detections = []
         timestamp = time.time()
 
         for det in detections:

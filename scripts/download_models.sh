@@ -39,9 +39,9 @@ if [ ! -f "${MODELS_DIR}/mobilenetv2_feature_extractor.tflite" ]; then
     echo -e "${YELLOW}  downloading mobilenetv2 tflite model (~14mb)...${NC}"
     cd "${MODELS_DIR}"
     wget -q "https://storage.googleapis.com/download.tensorflow.org/models/tflite_11_05_08/mobilenet_v2_1.0_224.tgz" -O mn.tgz || { echo -e "${RED}wget failed${NC}"; exit 1; }
-    tar xzf mn.tgz || { echo -e "${RED}tar extract failed${NC}"; exit 1; }
-    mv mobilenet_v2_1.0_224.tflite "${MODELS_DIR}/mobilenetv2_feature_extractor.tflite" 2>/dev/null || true
-    rm -f mn.tgz *.tflite 2>/dev/null || true
+    tar -xzf mn.tgz -C "${MODELS_DIR}" mobilenet_v2_1.0_224.tflite || { echo -e "${RED}tar extract failed${NC}"; exit 1; }
+    mv "${MODELS_DIR}/mobilenet_v2_1.0_224.tflite" "${MODELS_DIR}/mobilenetv2_feature_extractor.tflite" 2>/dev/null || true
+    rm -f mn.tgz 2>/dev/null || true
     echo -e "${GREEN}  ✓ mobilenetv2 model downloaded${NC}"
 else
     echo -e "${GREEN}  ✓ mobilenetv2 model already exists${NC}"

@@ -63,6 +63,12 @@ elif command -v ollama &> /dev/null; then
     fi
 fi
 
+# Ensure model is pulled
+if command -v ollama &> /dev/null; then
+    echo -e "${YELLOW}  verifying qwen2.5:0.5b model is pulled...${NC}"
+    ollama pull qwen2.5:0.5b > /dev/null 2>&1 || echo -e "${RED}  failed to pull qwen2.5:0.5b, ai responses might fail${NC}"
+fi
+
 # activate virtual environment
 if [ -d "venv" ]; then
     source venv/bin/activate

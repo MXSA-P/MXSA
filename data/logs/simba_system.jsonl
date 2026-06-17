@@ -1,0 +1,101 @@
+{"timestamp": "2026-06-17T15:07:44", "level": "INFO", "name": "simba.main", "message": "Boot sequence initiated."}
+{"timestamp": "2026-06-17T15:07:44", "level": "INFO", "name": "simba.main", "message": "Loading configuration..."}
+{"timestamp": "2026-06-17T15:07:44", "level": "INFO", "name": "simba.main", "message": "configuration loaded"}
+{"timestamp": "2026-06-17T15:07:44", "level": "INFO", "name": "simba.main", "message": "Initializing hardware subsystems (Brain)..."}
+{"timestamp": "2026-06-17T15:07:44", "level": "INFO", "name": "simba.core.brain", "message": "=================================================="}
+{"timestamp": "2026-06-17T15:07:44", "level": "INFO", "name": "simba.core.brain", "message": "  simba brain initializing..."}
+{"timestamp": "2026-06-17T15:07:44", "level": "INFO", "name": "simba.core.brain", "message": "  _max_cyan_ \u2014 project_mxsa"}
+{"timestamp": "2026-06-17T15:07:44", "level": "INFO", "name": "simba.core.brain", "message": "=================================================="}
+{"timestamp": "2026-06-17T15:07:44", "level": "WARNING", "name": "simba.motion.arm", "message": "pigpio not available, using mock"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.motion.arm", "message": "arm controller initialized"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.brain", "message": "[ok] arm controller"}
+{"timestamp": "2026-06-17T15:07:45", "level": "WARNING", "name": "simba.motion.hand", "message": "pigpio not available, using mock"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.motion.hand", "message": "hand controller initialized (3-finger triangle)"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.brain", "message": "[ok] hand controller"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.motion.chassis", "message": "chassis controller initialized (6-pin L298N 2wd differential)"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.brain", "message": "[ok] chassis controller"}
+{"timestamp": "2026-06-17T15:07:45", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.brain", "message": "[ok] imu reader"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.brain", "message": "[ok] camera controller"}
+{"timestamp": "2026-06-17T15:07:45", "level": "WARNING", "name": "simba.vision.detector", "message": "feature model not found: /home/mazo/Documents/MXSA/models/mobilenetv2_feature_extractor.tflite"}
+{"timestamp": "2026-06-17T15:07:45", "level": "WARNING", "name": "simba.vision.detector", "message": "classifier not found: /home/mazo/Documents/MXSA/models/object_classifier.joblib"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.vision.hybrid", "message": "[ok] Hybrid Detector (YOLO + SVM) initialized"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.brain", "message": "[ok] hybrid object detector"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.memory", "message": "no memory file found at /home/mazo/Documents/MXSA/data/memory.json \u2014 starting fresh"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.brain", "message": "[ok] memory system"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.emotions", "message": "emotion engine v2 initialized (mood=curious, intensity=0.50, personality={'curiosity': 0.8, 'playfulness': 0.7, 'loyalty': 0.9, 'sensitivity': 0.6})"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.brain", "message": "[ok] emotion engine"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.brain", "message": "[ok] state machine"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.vision.scanner", "message": "area scanner initialised \u2014 angles [0, 45, 90, 135, 180]"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.brain", "message": "[ok] area scanner"}
+{"timestamp": "2026-06-17T15:07:45", "level": "WARNING", "name": "simba.voice.listener", "message": "vosk not installed \u2014 voice listener disabled"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.brain", "message": "[ok] voice listener"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-17T15:07:45", "level": "INFO", "name": "simba.core.brain", "message": "[ok] command parser"}
+{"timestamp": "2026-06-17T15:07:48", "level": "INFO", "name": "simba.voice.speaker_verify", "message": "no speaker model found at /home/mazo/Documents/MXSA/models/speaker_model.joblib \u2014 not enrolled"}
+{"timestamp": "2026-06-17T15:07:48", "level": "INFO", "name": "simba.core.brain", "message": "[ok] speaker verifier"}
+{"timestamp": "2026-06-17T15:07:48", "level": "INFO", "name": "simba.core.brain", "message": "[ok] llm configured for ollama: qwen2.5:0.5b"}
+{"timestamp": "2026-06-17T15:07:48", "level": "INFO", "name": "simba.core.path_recorder", "message": "path recorder initialized (0 entries loaded)"}
+{"timestamp": "2026-06-17T15:07:48", "level": "INFO", "name": "simba.core.brain", "message": "[ok] path recorder initialized"}
+{"timestamp": "2026-06-17T15:07:48", "level": "INFO", "name": "simba.core.brain", "message": "simba brain initialized successfully!"}
+{"timestamp": "2026-06-17T15:07:48", "level": "INFO", "name": "simba.main", "message": "Starting main brain loop..."}
+{"timestamp": "2026-06-17T15:07:48", "level": "INFO", "name": "simba.vision.camera", "message": "camera started (simulation mode)"}
+{"timestamp": "2026-06-17T15:07:48", "level": "ERROR", "name": "simba.voice.listener", "message": "vosk recognizer not loaded \u2014 cannot start listener"}
+{"timestamp": "2026-06-17T15:07:48", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> SCANNING (was in BOOTING for 3.3s)"}
+{"timestamp": "2026-06-17T15:08:33", "level": "WARNING", "name": "simba.core.brain", "message": "Ollama error (falling back to simple response): HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=45)"}
+{"timestamp": "2026-06-17T15:08:33", "level": "INFO", "name": "simba.vision.scanner", "message": "starting area scan (5 positions)"}
+{"timestamp": "2026-06-17T15:08:39", "level": "INFO", "name": "simba.vision.scanner", "message": "area scan complete \u2014 0 objects across 5 angles"}
+{"timestamp": "2026-06-17T15:08:40", "level": "INFO", "name": "simba.vision.scanner", "message": "starting area scan (5 positions)"}
+{"timestamp": "2026-06-17T15:08:45", "level": "INFO", "name": "simba.vision.scanner", "message": "area scan complete \u2014 0 objects across 5 angles"}
+{"timestamp": "2026-06-17T15:08:46", "level": "INFO", "name": "simba.vision.scanner", "message": "starting area scan (5 positions)"}
+{"timestamp": "2026-06-17T15:08:52", "level": "INFO", "name": "simba.vision.scanner", "message": "area scan complete \u2014 0 objects across 5 angles"}
+{"timestamp": "2026-06-17T15:08:53", "level": "INFO", "name": "simba.vision.scanner", "message": "starting area scan (5 positions)"}
+{"timestamp": "2026-06-17T15:08:58", "level": "INFO", "name": "simba.vision.scanner", "message": "area scan complete \u2014 0 objects across 5 angles"}
+{"timestamp": "2026-06-17T15:09:44", "level": "WARNING", "name": "simba.core.brain", "message": "Ollama error (falling back to simple response): HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=45)"}
+{"timestamp": "2026-06-17T15:09:44", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: SCANNING -> IDLE (was in SCANNING for 116.0s)"}
+{"timestamp": "2026-06-17T15:09:44", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-17T15:09:44", "level": "INFO", "name": "simba.core.brain", "message": "simba is alive and ready!"}
+{"timestamp": "2026-06-17T15:09:44", "level": "INFO", "name": "simba.main", "message": "Starting web dashboard..."}
+{"timestamp": "2026-06-17T15:09:46", "level": "ERROR", "name": "simba.main", "message": "web dashboard failed: No module named 'flask_socketio'"}
+{"timestamp": "2026-06-17T15:10:29", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 44.9s)"}
+{"timestamp": "2026-06-17T15:10:29", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 0.4s)"}
+{"timestamp": "2026-06-17T15:10:37", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan at current position"}
+{"timestamp": "2026-06-17T15:10:37", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan \u2014 0 detections"}
+{"timestamp": "2026-06-17T15:10:37", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 8.0s)"}
+{"timestamp": "2026-06-17T15:10:59", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 22.1s)"}
+{"timestamp": "2026-06-17T15:11:14", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 14.7s)"}
+{"timestamp": "2026-06-17T15:11:29", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 15.3s)"}
+{"timestamp": "2026-06-17T15:11:41", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 11.3s)"}
+{"timestamp": "2026-06-17T15:12:00", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 18.7s)"}
+{"timestamp": "2026-06-17T15:12:13", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan at current position"}
+{"timestamp": "2026-06-17T15:12:13", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan \u2014 0 detections"}
+{"timestamp": "2026-06-17T15:12:13", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 13.5s)"}
+{"timestamp": "2026-06-17T15:12:30", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 16.5s)"}
+{"timestamp": "2026-06-17T15:12:42", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan at current position"}
+{"timestamp": "2026-06-17T15:12:42", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan \u2014 0 detections"}
+{"timestamp": "2026-06-17T15:12:42", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 12.1s)"}
+{"timestamp": "2026-06-17T15:13:00", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 17.9s)"}
+{"timestamp": "2026-06-17T15:13:08", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 8.9s)"}
+{"timestamp": "2026-06-17T15:13:30", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 21.1s)"}
+{"timestamp": "2026-06-17T15:13:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 17.7s)"}
+{"timestamp": "2026-06-17T15:14:00", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 12.4s)"}
+{"timestamp": "2026-06-17T15:14:15", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 15.4s)"}
+{"timestamp": "2026-06-17T15:14:30", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 14.6s)"}
+{"timestamp": "2026-06-17T15:14:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 13.8s)"}
+{"timestamp": "2026-06-17T15:15:00", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 16.3s)"}
+{"timestamp": "2026-06-17T15:15:16", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 16.8s)"}
+{"timestamp": "2026-06-17T15:15:30", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 13.3s)"}
+{"timestamp": "2026-06-17T15:15:43", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan at current position"}
+{"timestamp": "2026-06-17T15:15:43", "level": "INFO", "name": "simba.vision.scanner", "message": "quick scan \u2014 0 detections"}
+{"timestamp": "2026-06-17T15:15:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 12.9s)"}
+{"timestamp": "2026-06-17T15:16:00", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 17.2s)"}
+{"timestamp": "2026-06-17T15:16:22", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 22.2s)"}
+{"timestamp": "2026-06-17T15:16:30", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 7.9s)"}
+{"timestamp": "2026-06-17T15:17:06", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 35.8s)"}
+{"timestamp": "2026-06-17T15:17:06", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 0.3s)"}
+{"timestamp": "2026-06-17T15:17:19", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 13.0s)"}
+{"timestamp": "2026-06-17T15:17:36", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 17.0s)"}
+{"timestamp": "2026-06-17T15:17:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 11.2s)"}
+{"timestamp": "2026-06-17T15:18:06", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> ROAMING (was in IDLE for 18.8s)"}
+{"timestamp": "2026-06-17T15:18:16", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: ROAMING -> IDLE (was in ROAMING for 10.3s)"}

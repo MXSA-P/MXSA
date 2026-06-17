@@ -1522,7 +1522,10 @@ class SimbaBrain:
             log_event("ai", f"llm thought: {answer[:100]}")
             return answer
         except requests.exceptions.HTTPError as e:
-            logger.warning("Ollama HTTP Error %s: %s", e.response.status_code, e.response.text)
+            if e.response.status_code == 500:
+                logger.warning("Ollama HTTP Error 500: Model might be missing. Run 'ollama pull qwen2.5:0.5b'")
+            else:
+                logger.warning("Ollama HTTP Error %s: %s", e.response.status_code, e.response.text)
             return self._simple_response(prompt)
         except requests.exceptions.ConnectionError:
             logger.warning("Ollama daemon is not running or unreachable at %s. Falling back to simple responses.", self.ollama_url)

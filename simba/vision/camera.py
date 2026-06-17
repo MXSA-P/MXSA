@@ -24,9 +24,10 @@ import numpy as np
 from simba.utils.logger import get_logger, log_event
 
 try:
-    from picamera2 import Picamera2
+    from picamera2 import Picamera2, Transform
 except ImportError:
     Picamera2 = None
+    Transform = None
 
 try:
     from PIL import Image
@@ -148,7 +149,7 @@ class CameraController:
                             "size": self.resolution,
                             "format": self._format,
                         },
-                        transform={"hflip": False, "vflip": False}
+                        transform=Transform(hflip=False, vflip=False) if Transform else None
                     )
                     # Tune ISP for sharper captures and faster autofocus
                     self.camera.configure(config)
