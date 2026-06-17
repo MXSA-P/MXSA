@@ -105,21 +105,8 @@ class CameraController:
         self._frame_lock = threading.Lock()
         self._capture_thread: Optional[threading.Thread] = None
 
-        # picamera2 instance
+        # picamera2 instance (initialized in start() to prevent sequencer lockups)
         self.camera = None
-        if Picamera2 is not None:
-            try:
-                self.camera = Picamera2()
-                logger.info(
-                    "camera initialised — resolution %s, format %s",
-                    self.resolution, self._format,
-                )
-            except Exception as exc:
-                logger.error("failed to initialise picamera2: %s", exc)
-                self.camera = None
-        else:
-            logger.warning(
-                "picamera2 not available — running in simulation mode")
 
         log_event("vision", "camera controller initialised", {
             "resolution": list(self.resolution),
@@ -135,31 +122,60 @@ class CameraController:
             logger.warning("camera already running")
             return
 
-        if self.camera is not None:
+        # Initialize picamera2 right before starting to prevent stale locks
+        if self.camera is None and Picamera2 is not None:
             try:
-                # Optimized configuration for 5MP CSI sensor (OV5647)
-                config = self.camera.create_video_configuration(
-                    main={
-                        "size": self.resolution,
-                        "format": self._format,
-                    },
-                    transform={"hflip": False, "vflip": False}
-                )
-                # Tune ISP for sharper captures and faster autofocus
-                self.camera.configure(config)
-                self.camera.set_controls({"AfMode": 1, "AwbMode": 1})
-                self.camera.start()
-                self._running = True
-
-                # start background capture thread
-                self._capture_thread = threading.Thread(
-                    target=self._capture_loop, daemon=True, name="camera-capture", )
-                self._capture_thread.start()
-
-                logger.info("camera started")
-                log_event("vision", "camera started")
+                self.camera = Picamera2()
             except Exception as exc:
-                logger.error("failed to start camera: %s", exc)
+                logger.error("failed to initialise picamera2: %s", exc)
+                self.camera = None
+
+        if self.camera is not None:
+            import time
+            success = False
+            for attempt in range(3):
+                try:
+                    # Optimized configuration for 5MP CSI sensor (OV5647)
+                    config = self.camera.create_video_configuration(
+                        main={
+                            "size": self.resolution,
+                            "format": self._format,
+                        },
+                        transform={"hflip": False, "vflip": False}
+                    )
+                    # Tune ISP for sharper captures and faster autofocus
+                    self.camera.configure(config)
+                    try:
+                        self.camera.set_controls({"AfMode": 1, "AwbMode": 1})
+                    except Exception as ctrl_exc:
+                        logger.warning("Failed to set AF/AWB controls (maybe fixed-focus sensor): %s", ctrl_exc)
+                    
+                    self.camera.start_and_step()  # Use start_and_step to prevent sequencer errors
+                    success = True
+                    break
+                except Exception as exc:
+                    logger.warning("Camera start attempt %d failed: %s", attempt + 1, exc)
+                    if self.camera:
+                        try:
+                            self.camera.stop()
+                        except:
+                            pass
+                    time.sleep(0.5)
+
+            if not success:
+                logger.error("Failed to start picamera2 after 3 attempts.")
+                self.camera = None
+                return
+
+            self._running = True
+
+            # start background capture thread
+            self._capture_thread = threading.Thread(
+                target=self._capture_loop, daemon=True, name="camera-capture", )
+            self._capture_thread.start()
+
+            logger.info("camera started")
+            log_event("vision", "camera started")
         else:
             # simulation mode — mark as running so other methods work
             self._running = True

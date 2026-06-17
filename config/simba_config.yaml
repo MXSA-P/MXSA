@@ -9,7 +9,7 @@ ai:
   object_classifier_path: models/object_classifier.joblib
   object_label_map_path: models/object_labels.json
   ollama_model: qwen2.5:0.5b
-  ollama_url: http://localhost:11434/api/chat
+  ollama_url: http://localhost:11434/api/generate
   scan_sweep_angles:
   - 0
   - 45

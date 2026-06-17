@@ -1519,8 +1519,11 @@ class SimbaBrain:
 
             log_event("ai", f"llm thought: {answer[:100]}")
             return answer
+        except requests.exceptions.ConnectionError:
+            logger.warning("Ollama daemon is not running or unreachable at %s. Falling back to simple responses.", self.ollama_url)
+            return self._simple_response(prompt)
         except Exception as e:
-            logger.warning(f"ollama unavailable (falling back to simple response): {e}")
+            logger.warning(f"Ollama error (falling back to simple response): {e}")
             return self._simple_response(prompt)
 
     def _simple_response(self, prompt):

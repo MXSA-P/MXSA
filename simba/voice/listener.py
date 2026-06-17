@@ -222,8 +222,21 @@ class VoiceListener:
             return False
 
         try:
+            device_id = None
+            try:
+                devices = sd.query_devices()
+                for i, dev in enumerate(devices):
+                    name = dev['name'].lower()
+                    if dev['max_input_channels'] > 0 and ('i2s' in name or 'inmp441' in name or 'snd' in name or 'mic' in name):
+                        device_id = i
+                        logger.info("Found potential I2S microphone at device index %d: %s", i, dev['name'])
+                        break
+            except Exception as e:
+                logger.warning("Failed to query devices for I2S mic: %s", e)
+
             try:
                 self._stream = sd.InputStream(
+                    device=device_id,
                     samplerate=self.sample_rate,
                     channels=self.channels,
                     dtype="float32",
@@ -231,9 +244,16 @@ class VoiceListener:
                     callback=self._audio_callback,
                 )
             except Exception as e_default:
-                logger.warning("failed to open 1-channel audio stream (%s), trying 2 channels...", e_default)
+                logger.warning("failed to open 1-channel audio stream (device=%s): %s", device_id, e_default)
+                if "sample rate" in str(e_default).lower():
+                    logger.warning("Falling back to 48000Hz for I2S microphone compatibility.")
+                    self.sample_rate = 48000
+                    from vosk import KaldiRecognizer
+                    self.recognizer = KaldiRecognizer(self.model, self.sample_rate)
+
                 try:
                     self._stream = sd.InputStream(
+                        device=device_id,
                         samplerate=self.sample_rate,
                         channels=2,  # Fallback to stereo for generic I2S mics
                         dtype="float32",
