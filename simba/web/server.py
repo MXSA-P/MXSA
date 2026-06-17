@@ -11,7 +11,7 @@ import time
 import threading
 import secrets
 from datetime import datetime
-from typing import Any, Optional, Dict, Tuple
+from typing import Any, Optional
 
 import yaml
 
@@ -21,12 +21,32 @@ except ImportError:
     psutil = None
 
 from flask import Flask, render_template, jsonify, request, Response
-from flask_socketio import SocketIO, emit
+try:
+    from flask_socketio import SocketIO, emit
+except ImportError:
+    class SocketIO:
+        def __init__(self, *args, **kwargs): pass
+        def on(self, *args, **kwargs): return lambda f: f
+        def on_error_default(self, f): return f
+        def start_background_task(self, target, *args, **kwargs):
+            t = threading.Thread(target=target, args=args, kwargs=kwargs, daemon=True)
+            t.start()
+            return t
+        def sleep(self, seconds): time.sleep(seconds)
+        def run(self, app, host=None, port=None, debug=None, **kwargs): app.run(host=host, port=port, debug=debug)
+        def emit(self, *args, **kwargs): pass
+    def emit(*args, **kwargs): pass
 try:
     from flask_cors import CORS
 except ImportError:
     CORS = None
-from flask_httpauth import HTTPBasicAuth
+try:
+    from flask_httpauth import HTTPBasicAuth
+except ImportError:
+    class HTTPBasicAuth:
+        def __init__(self): pass
+        def login_required(self, f): return f
+        def verify_password(self, f): return f
 
 auth = HTTPBasicAuth()
 
@@ -425,18 +445,9 @@ def _status_push_loop() -> None:
         try:
             payload = _build_status_payload()
 
-            # --- God-Mode Vision YOLO Tracking ---
-            if _brain is not None and hasattr(
-                    _brain, "camera") and hasattr(
-                    _brain, "detector"):
-                try:
-                    with _brain._hardware_lock:
-                        frame = _brain.camera.get_frame()
-                    if frame is not None:
-                        detections = _brain.detector.detect_objects(frame)
-                        payload["robot"]["detected_objects"] = detections
-                except Exception as e_vis:
-                    logger.debug(f"yolo vision loop error: {e_vis}")
+            # Vision objects are already updated asynchronously by the scanner background thread
+            # and included in the robot state payload. Running synchronous detection
+            # here blocks the SocketIO event loop and freezes the dashboard.
 
             # Cache check to avoid network flooding
             # Ignore uptime and timestamp which change every tick
@@ -615,6 +626,33 @@ def api_hardware_motor():
     return jsonify({"status": f"chassis {action}"})
 
 
+@app.route("/api/hardware/servo_test", methods=["POST"])
+@auth.login_required
+def api_hardware_servo_test():
+    """test raw servo limits and angles directly using the formula."""
+    if _brain is None:
+        return jsonify({"error": "brain not connected"}), 503
+    
+    data = request.get_json(silent=True) or {}
+    try:
+        pin = int(data.get("pin"))
+        p_min = int(data.get("pulse_min", 500))
+        p_max = int(data.get("pulse_max", 2500))
+        angle = float(data.get("angle", 90))
+        
+        # calculate pulse using the standard formula
+        pulse = int(round(p_min + (angle / 180.0) * (p_max - p_min)))
+        
+        # actuate directly using pigpio instance
+        if hasattr(_brain, "arm") and hasattr(_brain.arm, "pi"):
+            _brain.arm.pi.set_servo_pulsewidth(pin, pulse)
+            return jsonify({"status": "success", "pulse": pulse, "angle": angle})
+        else:
+            return jsonify({"error": "hardware not available"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 @app.route("/api/hardware/arm", methods=["POST"])
 @auth.login_required
 def api_hardware_arm():
@@ -635,7 +673,7 @@ def api_hardware_arm():
 
     try:
         if joint == "rotation":
-            _brain.arm.rotate(angle)
+            _brain.arm.rotation(angle)
         elif joint == "elbow":
             _brain.arm.raise_arm(angle)
         elif joint == "elbow_2":
@@ -697,11 +735,11 @@ def api_hardware_hand():
         elif action == "open":
             _brain.hand.paper()
         elif action == "close":
-            _brain.hand.set_fingers("close")
+            _brain.hand.grab()
         elif action == "point":
-            _brain.hand.set_fingers("point")
+            _brain.hand.point()
         elif action == "thumbs_up":
-            _brain.hand.set_fingers("thumbs_up")
+            _brain.hand.thumbs_up()
         else:
             return jsonify({"error": "invalid hand action"}), 400
     except Exception as e:

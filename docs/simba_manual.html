@@ -53,13 +53,26 @@
 
     body {
       font-family: var(--font-body);
-      background: linear-gradient(160deg, var(--bg-deep) 0%, var(--bg-mid) 50%, #0f0f23 100%);
+      background-color: var(--bg-deep);
+      background-image: 
+        radial-gradient(ellipse at top right, rgba(0, 212, 255, 0.15), transparent 50%),
+        radial-gradient(ellipse at bottom left, rgba(255, 215, 0, 0.08), transparent 50%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+      background-position: 0 0, 0 0, -1px -1px, -1px -1px;
       color: var(--text-primary);
       line-height: 1.75;
       font-size: 16px;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
+      animation: bgPan 60s linear infinite;
+    }
+
+    @keyframes bgPan {
+      0% { background-position: 0 0, 0 0, 0 0, 0 0; }
+      100% { background-position: 0 0, 0 0, 300px 300px, 300px 300px; }
     }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -3172,16 +3185,16 @@ self.pi.set_PWM_dutycycle(self.ena, min(duty, 255))</code></pre>
     """
     ax, ay, az = self.read_accel()
 
-    if abs(az) > 0.8 and abs(ax) < 0.3 and abs(ay) < 0.3:
-        return "level"          # gravity is mostly on Z-axis
-    elif ay > 0.5:
-        return "tilted_right"   # gravity pulling Y positive
-    elif ay < -0.5:
-        return "tilted_left"    # gravity pulling Y negative
-    elif ax > 0.5:
-        return "pointing_down"  # gravity pulling X positive
+    if abs(ay) > 0.8 and abs(ax) < 0.5 and abs(az) < 0.5:
+        return "level"          # Hand is level, gravity mostly pulling Y down
     elif ax < -0.5:
-        return "pointing_up"    # gravity pulling X negative
+        return "tilted_right"   # Gravity pulling X negative (Right tilt)
+    elif ax > 0.5:
+        return "tilted_left"    # Gravity pulling X positive (Left tilt)
+    elif az > 0.5:
+        return "pointing_up"    # Gravity pulling Z positive (Hand up)
+    elif az < -0.5:
+        return "pointing_down"  # Gravity pulling Z negative (Hand down)
     return "level"</code></pre>
 
 <div class="diagram-box">
@@ -3227,7 +3240,7 @@ self.pi.set_PWM_dutycycle(self.ena, min(duty, 255))</code></pre>
 
         self.camera = Picamera2()             # the actual camera</code></pre>
 
-<p>Starting the camera configures it and launches a background capture thread:</p>
+<p>Starting the camera configures it and launches a background capture thread. It is vital to use <code>self.camera.start()</code> instead of <code>start_and_step()</code>, because <code>start()</code> ensures the sensor runs continuously—allowing its auto-exposure algorithms to adjust to the room's lighting so we never get stuck on a pitch-black first frame.</p>
 
 <pre><code>def start(self) -> None:
     config = self.camera.create_still_configuration(
@@ -3235,13 +3248,15 @@ self.pi.set_PWM_dutycycle(self.ena, min(duty, 255))</code></pre>
         buffer_count=2,
     )
     self.camera.configure(config)
-    self.camera.start()
+    self.camera.start()  # Continuous streaming mode!
 
     # background thread continuously grabs frames
     self._capture_thread = threading.Thread(
         target=self._capture_loop, daemon=True, name="camera-capture",
     )
     self._capture_thread.start()</code></pre>
+
+<p>If you're testing on a PC without a camera, the controller detects the failure and gracefully falls back to <strong>Simulation Mode</strong>. Instead of returning pure black frames that look like a broken camera feed, it generates a beautiful dark blue frame with animated TV static so you instantly know it's simulated.</p>
 
 <p>The capture loop runs forever, grabbing frames and storing them thread-safely:</p>
 
@@ -4633,11 +4648,14 @@ app.config["SECRET_KEY"] = "simba_mxsa_dashboard_2026"
 
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")</code></pre>
 
-  <p>The server pushes status updates to <em>every</em> connected browser every second through a background thread:</p>
+  <p>The server pushes status updates to <em>every</em> connected browser dynamically through a background thread. Importantly, <strong>heavy AI tasks like YOLO vision are kept entirely separate</strong> from this web thread! By allowing <code>scanner.py</code> to handle vision asynchronously in the background, the <code>SocketIO</code> thread remains perfectly unblocked—ensuring zero lag when you send commands or stream camera frames.</p>
 
 <pre><code>def _status_push_loop():
     """background loop that emits status_update every interval."""
     interval = _web_config.get("update_interval", 1.0)
+
+    # Vision objects are updated asynchronously by the scanner thread!
+    # Running synchronous detection here would block the event loop.
 
     while _push_thread_running:
         try:
@@ -4727,10 +4745,14 @@ def video_feed():
   <p>Open <code>http://&lt;pi-ip&gt;:8080</code> in any browser and you'll see the Simba dashboard — a dark, elegant panel with live data. It's defined in <code>simba/web/templates/dashboard.html</code> and powered by <code>dashboard.js</code>.</p>
 
   <p>Here's what's on screen:</p>
+  <ul>
+    <li><strong>Main Dashboard:</strong> Live camera stream, real-time emotion/thinking state, CPU/RAM/Temp gauges, and logs.</li>
+    <li><strong>Hardware Command Center (<code>/hardware</code>):</strong> Contains sliders for every servo, manual motor buttons, and the <strong>Advanced Servo Tuning Tool</strong>.</li>
+  </ul>
 
-
-
-  <p>The JavaScript connects to SocketIO and updates every element in real-time:</p>
+  <div class="info-box">
+    <strong>💡 Advanced Servo Calibration:</strong> The Hardware Command Center includes an interactive UI to test <code>pulse_min</code> and <code>pulse_max</code> limits directly on the robot using the exact formula <code>Pulse = Min + (Angle/180) * (Max - Min)</code>! This eliminates the guesswork when setting up <code>simba_config.yaml</code>.
+  </div> <p>The JavaScript connects to SocketIO and updates every element in real-time:</p>
 
 <pre><code>const socket = io({ reconnection: true, reconnectionDelay: 2000 });
 

@@ -16,7 +16,7 @@ from simba.utils.logger import get_logger, log_event
 logger = get_logger("simba.motion.imu")
 
 
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Tuple  # Cleaned typing
 
 class IMUReader:
     """reads mpu6050 accelerometer + gyroscope data over i2c.
@@ -151,16 +151,16 @@ class IMUReader:
         """determine hand orientation from accelerometer."""
         ax, ay, az = accel if accel else self.read_accel()
 
-        if abs(az) > 0.8 and abs(ax) < 0.3 and abs(ay) < 0.3:
+        if abs(ay) > 0.8 and abs(ax) < 0.5 and abs(az) < 0.5:
             return "level"
-        elif ay > 0.5:
-            return "tilted_right"
-        elif ay < -0.5:
-            return "tilted_left"
-        elif ax > 0.5:
-            return "pointing_down"
         elif ax < -0.5:
+            return "tilted_right"
+        elif ax > 0.5:
+            return "tilted_left"
+        elif az > 0.5:
             return "pointing_up"
+        elif az < -0.5:
+            return "pointing_down"
         return "level"
 
     def calibrate(self):

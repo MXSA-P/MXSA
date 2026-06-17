@@ -113,6 +113,43 @@
                 <button onclick="handAction('thumbs_up')">Thumbs 👍</button>
             </div>
         </div>
+        </div>
+
+        <!-- Advanced Servo Tuning Panel -->
+        <div class="card">
+            <h2>Advanced Servo Tuning</h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">
+                Find the perfect limits for your servos. Select a pin, enter pulse bounds, and drag the angle slider. 
+                Formula used: Pulse = Min + (Angle/180) * (Max - Min).
+            </p>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; color: var(--accent);">GPIO Pin</label>
+                    <input type="number" id="tune-pin" value="22" style="width: 100%; padding: 5px; background: #1a1b26; border: 1px solid #414868; color: #fff;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; color: var(--accent);">Min Pulse</label>
+                    <input type="number" id="tune-min" value="500" step="50" style="width: 100%; padding: 5px; background: #1a1b26; border: 1px solid #414868; color: #fff;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; color: var(--accent);">Max Pulse</label>
+                    <input type="number" id="tune-max" value="2500" step="50" style="width: 100%; padding: 5px; background: #1a1b26; border: 1px solid #414868; color: #fff;">
+                </div>
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Test Angle</span>
+                    <span class="slider-value" id="tune-angle-val">90°</span>
+                </div>
+                <input type="range" id="tune-angle" min="0" max="180" value="90" oninput="updateTuneAngle(this.value)" onchange="sendTuneData()">
+            </div>
+            
+            <div style="font-size: 0.8rem; color: var(--accent); margin-top: 10px; text-align: right;" id="tune-result">
+                Calculated Pulse: 1500 µs
+            </div>
+        </div>
     </div>
 
     <div class="footer">

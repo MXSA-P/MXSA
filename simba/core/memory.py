@@ -8,7 +8,7 @@ data is persisted to a json file and auto-saved after every change.
 
 import json
 import os
-import time
+
 import tempfile
 import threading
 import copy

@@ -24,7 +24,7 @@ class _MockPi:
     def brake(self): pass
 
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any  # Cleaned typing
 
 class ChassisController:
     """2wd differential drive with 6-pin L298N motor driver module.
@@ -39,8 +39,8 @@ class ChassisController:
         self.in1 = pins["motor_a_in1"]       # gpio 5
         self.in2 = pins["motor_a_in2"]       # gpio 6
         self.ena = pins.get("motor_a_en", 12)
-        self.in3 = pins["motor_b_in3"]       # gpio 16
-        self.in4 = pins["motor_b_in4"]       # gpio 26
+        self.in3 = pins["motor_b_in1"]       # gpio 16
+        self.in4 = pins["motor_b_in2"]       # gpio 26
         self.enb = pins.get("motor_b_en", 13)
 
         motor_cfg = config["motors"]

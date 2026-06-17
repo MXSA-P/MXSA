@@ -11,12 +11,12 @@
 *   ENB -> GPIO 13 (Motor B PWM Speed)
 
 **Logic Table: Motor A (Left Wheel)**
-| State | IN1 (GPIO 5) | IN2 (GPIO 6) | ENA (GPIO 12) |
-| :--- | :--- | :--- | :--- |
-| **Forward** | `1` (HIGH) | `0` (LOW) | PWM |
-| **Reverse** | `0` (LOW) | `1` (HIGH) | PWM |
-| **Stop** | `0` (LOW) | `0` (LOW) | `0` |
-| **Brake** | `1` (HIGH) | `1` (HIGH) | `255` |
+|    State    | IN1  | IN2  | ENA |
+|     :---    | :--- | :--- | :---|
+| **Forward** | `1`  | `0`  | PWM |
+| **Reverse** | `0`  | `1`  | PWM |
+| **Stop**    | `0`  | `0`  | `0` |
+| **Brake**   | `1`  | `1`  |`255`|
 
 **Logic Table: Motor B (Right Wheel)**
 | State | IN3 (GPIO 16) | IN4 (GPIO 26) | ENB (GPIO 13) |

@@ -83,6 +83,10 @@ class HandController:
     def _set_finger(self, finger_id, angle):
         """set individual finger to angle."""
         if 0 <= finger_id < 3:
+            # Finger 3 (index 2) should not exceed 50 degrees
+            if finger_id == 2:
+                angle = max(0, min(50, angle))
+                
             # Finger 1 (index 0) is the top finger mounted upside down relative to the bottom two
             actual_angle = (180 - angle) if finger_id == 0 else angle
             pw = self._angle_to_pulse(actual_angle)

@@ -158,7 +158,7 @@ class CameraController:
                     except Exception as ctrl_exc:
                         logger.warning("Failed to set AF/AWB controls (maybe fixed-focus sensor): %s", ctrl_exc)
                     
-                    self.camera.start_and_step()  # Use start_and_step to prevent sequencer errors
+                    self.camera.start()  # Use start() for continuous streaming, start_and_step freezes on first black frame
                     success = True
                     break
                 except Exception as exc:
@@ -250,10 +250,16 @@ class CameraController:
                 return self._frame.copy()
 
         if self._running and self.camera is None:
-            return np.zeros(
+            # Simulation Mode: Return a dark blue frame with some noise to clearly indicate
+            # it's a simulated feed, not a broken camera.
+            frame = np.full(
                 (self.resolution[1], self.resolution[0], 3),
+                (50, 50, 150),  # Dark blue background
                 dtype=np.uint8,
             )
+            # Add some random static
+            noise = np.random.randint(0, 50, (self.resolution[1], self.resolution[0], 3), dtype=np.uint8)
+            return np.clip(frame.astype(np.int16) + noise, 0, 255).astype(np.uint8)
 
         if self.camera is not None and self._running:
             for _ in range(10):
@@ -338,7 +344,7 @@ class CameraController:
                 [cv2.IMWRITE_JPEG_QUALITY, self.jpeg_quality],
             )
             return buf.tobytes()
-        except Exception as e:
+        except Exception:
             pass
 
         if Image is not None:

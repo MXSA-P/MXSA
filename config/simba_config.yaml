@@ -98,8 +98,8 @@ pins:
   motor_a_in1: 5
   motor_a_in2: 6
   motor_b_en: 13
-  motor_b_in3: 16
-  motor_b_in4: 26
+  motor_b_in1: 16
+  motor_b_in2: 26
 robot:
   name: simba
   owner_name: Max

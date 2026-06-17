@@ -106,3 +106,32 @@
                 if (keysDown.size === 0) motor('stop');
             }
         });
+
+        // --- Advanced Servo Tuning ---
+        function updateTuneAngle(val) {
+            document.getElementById('tune-angle-val').innerText = val + '°';
+            const pMin = parseInt(document.getElementById('tune-min').value);
+            const pMax = parseInt(document.getElementById('tune-max').value);
+            const pulse = Math.round(pMin + (parseInt(val) / 180.0) * (pMax - pMin));
+            document.getElementById('tune-result').innerText = `Calculated Pulse: ${pulse} µs`;
+        }
+
+        function sendTuneData() {
+            const pin = document.getElementById('tune-pin').value;
+            const pMin = document.getElementById('tune-min').value;
+            const pMax = document.getElementById('tune-max').value;
+            const angle = document.getElementById('tune-angle').value;
+            
+            fetch('/api/hardware/servo_test', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    pin: parseInt(pin), 
+                    pulse_min: parseInt(pMin), 
+                    pulse_max: parseInt(pMax), 
+                    angle: parseInt(angle) 
+                })
+            }).then(res => {
+                if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+            }).catch(err => console.error("Servo tune error:", err));
+        }

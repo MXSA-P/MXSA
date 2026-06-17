@@ -11,7 +11,7 @@ import json
 import os
 import time
 import threading
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any  # Cleaned typing
 
 from simba.utils.logger import get_logger, log_event
 

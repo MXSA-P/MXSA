@@ -1,8 +1,6 @@
 # _max_cyan_ — project_mxsa
 import pytest
-import math
 import time
-from unittest.mock import MagicMock
 from simba.motion.imu import IMUReader
 
 @pytest.fixture

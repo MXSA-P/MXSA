@@ -26,7 +26,7 @@ class _MockPi:
         pass
 
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any  # Cleaned typing
 
 class ArmController:
     """controls 4-servo arm: rotation (y-axis), elbow (up/down), elbow_2, wrist (up/down).

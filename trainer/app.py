@@ -18,7 +18,7 @@ import shlex
 import secrets
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple, Any, Optional, Dict
+from typing import Optional
 
 try:
     import paramiko
@@ -41,8 +41,17 @@ from flask import (
     request,
     send_from_directory,
 )
-from flask_cors import CORS
-from flask_httpauth import HTTPBasicAuth
+try:
+    from flask_cors import CORS
+except ImportError:
+    CORS = None
+try:
+    from flask_httpauth import HTTPBasicAuth
+except ImportError:
+    class HTTPBasicAuth:
+        def __init__(self): pass
+        def login_required(self, f): return f
+        def verify_password(self, f): return f
 
 auth = HTTPBasicAuth()
 
@@ -80,7 +89,8 @@ app = Flask(
     template_folder=str(Path(__file__).parent / "templates"),
     static_folder=str(Path(__file__).parent / "static"),
 )
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5000", "http://127.0.0.1:5000"]}})
+if CORS:
+    CORS(app, resources={r"/*": {"origins": ["http://localhost:5000", "http://127.0.0.1:5000"]}})
 app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50mb max upload
 
 # --- training state ---

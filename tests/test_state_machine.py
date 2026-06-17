@@ -1,5 +1,5 @@
 # _max_cyan_ — project_mxsa
-import pytest
+
 import time
 from simba.core.state_machine import StateMachine
 
