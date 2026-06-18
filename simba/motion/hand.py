@@ -83,6 +83,11 @@ class HandController:
     def _set_finger(self, finger_id, angle):
         """set individual finger to angle."""
         if 0 <= finger_id < 3:
+            # Enforce logical mechanical boundaries
+            min_limit = min(self.open_angle, self.closed_angle)
+            max_limit = max(self.open_angle, self.closed_angle)
+            angle = max(min_limit, min(max_limit, angle))
+
             actual_angle = angle
             if finger_id == 0:
                 # Finger 1 (index 0) is the top finger mounted upside down
@@ -91,6 +96,7 @@ class HandController:
                 # Finger 3 (index 2) is mirrored and physically obstructed.
                 # It only goes 180-80. We map logical [0, 180] to physical [180, 80]
                 actual_angle = 180 - (angle / 180.0) * 100.0
+                actual_angle = max(80, min(180, actual_angle))
                 
             pw = self._angle_to_pulse(actual_angle)
             try:
@@ -106,7 +112,9 @@ class HandController:
             finger_id: 0, 1, or 2
             angle: servo angle (open_angle to closed_angle)
         """
-        angle = max(self.open_angle, min(self.closed_angle, angle))
+        min_limit = min(self.open_angle, self.closed_angle)
+        max_limit = max(self.open_angle, self.closed_angle)
+        angle = max(min_limit, min(max_limit, angle))
         with self._lock:
             self._set_finger(finger_id, angle)
         log_event("motion", f"finger {finger_id} set to {angle}°")

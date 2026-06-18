@@ -412,7 +412,7 @@ class CommandParser:
         """
         for patterns, action, has_target in _command_patterns:
             for pattern in patterns:
-                pattern_regex = re.compile(rf'\b{re.escape(pattern)}\b')
+                pattern_regex = re.compile(rf"(?<![\w\-\']){re.escape(pattern)}(?![\w\-\'])")
                 if pattern_regex.search(cleaned) or pattern_regex.search(original):
                     target = None
                     modifier = None
@@ -491,14 +491,14 @@ class CommandParser:
         return None
 
     def _extract_target(self, text: str, pattern: str) -> Optional[str]:
-        match = re.search(rf'\b{re.escape(pattern)}\b', text)
+        match = re.search(rf"(?<![\w\-\']){re.escape(pattern)}(?![\w\-\'])", text)
         if not match:
             return None
         
         remainder = text[match.end():].strip()
 
         # remove trailing filler words
-        filler_pattern = r"(?i)\b(?:please|now|quickly|fast|right now|for me)\s*$"
+        filler_pattern = r"(?i)(?<![\w\-\'])(?:please|now|quickly|fast|right now|for me)\s*$"
         while True:
             new_remainder = re.sub(filler_pattern, "", remainder).strip()
             if new_remainder == remainder:

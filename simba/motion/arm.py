@@ -290,11 +290,23 @@ class ArmController:
             scale = (L1 + L2 - 0.1) / target_dist
             r *= scale
             z *= scale
+        elif target_dist < abs(L1 - L2):
+            logger.warning("Target xyz(%.1f, %.1f, %.1f) is too close. Clamping.", x, y, z)
+            scale = (abs(L1 - L2) + 0.1) / max(target_dist, 0.001)
+            r *= scale
+            z *= scale
 
         # calculate wrist angle (theta2) using cosine rule
         c2 = (r**2 + z**2 - L1**2 - L2**2) / (2 * L1 * L2)
-        # clamp c2 to [-1, 1] to prevent domain errors if target is unreachable
-        c2 = max(-1.0, min(1.0, c2))
+        
+        # strictly clamp c2 to [-1, 1] to prevent math domain errors
+        if math.isnan(c2):
+            c2 = 1.0
+        elif c2 > 1.0:
+            c2 = 1.0
+        elif c2 < -1.0:
+            c2 = -1.0
+            
         theta2_rad = math.acos(c2)
 
         # calculate elbow angle (theta1)

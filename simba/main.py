@@ -88,14 +88,13 @@ def main():
 
     try:
         # initialize brain
-        if not args.web_only:
-            logger.info("Initializing hardware subsystems (Brain)...")
-            try:
-                from simba.core.brain import SimbaBrain
-                _brain = SimbaBrain(config)
-            except Exception as e:
-                logger.critical(f"Failed to initialize brain: {e}")
-                sys.exit(1)
+        logger.info("Initializing hardware subsystems (Brain)...")
+        try:
+            from simba.core.brain import SimbaBrain
+            _brain = SimbaBrain(config)
+        except Exception as e:
+            logger.critical(f"Failed to initialize brain: {e}")
+            sys.exit(1)
 
         if not args.web_only:
             # start the brain (camera, voice, main loop) first to avoid web dashboard race conditions

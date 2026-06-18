@@ -118,6 +118,13 @@ def default_error_handler(e):
 _brain = None
 _boot_time = datetime.now()
 
+_connected_clients = set()
+_streaming_clients = {
+    "servo": set(),
+    "motor": set(),
+    "imu": set()
+}
+
 
 def get_brain_ref(brain: Any) -> None:
     """connect the brain instance so the server can query robot state.
@@ -408,7 +415,7 @@ def _generate_camera_frames():
                 b"Content-Length: " + str(len(frame)).encode() + b"\r\n\r\n" + frame + b"\r\n"
             )
             socketio.sleep(1.0 / 15)  # ~15 fps cap
-    except GeneratorExit:
+    except (GeneratorExit, OSError):
         logger.debug("mjpeg generator closed by client")
 
 
@@ -442,6 +449,10 @@ def _status_push_loop() -> None:
     last_emit_hash = None
 
     while _push_thread_running:
+        if not _connected_clients:
+            socketio.sleep(interval)
+            continue
+
         try:
             payload = _build_status_payload()
 
@@ -771,6 +782,7 @@ def handle_connect():
         
     logger.info("dashboard client connected")
     log_event("web", "dashboard client connected")
+    _connected_clients.add(request.sid)
     payload = _build_status_payload()
     emit("status_update", payload)
 
@@ -778,6 +790,11 @@ def handle_connect():
 @socketio.on("disconnect")
 def handle_disconnect(*args):
     """log when a client disconnects."""
+    sid = getattr(request, "sid", None)
+    if sid:
+        _connected_clients.discard(sid)
+        for clients in _streaming_clients.values():
+            clients.discard(sid)
     logger.info("dashboard client disconnected")
 
 
@@ -810,34 +827,55 @@ def handle_command_ws(data):
 @socketio.on("request_servo_stream")
 def handle_servo_stream():
     """stream live servo angles."""
-    if _brain is not None and hasattr(_brain, "arm"):
-        try:
-            arm_pos = _brain.arm.get_position()
-            emit("servo_stream", arm_pos)
-        except Exception as exc:
-            logger.error(f"servo stream error: {exc}")
+    sid = getattr(request, "sid", None)
+    if sid is None or sid in _streaming_clients["servo"]:
+        return
+    _streaming_clients["servo"].add(sid)
+    
+    while sid in _streaming_clients["servo"]:
+        if _brain is not None and hasattr(_brain, "arm"):
+            try:
+                arm_pos = _brain.arm.get_position()
+                emit("servo_stream", arm_pos, room=sid)
+            except Exception as exc:
+                logger.error(f"servo stream error: {exc}")
+        socketio.sleep(0.1)
 
 
 @socketio.on("request_motor_stream")
 def handle_motor_stream():
     """stream live motor bars."""
-    if _brain is not None and hasattr(_brain, "chassis"):
-        try:
-            speed = _brain.chassis.get_speed()
-            emit("motor_stream", {"speed": speed})
-        except Exception as exc:
-            logger.error(f"motor stream error: {exc}")
+    sid = getattr(request, "sid", None)
+    if sid is None or sid in _streaming_clients["motor"]:
+        return
+    _streaming_clients["motor"].add(sid)
+
+    while sid in _streaming_clients["motor"]:
+        if _brain is not None and hasattr(_brain, "chassis"):
+            try:
+                speed = _brain.chassis.get_speed()
+                emit("motor_stream", {"speed": speed}, room=sid)
+            except Exception as exc:
+                logger.error(f"motor stream error: {exc}")
+        socketio.sleep(0.1)
 
 
 @socketio.on("request_imu_stream")
 def handle_imu_stream():
     """stream live imu data."""
-    if _brain is not None and hasattr(_brain, "imu"):
-        try:
-            imu_data = _brain.imu.read_all()
-            emit("imu_stream", imu_data)
-        except Exception as exc:
-            logger.error(f"imu stream error: {exc}")
+    sid = getattr(request, "sid", None)
+    if sid is None or sid in _streaming_clients["imu"]:
+        return
+    _streaming_clients["imu"].add(sid)
+
+    while sid in _streaming_clients["imu"]:
+        if _brain is not None and hasattr(_brain, "imu"):
+            try:
+                imu_data = _brain.imu.read_all()
+                emit("imu_stream", imu_data, room=sid)
+            except Exception as exc:
+                logger.error(f"imu stream error: {exc}")
+        socketio.sleep(0.1)
 
 
 # ---------------------------------------------------------------------------

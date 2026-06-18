@@ -37,11 +37,11 @@ class YoloDetector:
                 for r in results:
                     boxes = r.boxes
                     for box in boxes:
-                        conf = float(box.conf[0])
+                        conf = float(box.conf[0].cpu().item() if hasattr(box.conf[0], 'cpu') else box.conf[0])
                         if conf > 0.4:
-                            cls_idx = int(box.cls[0])
+                            cls_idx = int(box.cls[0].cpu().item() if hasattr(box.cls[0], 'cpu') else box.cls[0])
                             label = self.model.names[cls_idx]
-                            x1, y1, x2, y2 = box.xyxy[0].tolist()
+                            x1, y1, x2, y2 = box.xyxy[0].cpu().tolist() if hasattr(box.xyxy[0], 'cpu') else box.xyxy[0].tolist()
                             detections.append({
                                 "label": label,
                                 "confidence": conf,

@@ -195,6 +195,9 @@ class SpeakerVerifier:
             if not self._enrolled or self.model is None:
                 logger.debug("no enrolled speaker — verification skipped")
                 self._last_confidence = 0.0
+                self._confidence_history.append(0.0)
+                if len(self._confidence_history) > self._history_max_len:
+                    self._confidence_history.pop(0)
                 return (False, 0.0)
 
             # convert int16 to float32 if needed
@@ -312,6 +315,7 @@ class SpeakerVerifier:
                 self.model = gmm
                 self._baseline_score = baseline
                 self._enrolled = True
+                self._confidence_history.clear()
 
             # persist to disk
             os.makedirs(os.path.dirname(self._model_path), exist_ok=True)
@@ -368,7 +372,7 @@ class SpeakerVerifier:
             if not self._confidence_history:
                 return (False, 0.0)
             avg_confidence = sum(self._confidence_history) / \
-                len(self._confidence_history)
+                self._history_max_len
             is_owner = avg_confidence >= self.threshold
             return (is_owner, avg_confidence)
 

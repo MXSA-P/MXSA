@@ -18,6 +18,8 @@ from typing import Optional, Tuple
 
 import yaml
 import os
+import subprocess
+import shutil
 
 import numpy as np
 
@@ -108,6 +110,7 @@ class CV2CameraProcess:
 # ---------------------------------------------------------------------------
 # fallback camera process (ramdisk / rpicam-still looping)
 # ---------------------------------------------------------------------------
+class RamdiskCameraProcess:
     """reads frames by repeatedly invoking rpicam-still as requested by user."""
     def __init__(self, resolution, framerate):
         self.resolution = resolution
@@ -125,8 +128,10 @@ class CV2CameraProcess:
     def start(self):
         os.makedirs(self.shm_dir, exist_ok=True)
         if os.path.exists(self.target_file):
-            try: os.remove(self.target_file)
-            except: pass
+            try:
+                os.remove(self.target_file)
+            except Exception:
+                pass
 
         self._running = True
         self._thread = threading.Thread(target=self._capture_loop, daemon=True, name="rpicam-loop")
@@ -191,9 +196,6 @@ class CV2CameraProcess:
 # ---------------------------------------------------------------------------
 # fallback camera process (rpicam-vid / libcamera-vid / ffmpeg stdout parser)
 # ---------------------------------------------------------------------------
-
-import subprocess
-import shutil
 
 class FallbackCameraProcess:
     """reads mjpeg stream from rpicam-vid, libcamera-vid, or ffmpeg via subprocess."""
@@ -267,7 +269,7 @@ class FallbackCameraProcess:
                     try:
                         img = Image.open(io.BytesIO(jpg))
                         return np.array(img.convert("RGB"))
-                    except Exception as e:
+                    except Exception:
                         pass
                 else:
                     return np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8)
@@ -346,7 +348,6 @@ class CameraController:
 
         success = False
 
-        import shutil
         has_rpicam = shutil.which("rpicam-still") is not None
 
         strategies = []
@@ -380,7 +381,7 @@ class CameraController:
                 if self.camera:
                     try:
                         self.camera.stop()
-                    except:
+                    except Exception:
                         pass
                 self.camera = None
 
@@ -423,7 +424,7 @@ class CameraController:
                         logger.warning("Picamera2 start attempt %d failed: %s", attempt + 1, exc)
                         try:
                             self.camera.stop()
-                        except:
+                        except Exception:
                             pass
                         time.sleep(0.5)
 

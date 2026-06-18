@@ -234,189 +234,199 @@ class SimbaBrain:
 
         # --- initialize motion subsystem ---
         try:
-            from simba.motion.arm import ArmController
-            self.arm = HardwareLockProxy(ArmController(config), self._hardware_lock)
-            logger.info("[ok] arm controller")
-        except Exception as e:
-            logger.warning(f"[mock] arm controller: {e}")
-            self.arm = HardwareLockProxy(_MockArm(), self._hardware_lock)
-
-        try:
-            from simba.motion.hand import HandController
-            self.hand = HardwareLockProxy(HandController(config), self._hardware_lock)
-            logger.info("[ok] hand controller")
-        except Exception as e:
-            logger.warning(f"[mock] hand controller: {e}")
-            self.hand = HardwareLockProxy(_MockHand(), self._hardware_lock)
-
-        try:
-            from simba.motion.chassis import ChassisController
-            self.chassis = HardwareLockProxy(ChassisController(config), self._hardware_lock)
-            logger.info("[ok] chassis controller")
-        except Exception as e:
-            logger.warning(f"[mock] chassis controller: {e}")
-            self.chassis = HardwareLockProxy(_MockChassis(), self._hardware_lock)
-
-        try:
-            from simba.motion.imu import IMUReader
-            self.imu = HardwareLockProxy(IMUReader(config), self._hardware_lock)
-            logger.info("[ok] imu reader")
-        except Exception as e:
-            logger.warning(f"[mock] imu reader: {e}")
-            self.imu = HardwareLockProxy(_MockIMU(), self._hardware_lock)
-
-        # --- initialize vision subsystem ---
-        try:
-            from simba.vision.camera import CameraController
-            self.camera = CameraController()
-            logger.info("[ok] camera controller")
-        except Exception as e:
-            logger.warning(f"[mock] camera controller: {e}")
-            self.camera = _MockCamera()
-
-        try:
-            from simba.vision.hybrid_detector import HybridDetector
-            self.detector = HybridDetector()
-            logger.info("[ok] hybrid object detector")
-        except Exception as e_hybrid:
-            logger.warning(
-                f"[fallback] hybrid detector failed: {e_hybrid}. Trying SVM.")
             try:
-                from simba.vision.detector import ObjectDetector
-                self.detector = ObjectDetector()
-                logger.info("[ok] svm object detector")
+                from simba.motion.arm import ArmController
+                self.arm = HardwareLockProxy(ArmController(config), self._hardware_lock)
+                logger.info("[ok] arm controller")
             except Exception as e:
-                logger.warning(f"[mock] object detector: {e}")
-                self.detector = _MockDetector()
+                logger.warning(f"[mock] arm controller: {e}")
+                self.arm = HardwareLockProxy(_MockArm(), self._hardware_lock)
 
-        # --- initialize core ai ---
-        try:
-            from simba.core.memory import MemorySystem
-            self.memory = MemorySystem(config)
-            logger.info("[ok] memory system")
+            try:
+                from simba.motion.hand import HandController
+                self.hand = HardwareLockProxy(HandController(config), self._hardware_lock)
+                logger.info("[ok] hand controller")
+            except Exception as e:
+                logger.warning(f"[mock] hand controller: {e}")
+                self.hand = HardwareLockProxy(_MockHand(), self._hardware_lock)
+
+            try:
+                from simba.motion.chassis import ChassisController
+                self.chassis = HardwareLockProxy(ChassisController(config), self._hardware_lock)
+                logger.info("[ok] chassis controller")
+            except Exception as e:
+                logger.warning(f"[mock] chassis controller: {e}")
+                self.chassis = HardwareLockProxy(_MockChassis(), self._hardware_lock)
+
+            try:
+                from simba.motion.imu import IMUReader
+                self.imu = HardwareLockProxy(IMUReader(config), self._hardware_lock)
+                logger.info("[ok] imu reader")
+            except Exception as e:
+                logger.warning(f"[mock] imu reader: {e}")
+                self.imu = HardwareLockProxy(_MockIMU(), self._hardware_lock)
+
+            # --- initialize vision subsystem ---
+            try:
+                from simba.vision.camera import CameraController
+                self.camera = CameraController()
+                logger.info("[ok] camera controller")
+            except Exception as e:
+                logger.warning(f"[mock] camera controller: {e}")
+                self.camera = _MockCamera()
+
+            try:
+                from simba.vision.hybrid_detector import HybridDetector
+                self.detector = HybridDetector()
+                logger.info("[ok] hybrid object detector")
+            except Exception as e_hybrid:
+                logger.warning(
+                    f"[fallback] hybrid detector failed: {e_hybrid}. Trying SVM.")
+                try:
+                    from simba.vision.detector import ObjectDetector
+                    self.detector = ObjectDetector()
+                    logger.info("[ok] svm object detector")
+                except Exception as e:
+                    logger.warning(f"[mock] object detector: {e}")
+                    self.detector = _MockDetector()
+
+            # --- initialize core ai ---
+            try:
+                from simba.core.memory import MemorySystem
+                self.memory = MemorySystem(config)
+                logger.info("[ok] memory system")
+            except Exception as e:
+                logger.warning(f"[fallback] memory: {e}")
+                self.memory = type("M", (), {
+                    "remember_object": lambda s, **kw: None,
+                    "find_object": lambda s, lbl: None,
+                    "get_all_objects": lambda s: [],
+                    "get_charging_pad": lambda s: None,
+                    "is_known": lambda s, lbl: False,
+                    "save": lambda s: None,
+                    "get_memory_stats": lambda s: {},
+                    "store_scan_result": lambda s, d: None,
+                })()
+
+            try:
+                from simba.core.emotions import EmotionEngine
+                self.emotions = EmotionEngine(config)
+                logger.info("[ok] emotion engine")
+            except Exception as e:
+                logger.warning(f"[fallback] emotions: {e}")
+                self.emotions = type("E", (), {
+                    "set_emotion": lambda s, e, i=1.0: None,
+                    "get_emotion": lambda s: ("neutral", 0.5),
+                    "update_from_event": lambda s, e: "neutral",
+                    "get_motor_behavior": lambda s: {"speed_modifier": 1.0},
+                    "decay": lambda s: None,
+                    "get_emoji": lambda s: "🤖",
+                    "to_dict": lambda s: {"emotion": "neutral", "intensity": 0.5},
+                })()
+
+            try:
+                from simba.core.state_machine import StateMachine
+                self.state = StateMachine()
+                logger.info("[ok] state machine")
+            except Exception as e:
+                logger.warning(f"[fallback] state machine: {e}")
+                self.state = type("S", (), {
+                    "transition": lambda s, st, ctx=None: True,
+                    "get_state": lambda s: "idle",
+                    "get_state_duration": lambda s: 0,
+                    "get_context": lambda s: {},
+                    "get_history": lambda s, c=10: [],
+                    "is_busy": lambda s: False,
+                    "can_accept_command": lambda s: True,
+                    "to_dict": lambda s: {"state": "idle"},
+                })()
+
+            # --- initialize scanner (needs arm, camera, detector, memory) ---
+            try:
+                from simba.vision.scanner import AreaScanner
+                self.scanner = AreaScanner(
+                    self.arm, self.camera, self.detector, self.memory)
+                logger.info("[ok] area scanner")
+            except Exception as e:
+                logger.warning(f"[fallback] scanner: {e}")
+                self.scanner = None
+
+            # --- initialize voice subsystem ---
+            try:
+                from simba.voice.listener import VoiceListener
+                self.listener = VoiceListener(config)
+                logger.info("[ok] voice listener")
+            except Exception as e:
+                logger.warning(f"[mock] voice listener: {e}")
+                self.listener = _MockListener()
+
+            try:
+                from simba.voice.command_parser import CommandParser
+                self.cmd_parser = CommandParser()
+                logger.info("[ok] command parser")
+            except Exception as e:
+                logger.warning(f"[fallback] command parser: {e}")
+                self.cmd_parser = type("CP", (), {
+                    "parse": lambda s, t: None,
+                })()
+
+            try:
+                from simba.voice.speaker_verify import SpeakerVerifier
+                self.speaker_verify = SpeakerVerifier(config)
+                logger.info("[ok] speaker verifier")
+            except Exception as e:
+                logger.warning(f"[mock] speaker verifier: {e}")
+                self.speaker_verify = _MockSpeakerVerify()
+
+            # --- initialize llm ---
+            self.llm = None
+            ai_cfg = config.get("ai", {})
+            if _HAS_REQUESTS and ai_cfg.get("llm_provider") == "ollama":
+                self.ollama_url = ai_cfg.get(
+                    "ollama_url", "http://localhost:11434/api/generate")
+                self.ollama_model = ai_cfg.get(
+                    "ollama_model", "qwen2.5:0.5b")
+                self.llm = "ollama_ready"  # just a truthy flag
+                logger.info(f"[ok] llm configured for ollama: {self.ollama_model}")
+            else:
+                logger.warning("[skip] llm not configured or requests missing")
+
+            # --- web dashboard reference (set externally) ---
+            self.web_server = None
+
+            # behavior config
+            behavior_cfg = config.get("behavior", {})
+            self._roam_interval = behavior_cfg.get("roam_interval", 30)
+            self._boot_scan = behavior_cfg.get("boot_scan", True)
+            self._roam_when_idle = behavior_cfg.get("roam_when_idle", True)
+            self._max_fetch_retries = behavior_cfg.get(
+                "max_fetch_retries", 2)
+            self._last_roam_time = time.time()
+            self._idle_since = time.time()
+
+            # auto-return timer (TP4056 has no battery voltage output to Pi)
+            charging_cfg = config.get("charging", {})
+            self._auto_return_minutes = charging_cfg.get("auto_return_minutes", 30)
+            self._charge_rest_minutes = charging_cfg.get("charge_rest_minutes", 15)
+            self._boot_time = time.time()
+            self._last_charge_return = time.time()  # tracks when we last returned
+            self._auto_return_triggered = False
+
+            # --- path recorder for return-to-base ---
+            path_save = os.path.join(_resolve("data"), "path_log.json")
+            try:
+                self.path_recorder = PathRecorder(save_path=path_save)
+                logger.info("[ok] path recorder initialized")
+            except Exception as e:
+                logger.warning(f"path recorder failed: {e}")
+                self.path_recorder = type("PR", (), {"record": lambda *a: None, "replay": lambda *a: False, "clear": lambda *a: None, "step_count": 0})()
+
+            logger.info("simba brain initialized successfully!")
+            log_event("system", "simba brain initialized")
         except Exception as e:
-            logger.warning(f"[fallback] memory: {e}")
-            self.memory = type("M", (), {
-                "remember_object": lambda s, **kw: None,
-                "find_object": lambda s, lbl: None,
-                "get_all_objects": lambda s: [],
-                "get_charging_pad": lambda s: None,
-                "is_known": lambda s, lbl: False,
-                "save": lambda s: None,
-                "get_memory_stats": lambda s: {},
-                "store_scan_result": lambda s, d: None,
-            })()
-
-        try:
-            from simba.core.emotions import EmotionEngine
-            self.emotions = EmotionEngine(config)
-            logger.info("[ok] emotion engine")
-        except Exception as e:
-            logger.warning(f"[fallback] emotions: {e}")
-            self.emotions = type("E", (), {
-                "set_emotion": lambda s, e, i=1.0: None,
-                "get_emotion": lambda s: ("neutral", 0.5),
-                "update_from_event": lambda s, e: "neutral",
-                "get_motor_behavior": lambda s: {"speed_modifier": 1.0},
-                "decay": lambda s: None,
-                "get_emoji": lambda s: "🤖",
-                "to_dict": lambda s: {"emotion": "neutral", "intensity": 0.5},
-            })()
-
-        try:
-            from simba.core.state_machine import StateMachine
-            self.state = StateMachine()
-            logger.info("[ok] state machine")
-        except Exception as e:
-            logger.warning(f"[fallback] state machine: {e}")
-            self.state = type("S", (), {
-                "transition": lambda s, st, ctx=None: True,
-                "get_state": lambda s: "idle",
-                "get_state_duration": lambda s: 0,
-                "get_context": lambda s: {},
-                "get_history": lambda s, c=10: [],
-                "is_busy": lambda s: False,
-                "can_accept_command": lambda s: True,
-                "to_dict": lambda s: {"state": "idle"},
-            })()
-
-        # --- initialize scanner (needs arm, camera, detector, memory) ---
-        try:
-            from simba.vision.scanner import AreaScanner
-            self.scanner = AreaScanner(
-                self.arm, self.camera, self.detector, self.memory)
-            logger.info("[ok] area scanner")
-        except Exception as e:
-            logger.warning(f"[fallback] scanner: {e}")
-            self.scanner = None
-
-        # --- initialize voice subsystem ---
-        try:
-            from simba.voice.listener import VoiceListener
-            self.listener = VoiceListener(config)
-            logger.info("[ok] voice listener")
-        except Exception as e:
-            logger.warning(f"[mock] voice listener: {e}")
-            self.listener = _MockListener()
-
-        try:
-            from simba.voice.command_parser import CommandParser
-            self.cmd_parser = CommandParser()
-            logger.info("[ok] command parser")
-        except Exception as e:
-            logger.warning(f"[fallback] command parser: {e}")
-            self.cmd_parser = type("CP", (), {
-                "parse": lambda s, t: None,
-            })()
-
-        try:
-            from simba.voice.speaker_verify import SpeakerVerifier
-            self.speaker_verify = SpeakerVerifier(config)
-            logger.info("[ok] speaker verifier")
-        except Exception as e:
-            logger.warning(f"[mock] speaker verifier: {e}")
-            self.speaker_verify = _MockSpeakerVerify()
-
-        # --- initialize llm ---
-        # --- initialize llm ---
-        self.llm = None
-        if _HAS_REQUESTS and config["ai"].get("llm_provider") == "ollama":
-            self.ollama_url = config["ai"].get(
-                "ollama_url", "http://localhost:11434/api/generate")
-            self.ollama_model = config["ai"].get(
-                "ollama_model", "qwen2.5:0.5b")
-            self.llm = "ollama_ready"  # just a truthy flag
-            logger.info(f"[ok] llm configured for ollama: {self.ollama_model}")
-        else:
-            logger.warning("[skip] llm not configured or requests missing")
-
-        # --- web dashboard reference (set externally) ---
-        self.web_server = None
-
-        # behavior config
-        self._roam_interval = config["behavior"].get("roam_interval", 30)
-        self._boot_scan = config["behavior"].get("boot_scan", True)
-        self._roam_when_idle = config["behavior"].get("roam_when_idle", True)
-        self._max_fetch_retries = config["behavior"].get(
-            "max_fetch_retries", 2)
-        self._last_roam_time = time.time()
-        self._idle_since = time.time()
-
-        # auto-return timer (TP4056 has no battery voltage output to Pi)
-        charging_cfg = config.get("charging", {})
-        self._auto_return_minutes = charging_cfg.get("auto_return_minutes", 30)
-        self._charge_rest_minutes = charging_cfg.get("charge_rest_minutes", 15)
-        self._boot_time = time.time()
-        self._last_charge_return = time.time()  # tracks when we last returned
-        self._auto_return_triggered = False
-
-        # --- path recorder for return-to-base ---
-        path_save = os.path.join(_resolve("data"), "path_log.json")
-        self.path_recorder = PathRecorder(save_path=path_save)
-        logger.info("[ok] path recorder initialized")
-
-        logger.info("simba brain initialized successfully!")
-        log_event("system", "simba brain initialized")
+            logger.error(f"failed to safely initialize hardware: {e}")
+            self.stop()
+            raise e
 
     # ------------------------------------------------------------------
     # lifecycle

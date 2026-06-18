@@ -363,3 +363,246 @@
 {"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
 {"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
 {"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-19T01:03:13", "level": "INFO", "name": "simba.main", "message": "Boot sequence initiated."}
+{"timestamp": "2026-06-19T01:03:13", "level": "INFO", "name": "simba.main", "message": "Loading configuration..."}
+{"timestamp": "2026-06-19T01:03:13", "level": "INFO", "name": "simba.main", "message": "configuration loaded"}
+{"timestamp": "2026-06-19T01:03:13", "level": "INFO", "name": "simba.main", "message": "Web-only mode active."}
+{"timestamp": "2026-06-19T01:03:13", "level": "INFO", "name": "simba.main", "message": "Starting web dashboard..."}
+{"timestamp": "2026-06-19T01:03:13", "level": "INFO", "name": "simba.web.server", "message": "status push thread started \u2014 interval 1.0s"}
+{"timestamp": "2026-06-19T01:03:13", "level": "INFO", "name": "simba.main", "message": "Web dashboard successfully started: http://0.0.0.0:8080"}
+{"timestamp": "2026-06-19T01:03:44", "level": "INFO", "name": "simba.main", "message": "Boot sequence initiated."}
+{"timestamp": "2026-06-19T01:03:44", "level": "INFO", "name": "simba.main", "message": "Loading configuration..."}
+{"timestamp": "2026-06-19T01:03:44", "level": "INFO", "name": "simba.main", "message": "configuration loaded"}
+{"timestamp": "2026-06-19T01:03:44", "level": "INFO", "name": "simba.main", "message": "Web-only mode active."}
+{"timestamp": "2026-06-19T01:03:44", "level": "INFO", "name": "simba.main", "message": "Starting web dashboard..."}
+{"timestamp": "2026-06-19T01:03:44", "level": "INFO", "name": "simba.web.server", "message": "status push thread started \u2014 interval 1.0s"}
+{"timestamp": "2026-06-19T01:03:44", "level": "INFO", "name": "simba.main", "message": "Web dashboard successfully started: http://0.0.0.0:8080"}
+{"timestamp": "2026-06-19T01:04:01", "level": "INFO", "name": "simba.core.brain", "message": "=================================================="}
+{"timestamp": "2026-06-19T01:04:01", "level": "INFO", "name": "simba.core.brain", "message": "  simba brain initializing..."}
+{"timestamp": "2026-06-19T01:04:01", "level": "INFO", "name": "simba.core.brain", "message": "  _max_cyan_ \u2014 project_mxsa"}
+{"timestamp": "2026-06-19T01:04:01", "level": "INFO", "name": "simba.core.brain", "message": "=================================================="}
+{"timestamp": "2026-06-19T01:04:01", "level": "WARNING", "name": "simba.motion.arm", "message": "pigpio not available, using mock"}
+{"timestamp": "2026-06-19T01:04:01", "level": "INFO", "name": "simba.motion.arm", "message": "arm controller initialized"}
+{"timestamp": "2026-06-19T01:04:01", "level": "INFO", "name": "simba.core.brain", "message": "[ok] arm controller"}
+{"timestamp": "2026-06-19T01:04:01", "level": "WARNING", "name": "simba.motion.hand", "message": "pigpio not available, using mock"}
+{"timestamp": "2026-06-19T01:04:01", "level": "INFO", "name": "simba.motion.hand", "message": "hand controller initialized (3-finger triangle)"}
+{"timestamp": "2026-06-19T01:04:01", "level": "INFO", "name": "simba.core.brain", "message": "[ok] hand controller"}
+{"timestamp": "2026-06-19T01:04:01", "level": "INFO", "name": "simba.motion.chassis", "message": "chassis controller initialized (6-pin L298N 2wd differential)"}
+{"timestamp": "2026-06-19T01:04:01", "level": "INFO", "name": "simba.core.brain", "message": "[ok] chassis controller"}
+{"timestamp": "2026-06-19T01:04:01", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-19T01:04:01", "level": "INFO", "name": "simba.core.brain", "message": "[ok] imu reader"}
+{"timestamp": "2026-06-19T01:04:01", "level": "INFO", "name": "simba.core.brain", "message": "[ok] camera controller"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.vision.detector", "message": "feature extractor loaded \u2014 input (224, 224), output dim 1001"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.vision.detector", "message": "classifier not found (expected on fresh install, falling back to YOLO): /home/mazo/Documents/MXSA/models/object_classifier.joblib"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.vision.hybrid", "message": "[ok] Hybrid Detector (YOLO + SVM) initialized"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.core.brain", "message": "[ok] hybrid object detector"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.core.memory", "message": "no memory file found at /home/mazo/Documents/MXSA/data/memory.json \u2014 starting fresh"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.core.brain", "message": "[ok] memory system"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.core.emotions", "message": "emotion engine v2 initialized (mood=curious, intensity=0.50, personality={'curiosity': 0.8, 'playfulness': 0.7, 'loyalty': 0.9, 'sensitivity': 0.6})"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.core.brain", "message": "[ok] emotion engine"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.core.brain", "message": "[ok] state machine"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.vision.scanner", "message": "area scanner initialised \u2014 angles [0, 45, 90, 135, 180]"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.core.brain", "message": "[ok] area scanner"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'simba, get me the bottle please!')"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'speed_up', 'target': None, 'modifier': None} (exact match from 'can you speed up simba')"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_am_i', 'target': None, 'modifier': None} (exact match from 'who am i')"}
+{"timestamp": "2026-06-19T01:04:02", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'rest', 'target': None, 'modifier': None} (exact match from 'go to sleep')"}
+{"timestamp": "2026-06-19T01:04:03", "level": "WARNING", "name": "simba.voice.listener", "message": "vosk not installed \u2014 voice listener disabled"}
+{"timestamp": "2026-06-19T01:04:03", "level": "INFO", "name": "simba.core.brain", "message": "[ok] voice listener"}
+{"timestamp": "2026-06-19T01:04:03", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:04:03", "level": "INFO", "name": "simba.core.brain", "message": "[ok] command parser"}
+{"timestamp": "2026-06-19T01:04:06", "level": "INFO", "name": "simba.voice.speaker_verify", "message": "no speaker model found at /home/mazo/Documents/MXSA/models/speaker_model.joblib \u2014 not enrolled"}
+{"timestamp": "2026-06-19T01:04:06", "level": "INFO", "name": "simba.core.brain", "message": "[ok] speaker verifier"}
+{"timestamp": "2026-06-19T01:04:06", "level": "INFO", "name": "simba.core.brain", "message": "[ok] llm configured for ollama: qwen2.5:0.5b"}
+{"timestamp": "2026-06-19T01:04:06", "level": "INFO", "name": "simba.core.path_recorder", "message": "loaded 0 path entries from disk"}
+{"timestamp": "2026-06-19T01:04:06", "level": "INFO", "name": "simba.core.path_recorder", "message": "path recorder initialized (0 entries loaded)"}
+{"timestamp": "2026-06-19T01:04:06", "level": "INFO", "name": "simba.core.brain", "message": "[ok] path recorder initialized"}
+{"timestamp": "2026-06-19T01:04:06", "level": "INFO", "name": "simba.core.brain", "message": "simba brain initialized successfully!"}
+{"timestamp": "2026-06-19T01:04:30", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:04:30", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scan', 'target': None, 'modifier': None} (exact match from 'what's around you')"}
+{"timestamp": "2026-06-19T01:04:30", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'play', 'target': None, 'modifier': None} (exact match from 'let's play')"}
+{"timestamp": "2026-06-19T01:04:35", "level": "INFO", "name": "simba.web.server", "message": "status push thread started \u2014 interval 1.0s"}
+{"timestamp": "2026-06-19T01:04:35", "level": "INFO", "name": "simba.web.server", "message": "simba dashboard starting on http://0.0.0.0:8080"}
+{"timestamp": "2026-06-19T01:04:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:04:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-19T01:04:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:04:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-19T01:04:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:04:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-19T01:04:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:04:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:04:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-19T01:04:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:04:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-19T01:04:59", "level": "INFO", "name": "simba.main", "message": "Boot sequence initiated."}
+{"timestamp": "2026-06-19T01:04:59", "level": "INFO", "name": "simba.main", "message": "Loading configuration..."}
+{"timestamp": "2026-06-19T01:04:59", "level": "INFO", "name": "simba.main", "message": "configuration loaded"}
+{"timestamp": "2026-06-19T01:04:59", "level": "INFO", "name": "simba.main", "message": "Initializing hardware subsystems (Brain)..."}
+{"timestamp": "2026-06-19T01:05:00", "level": "INFO", "name": "simba.core.brain", "message": "=================================================="}
+{"timestamp": "2026-06-19T01:05:00", "level": "INFO", "name": "simba.core.brain", "message": "  simba brain initializing..."}
+{"timestamp": "2026-06-19T01:05:00", "level": "INFO", "name": "simba.core.brain", "message": "  _max_cyan_ \u2014 project_mxsa"}
+{"timestamp": "2026-06-19T01:05:00", "level": "INFO", "name": "simba.core.brain", "message": "=================================================="}
+{"timestamp": "2026-06-19T01:05:00", "level": "WARNING", "name": "simba.motion.arm", "message": "pigpio not available, using mock"}
+{"timestamp": "2026-06-19T01:05:00", "level": "INFO", "name": "simba.motion.arm", "message": "arm controller initialized"}
+{"timestamp": "2026-06-19T01:05:00", "level": "INFO", "name": "simba.core.brain", "message": "[ok] arm controller"}
+{"timestamp": "2026-06-19T01:05:00", "level": "WARNING", "name": "simba.motion.hand", "message": "pigpio not available, using mock"}
+{"timestamp": "2026-06-19T01:05:00", "level": "INFO", "name": "simba.motion.hand", "message": "hand controller initialized (3-finger triangle)"}
+{"timestamp": "2026-06-19T01:05:00", "level": "INFO", "name": "simba.core.brain", "message": "[ok] hand controller"}
+{"timestamp": "2026-06-19T01:05:00", "level": "INFO", "name": "simba.motion.chassis", "message": "chassis controller initialized (6-pin L298N 2wd differential)"}
+{"timestamp": "2026-06-19T01:05:00", "level": "INFO", "name": "simba.core.brain", "message": "[ok] chassis controller"}
+{"timestamp": "2026-06-19T01:05:00", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-19T01:05:00", "level": "INFO", "name": "simba.core.brain", "message": "[ok] imu reader"}
+{"timestamp": "2026-06-19T01:05:00", "level": "INFO", "name": "simba.core.brain", "message": "[ok] camera controller"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.vision.detector", "message": "feature extractor loaded \u2014 input (224, 224), output dim 1001"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.vision.detector", "message": "classifier not found (expected on fresh install, falling back to YOLO): /home/mazo/Documents/MXSA/models/object_classifier.joblib"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.vision.hybrid", "message": "[ok] Hybrid Detector (YOLO + SVM) initialized"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.core.brain", "message": "[ok] hybrid object detector"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.core.memory", "message": "no memory file found at /home/mazo/Documents/MXSA/data/memory.json \u2014 starting fresh"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.core.brain", "message": "[ok] memory system"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.core.emotions", "message": "emotion engine v2 initialized (mood=curious, intensity=0.50, personality={'curiosity': 0.8, 'playfulness': 0.7, 'loyalty': 0.9, 'sensitivity': 0.6})"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.core.brain", "message": "[ok] emotion engine"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.core.brain", "message": "[ok] state machine"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.vision.scanner", "message": "area scanner initialised \u2014 angles [0, 45, 90, 135, 180]"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.core.brain", "message": "[ok] area scanner"}
+{"timestamp": "2026-06-19T01:05:01", "level": "WARNING", "name": "simba.voice.listener", "message": "vosk not installed \u2014 voice listener disabled"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.core.brain", "message": "[ok] voice listener"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:05:01", "level": "INFO", "name": "simba.core.brain", "message": "[ok] command parser"}
+{"timestamp": "2026-06-19T01:05:03", "level": "INFO", "name": "simba.voice.speaker_verify", "message": "no speaker model found at /home/mazo/Documents/MXSA/models/speaker_model.joblib \u2014 not enrolled"}
+{"timestamp": "2026-06-19T01:05:03", "level": "INFO", "name": "simba.core.brain", "message": "[ok] speaker verifier"}
+{"timestamp": "2026-06-19T01:05:03", "level": "INFO", "name": "simba.core.brain", "message": "[ok] llm configured for ollama: qwen2.5:0.5b"}
+{"timestamp": "2026-06-19T01:05:03", "level": "INFO", "name": "simba.core.path_recorder", "message": "loaded 0 path entries from disk"}
+{"timestamp": "2026-06-19T01:05:03", "level": "INFO", "name": "simba.core.path_recorder", "message": "path recorder initialized (0 entries loaded)"}
+{"timestamp": "2026-06-19T01:05:03", "level": "INFO", "name": "simba.core.brain", "message": "[ok] path recorder initialized"}
+{"timestamp": "2026-06-19T01:05:03", "level": "INFO", "name": "simba.core.brain", "message": "simba brain initialized successfully!"}
+{"timestamp": "2026-06-19T01:05:03", "level": "INFO", "name": "simba.main", "message": "Web-only mode active."}
+{"timestamp": "2026-06-19T01:05:03", "level": "INFO", "name": "simba.main", "message": "Starting web dashboard..."}
+{"timestamp": "2026-06-19T01:05:04", "level": "INFO", "name": "simba.web.server", "message": "brain reference connected via create_app"}
+{"timestamp": "2026-06-19T01:05:04", "level": "INFO", "name": "simba.web.server", "message": "status push thread started \u2014 interval 1.0s"}
+{"timestamp": "2026-06-19T01:05:04", "level": "INFO", "name": "simba.main", "message": "Web dashboard successfully started: http://0.0.0.0:8080"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.main", "message": "Boot sequence initiated."}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.main", "message": "Loading configuration..."}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.main", "message": "configuration loaded"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.main", "message": "Initializing hardware subsystems (Brain)..."}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "=================================================="}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "  simba brain initializing..."}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "  _max_cyan_ \u2014 project_mxsa"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "=================================================="}
+{"timestamp": "2026-06-19T01:05:19", "level": "WARNING", "name": "simba.motion.arm", "message": "pigpio not available, using mock"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.motion.arm", "message": "arm controller initialized"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "[ok] arm controller"}
+{"timestamp": "2026-06-19T01:05:19", "level": "WARNING", "name": "simba.motion.hand", "message": "pigpio not available, using mock"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.motion.hand", "message": "hand controller initialized (3-finger triangle)"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "[ok] hand controller"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.motion.chassis", "message": "chassis controller initialized (6-pin L298N 2wd differential)"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "[ok] chassis controller"}
+{"timestamp": "2026-06-19T01:05:19", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "[ok] imu reader"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "[ok] camera controller"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.vision.detector", "message": "feature extractor loaded \u2014 input (224, 224), output dim 1001"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.vision.detector", "message": "classifier not found (expected on fresh install, falling back to YOLO): /home/mazo/Documents/MXSA/models/object_classifier.joblib"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.vision.hybrid", "message": "[ok] Hybrid Detector (YOLO + SVM) initialized"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "[ok] hybrid object detector"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.memory", "message": "no memory file found at /home/mazo/Documents/MXSA/data/memory.json \u2014 starting fresh"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "[ok] memory system"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.emotions", "message": "emotion engine v2 initialized (mood=curious, intensity=0.50, personality={'curiosity': 0.8, 'playfulness': 0.7, 'loyalty': 0.9, 'sensitivity': 0.6})"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "[ok] emotion engine"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "[ok] state machine"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.vision.scanner", "message": "area scanner initialised \u2014 angles [0, 45, 90, 135, 180]"}
+{"timestamp": "2026-06-19T01:05:19", "level": "INFO", "name": "simba.core.brain", "message": "[ok] area scanner"}
+{"timestamp": "2026-06-19T01:05:20", "level": "WARNING", "name": "simba.voice.listener", "message": "vosk not installed \u2014 voice listener disabled"}
+{"timestamp": "2026-06-19T01:05:20", "level": "INFO", "name": "simba.core.brain", "message": "[ok] voice listener"}
+{"timestamp": "2026-06-19T01:05:20", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:05:20", "level": "INFO", "name": "simba.core.brain", "message": "[ok] command parser"}
+{"timestamp": "2026-06-19T01:05:22", "level": "INFO", "name": "simba.voice.speaker_verify", "message": "no speaker model found at /home/mazo/Documents/MXSA/models/speaker_model.joblib \u2014 not enrolled"}
+{"timestamp": "2026-06-19T01:05:22", "level": "INFO", "name": "simba.core.brain", "message": "[ok] speaker verifier"}
+{"timestamp": "2026-06-19T01:05:22", "level": "INFO", "name": "simba.core.brain", "message": "[ok] llm configured for ollama: qwen2.5:0.5b"}
+{"timestamp": "2026-06-19T01:05:22", "level": "INFO", "name": "simba.core.path_recorder", "message": "loaded 0 path entries from disk"}
+{"timestamp": "2026-06-19T01:05:22", "level": "INFO", "name": "simba.core.path_recorder", "message": "path recorder initialized (0 entries loaded)"}
+{"timestamp": "2026-06-19T01:05:22", "level": "INFO", "name": "simba.core.brain", "message": "[ok] path recorder initialized"}
+{"timestamp": "2026-06-19T01:05:22", "level": "INFO", "name": "simba.core.brain", "message": "simba brain initialized successfully!"}
+{"timestamp": "2026-06-19T01:05:22", "level": "INFO", "name": "simba.main", "message": "Web-only mode active."}
+{"timestamp": "2026-06-19T01:05:22", "level": "INFO", "name": "simba.main", "message": "Starting web dashboard..."}
+{"timestamp": "2026-06-19T01:05:22", "level": "INFO", "name": "simba.web.server", "message": "brain reference connected via create_app"}
+{"timestamp": "2026-06-19T01:05:22", "level": "INFO", "name": "simba.web.server", "message": "status push thread started \u2014 interval 1.0s"}
+{"timestamp": "2026-06-19T01:05:22", "level": "INFO", "name": "simba.main", "message": "Web dashboard successfully started: http://0.0.0.0:8080"}
+{"timestamp": "2026-06-19T01:06:19", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:06:23", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:06:23", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'speed_up', 'target': None, 'modifier': None} (exact match from 'super-faster')"}
+{"timestamp": "2026-06-19T01:06:52", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:06:52", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-19T01:06:52", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:06:52", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-19T01:06:52", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:06:52", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-19T01:06:52", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:06:52", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:06:52", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-19T01:06:52", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:06:52", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-19T01:06:59", "level": "WARNING", "name": "simba.motion.arm", "message": "pigpio not available, using mock"}
+{"timestamp": "2026-06-19T01:06:59", "level": "INFO", "name": "simba.motion.arm", "message": "arm controller initialized"}
+{"timestamp": "2026-06-19T01:08:35", "level": "WARNING", "name": "simba.motion.arm", "message": "pigpio not available, using mock"}
+{"timestamp": "2026-06-19T01:08:35", "level": "INFO", "name": "simba.motion.arm", "message": "arm controller initialized"}
+{"timestamp": "2026-06-19T01:08:35", "level": "WARNING", "name": "simba.motion.arm", "message": "Target xyz(0.0, 0.0, 0.0) is too close. Clamping."}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.vision.detector", "message": "feature extractor loaded \u2014 input (224, 224), output dim 1001"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.vision.detector", "message": "classifier not found (expected on fresh install, falling back to YOLO): /home/mazo/Documents/MXSA/models/object_classifier.joblib"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.vision.hybrid", "message": "[ok] Hybrid Detector (YOLO + SVM) initialized"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-19T01:08:46", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-19T01:08:46", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: SCANNING -> FETCHING (was in SCANNING for 0.0s)"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:08:46", "level": "WARNING", "name": "simba.core.state_machine", "message": "invalid transition BOOTING -> FETCHING (allowed: CHARGING, IDLE, SCANNING)"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> FETCHING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-19T01:08:46", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-19T01:09:43", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-19T01:09:43", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: SCANNING -> FETCHING (was in SCANNING for 0.0s)"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:09:43", "level": "WARNING", "name": "simba.core.state_machine", "message": "invalid transition BOOTING -> FETCHING (allowed: CHARGING, IDLE, SCANNING)"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> FETCHING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}

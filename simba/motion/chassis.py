@@ -50,7 +50,7 @@ class ChassisController:
         self.slow_speed = motor_cfg["slow_speed"]
 
         self._lock = threading.Lock()
-        self._motion_lock = threading.Lock()
+        self._motion_lock = threading.RLock()
         self._current_speed = (0, 0)
         self._stop_event = threading.Event()
 
@@ -163,24 +163,26 @@ class ChassisController:
     def stop(self):
         """stop both motors immediately."""
         self._stop_event.set()
-        self.set_speed(0, 0)
-        log_event("motion", "chassis stopped")
+        with self._motion_lock:
+            self.set_speed(0, 0)
+            log_event("motion", "chassis stopped")
 
     def brake(self):
         """stop motors abruptly by shorting terminals."""
         self._stop_event.set()
-        with self._lock:
-            try:
-                self.pi.write(self.in1, 1)
-                self.pi.write(self.in2, 1)
-                self.pi.write(self.in3, 1)
-                self.pi.write(self.in4, 1)
-                self.pi.set_PWM_dutycycle(self.ena, 100)
-                self.pi.set_PWM_dutycycle(self.enb, 100)
-            except Exception as e:
-                logger.error("pigpio brake error: %s", e)
-            self._current_speed = (0, 0)
-        log_event("motion", "chassis active brake applied")
+        with self._motion_lock:
+            with self._lock:
+                try:
+                    self.pi.write(self.in1, 1)
+                    self.pi.write(self.in2, 1)
+                    self.pi.write(self.in3, 1)
+                    self.pi.write(self.in4, 1)
+                    self.pi.set_PWM_dutycycle(self.ena, 100)
+                    self.pi.set_PWM_dutycycle(self.enb, 100)
+                except Exception as e:
+                    logger.error("pigpio brake error: %s", e)
+                self._current_speed = (0, 0)
+            log_event("motion", "chassis active brake applied")
 
     def move_for_duration(self, direction, speed, duration):
         """move in a direction for a set duration.
@@ -226,18 +228,19 @@ class ChassisController:
             angle: target angle in degrees (0-180, 90 = straight)
             duration: time to spend turning
         """
-        self._stop_event.clear()
-        interrupted = False
-        if angle < 80:
-            self.spin_right(self.turn_speed)
-            interrupted = self._stop_event.wait(duration * (90 - angle) / 90)
-        elif angle > 100:
-            self.spin_left(self.turn_speed)
-            interrupted = self._stop_event.wait(duration * (angle - 90) / 90)
-
-        if not interrupted:
-            self.set_speed(0, 0)
-        log_event("motion", f"chassis aimed at ~{angle}°")
+        with self._motion_lock:
+            self._stop_event.clear()
+            interrupted = False
+            if angle < 80:
+                self.spin_right(self.turn_speed)
+                interrupted = self._stop_event.wait(duration * (90 - angle) / 90)
+            elif angle > 100:
+                self.spin_left(self.turn_speed)
+                interrupted = self._stop_event.wait(duration * (angle - 90) / 90)
+    
+            if not interrupted:
+                self.set_speed(0, 0)
+            log_event("motion", f"chassis aimed at ~{angle}°")
 
     def get_speed(self):
         """get current motor speeds."""

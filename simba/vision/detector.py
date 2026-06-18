@@ -293,7 +293,7 @@ class ObjectDetector:
                 self.interpreter.set_tensor(self._input_index, input_data)
                 self.interpreter.invoke()
                 output = self.interpreter.get_tensor(self._output_index)
-            features = output.flatten().astype(np.float32)
+                features = output.flatten().astype(np.float32)
 
             return features
         except Exception as exc:
