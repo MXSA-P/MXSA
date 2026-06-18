@@ -65,6 +65,139 @@ def _load_config() -> dict:
 _MIN_INFERENCE_INTERVAL: float = 0.1  # seconds — caps inference at 10 FPS
 
 # ---------------------------------------------------------------------------
+# fallback camera process (cv2)
+# ---------------------------------------------------------------------------
+
+class CV2CameraProcess:
+    """reads frames natively using OpenCV v4l2 wrapper."""
+    def __init__(self, resolution, framerate):
+        self.resolution = resolution
+        self.framerate = framerate
+        self.cap = None
+
+    def start(self):
+        import cv2
+        logger.info("starting cv2 camera fallback on /dev/video0")
+        self.cap = cv2.VideoCapture(0)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.resolution[0])
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.resolution[1])
+        self.cap.set(cv2.CAP_PROP_FPS, self.framerate)
+        if not self.cap.isOpened():
+            raise RuntimeError("cv2.VideoCapture(0) failed to open")
+
+    def capture_array(self):
+        if self.cap is None:
+            raise RuntimeError("Camera not started")
+        import cv2
+        ret, frame = self.cap.read()
+        if not ret:
+            raise RuntimeError("Failed to read frame from cv2")
+        # cv2 returns BGR, AI and dashboard expect RGB numpy array
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    def stop(self):
+        if self.cap:
+            self.cap.release()
+            self.cap = None
+
+# ---------------------------------------------------------------------------
+# fallback camera process (rpicam-vid / libcamera-vid / ffmpeg stdout parser)
+# ---------------------------------------------------------------------------
+
+import subprocess
+import shutil
+
+class FallbackCameraProcess:
+    """reads mjpeg stream from rpicam-vid, libcamera-vid, or ffmpeg via subprocess."""
+    def __init__(self, resolution, framerate):
+        self.resolution = resolution
+        self.framerate = framerate
+        self.process = None
+        self._buffer = b""
+
+    def _find_executable(self):
+        # rpicam-hello cannot stream to stdout and forces a monitor preview,
+        # so we strictly rely on rpicam-vid or libcamera-vid.
+        for cmd in ["rpicam-vid", "libcamera-vid"]:
+            if shutil.which(cmd):
+                return cmd, [
+                    cmd, "--nopreview", "--timeout", "0", "--codec", "mjpeg", 
+                    "--width", str(self.resolution[0]), 
+                    "--height", str(self.resolution[1]), 
+                    "--framerate", str(self.framerate), "-o", "-"
+                ]
+        # fallback to ffmpeg for generic usb webcams on linux
+        if shutil.which("ffmpeg") and os.path.exists("/dev/video0"):
+            return "ffmpeg", [
+                "ffmpeg", "-f", "v4l2", "-framerate", str(self.framerate),
+                "-video_size", f"{self.resolution[0]}x{self.resolution[1]}",
+                "-i", "/dev/video0", "-f", "image2pipe", "-vcodec", "mjpeg", "-"
+            ]
+        return None, None
+
+    def start(self):
+        cmd_name, cmd_args = self._find_executable()
+        if not cmd_args:
+            raise RuntimeError("No suitable fallback camera executable found (rpicam-vid/libcamera-vid/ffmpeg)")
+        
+        logger.info(f"starting fallback camera using {cmd_name}")
+        self.process = subprocess.Popen(cmd_args, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        self._buffer = b""
+
+    def capture_array(self):
+        if self.process is None:
+            raise RuntimeError("Camera not started")
+        
+        while True:
+            # Use read1 to avoid blocking until exactly 64KB is accumulated
+            chunk = self.process.stdout.read1(65536)
+            if not chunk:
+                # Process died or EOF
+                time.sleep(0.1)
+                raise RuntimeError("Camera stream ended")
+            
+            self._buffer += chunk
+            
+            # Find the start of a JPEG
+            a = self._buffer.find(b'\xff\xd8')
+            if a == -1:
+                # Keep the last byte in case the marker is split
+                if len(self._buffer) > 1024:
+                    self._buffer = self._buffer[-2:]
+                continue
+                
+            # Find the LAST end marker to cleanly bypass any embedded thumbnails.
+            # If we grab multiple frames, Image.open() automatically decodes the first one.
+            b = self._buffer.rfind(b'\xff\xd9')
+            if b != -1 and b > a:
+                jpg = self._buffer[a:b+2]
+                
+                # Aggressively clear the buffer to drop stale frames and stay realtime
+                self._buffer = b""
+                
+                if Image is not None:
+                    try:
+                        img = Image.open(io.BytesIO(jpg))
+                        return np.array(img.convert("RGB"))
+                    except Exception as e:
+                        pass
+                else:
+                    return np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8)
+        
+        return np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8)
+
+    def stop(self):
+        if self.process:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=2.0)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+            if self.process.stdout:
+                self.process.stdout.close()
+            self.process = None
+
+# ---------------------------------------------------------------------------
 # camera controller
 # ---------------------------------------------------------------------------
 
@@ -123,8 +256,54 @@ class CameraController:
             logger.warning("camera already running")
             return
 
-        # Initialize picamera2 right before starting to prevent stale locks
-        if self.camera is None and Picamera2 is not None:
+        success = False
+
+        # 1. TRY OPENCV (USER REQUESTED PRIMARY)
+        try:
+            import cv2
+            self.camera = CV2CameraProcess(self.resolution, self._framerate)
+            self.camera.start()
+            self._running = True
+            self._capture_thread = threading.Thread(
+                target=self._capture_loop, daemon=True, name="camera-capture")
+            self._capture_thread.start()
+            logger.info("camera started (cv2 main mode)")
+            log_event("vision", "camera started via cv2")
+            success = True
+        except ImportError:
+            logger.warning("cv2 not installed, skipping OpenCV fallback.")
+        except Exception as e:
+            logger.warning(f"cv2 camera failed: {e}. Falling back to rpicam subprocess.")
+            if self.camera:
+                try:
+                    self.camera.stop()
+                except:
+                    pass
+            self.camera = None
+
+        # 2. TRY RPICAM STDOUT (SECONDARY)
+        if not success:
+            try:
+                self.camera = FallbackCameraProcess(self.resolution, self._framerate)
+                self.camera.start()
+                self._running = True
+                self._capture_thread = threading.Thread(
+                    target=self._capture_loop, daemon=True, name="camera-capture")
+                self._capture_thread.start()
+                logger.info("camera started (rpicam mode)")
+                log_event("vision", "camera started via rpicam")
+                success = True
+            except Exception as e:
+                logger.warning(f"rpicam subprocess failed: {e}. Falling back to Picamera2.")
+                if self.camera:
+                    try:
+                        self.camera.stop()
+                    except:
+                        pass
+                self.camera = None
+
+        # 3. TRY PICAMERA2 (TERTIARY)
+        if not success and Picamera2 is not None:
             import time
             for attempt in range(3):
                 try:
@@ -135,57 +314,41 @@ class CameraController:
                     self.camera = None
                     time.sleep(1.0)
             
-            if self.camera is None:
-                logger.error("failed to initialise picamera2 after 3 attempts.")
-
-        if self.camera is not None:
-            import time
-            success = False
-            for attempt in range(3):
-                try:
-                    # Optimized configuration for 5MP CSI sensor (OV5647)
-                    config = self.camera.create_video_configuration(
-                        main={
-                            "size": self.resolution,
-                            "format": self._format,
-                        },
-                        transform=Transform(hflip=False, vflip=False) if Transform else None
-                    )
-                    # Tune ISP for sharper captures and faster autofocus
-                    self.camera.configure(config)
+            if self.camera is not None:
+                for attempt in range(3):
                     try:
-                        self.camera.set_controls({"AfMode": 1, "AwbMode": 1})
-                    except Exception as ctrl_exc:
-                        logger.warning("Failed to set AF/AWB controls (maybe fixed-focus sensor): %s", ctrl_exc)
-                    
-                    self.camera.start()  # Use start() for continuous streaming, start_and_step freezes on first black frame
-                    success = True
-                    break
-                except Exception as exc:
-                    logger.warning("Camera start attempt %d failed: %s", attempt + 1, exc)
-                    if self.camera:
+                        config = self.camera.create_video_configuration(
+                            main={"size": self.resolution, "format": self._format},
+                            transform=Transform(hflip=False, vflip=False) if Transform else None
+                        )
+                        self.camera.configure(config)
+                        try:
+                            self.camera.set_controls({"AfMode": 1, "AwbMode": 1})
+                        except Exception:
+                            pass
+                        
+                        self.camera.start()
+                        self._running = True
+                        self._capture_thread = threading.Thread(
+                            target=self._capture_loop, daemon=True, name="camera-capture")
+                        self._capture_thread.start()
+                        
+                        logger.info("camera started (picamera2 secondary mode)")
+                        log_event("vision", "camera started via picamera2")
+                        success = True
+                        break
+                    except Exception as exc:
+                        logger.warning("Picamera2 start attempt %d failed: %s", attempt + 1, exc)
                         try:
                             self.camera.stop()
                         except:
                             pass
-                    time.sleep(0.5)
+                        time.sleep(0.5)
 
-            if not success:
-                logger.error("Failed to start picamera2 after 3 attempts.")
-                self.camera = None
-                return
-
-            self._running = True
-
-            # start background capture thread
-            self._capture_thread = threading.Thread(
-                target=self._capture_loop, daemon=True, name="camera-capture", )
-            self._capture_thread.start()
-
-            logger.info("camera started")
-            log_event("vision", "camera started")
-        else:
-            # simulation mode — mark as running so other methods work
+        # 3. FALLBACK TO SIMULATION
+        if not success:
+            logger.error("All physical cameras failed. Dropping to simulation.")
+            self.camera = None
             self._running = True
             logger.info("camera started (simulation mode)")
 

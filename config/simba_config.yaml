@@ -117,9 +117,9 @@ servos:
     wrist_max: 150
     wrist_min: 0
   finger_limits:
-    closed: 150
+    closed: 180
     grab_speed: 2.0
-    open: 30
+    open: 0
   frequency: 50
   home_position:
     arm_elbow: 90

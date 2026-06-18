@@ -50,6 +50,7 @@ class ArmController:
         servo_cfg = config["servos"]
         self.pulse_min = servo_cfg["pulse_min"]     # 500
         self.pulse_max = servo_cfg["pulse_max"]     # 2500
+        self.servo_max_angle = servo_cfg.get("max_angle", 180.0)
 
         limits = servo_cfg["arm_limits"]
         self.rotation_min = limits["rotation_min"]  # 0
@@ -98,9 +99,9 @@ class ArmController:
         logger.info("arm controller initialized")
 
     def _angle_to_pulse(self, angle: float) -> int:
-        """convert angle (0-180) to pulse width (500-2500 microseconds)."""
-        angle = max(0, min(180, angle))
-        return int(round(self.pulse_min + (angle / 180.0) *
+        """convert angle to pulse width (500-2500 microseconds)."""
+        angle = max(0, min(self.servo_max_angle, angle))
+        return int(round(self.pulse_min + (angle / self.servo_max_angle) *
                    (self.pulse_max - self.pulse_min)))
 
     def _set_servo(self, pin: int, angle: float) -> None:
@@ -432,9 +433,9 @@ class ArmController:
         log_event("motion", "simba is shaking head")
         center = self.current["rotation"]
         for _ in range(2):
-            self.rotate(center + 30)
-            self.rotate(center - 30)
-        self.rotate(center)
+            self.rotation(center + 30)
+            self.rotation(center - 30)
+        self.rotation(center)
 
     def celebrate(self):
         """celebrate excitedly!"""
@@ -444,8 +445,8 @@ class ArmController:
         for _ in range(3):
             if self._stop_event.is_set():
                 break
-            self.rotate(self.home_angles["rotation"] + 45)
-            self.rotate(self.home_angles["rotation"] - 45)
+            self.rotation(self.home_angles["rotation"] + 45)
+            self.rotation(self.home_angles["rotation"] - 45)
         if not self._stop_event.is_set():
             self.home()
 

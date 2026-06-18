@@ -83,12 +83,15 @@ class HandController:
     def _set_finger(self, finger_id, angle):
         """set individual finger to angle."""
         if 0 <= finger_id < 3:
-            # Finger 3 (index 2) should not exceed 50 degrees
-            if finger_id == 2:
-                angle = max(0, min(50, angle))
+            actual_angle = angle
+            if finger_id == 0:
+                # Finger 1 (index 0) is the top finger mounted upside down
+                actual_angle = 180 - angle
+            elif finger_id == 2:
+                # Finger 3 (index 2) is mirrored and physically obstructed.
+                # It only goes 180-80. We map logical [0, 180] to physical [180, 80]
+                actual_angle = 180 - (angle / 180.0) * 100.0
                 
-            # Finger 1 (index 0) is the top finger mounted upside down relative to the bottom two
-            actual_angle = (180 - angle) if finger_id == 0 else angle
             pw = self._angle_to_pulse(actual_angle)
             try:
                 self.pi.set_servo_pulsewidth(self.finger_pins[finger_id], pw)
