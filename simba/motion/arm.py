@@ -244,6 +244,7 @@ class ArmController:
                     angle = start_angles[key] + ease_t * \
                         (targets[key] - start_angles[key])
                     self._set_servo(pin, angle)
+                    self.current[key] = angle
                     
             if self._stop_event.wait(0.02):
                 interrupted = True

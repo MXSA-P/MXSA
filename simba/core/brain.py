@@ -235,35 +235,35 @@ class SimbaBrain:
         # --- initialize motion subsystem ---
         try:
             from simba.motion.arm import ArmController
-            self.arm = ArmController(config)
+            self.arm = HardwareLockProxy(ArmController(config), self._hardware_lock)
             logger.info("[ok] arm controller")
         except Exception as e:
             logger.warning(f"[mock] arm controller: {e}")
-            self.arm = _MockArm()
+            self.arm = HardwareLockProxy(_MockArm(), self._hardware_lock)
 
         try:
             from simba.motion.hand import HandController
-            self.hand = HandController(config)
+            self.hand = HardwareLockProxy(HandController(config), self._hardware_lock)
             logger.info("[ok] hand controller")
         except Exception as e:
             logger.warning(f"[mock] hand controller: {e}")
-            self.hand = _MockHand()
+            self.hand = HardwareLockProxy(_MockHand(), self._hardware_lock)
 
         try:
             from simba.motion.chassis import ChassisController
-            self.chassis = ChassisController(config)
+            self.chassis = HardwareLockProxy(ChassisController(config), self._hardware_lock)
             logger.info("[ok] chassis controller")
         except Exception as e:
             logger.warning(f"[mock] chassis controller: {e}")
-            self.chassis = _MockChassis()
+            self.chassis = HardwareLockProxy(_MockChassis(), self._hardware_lock)
 
         try:
             from simba.motion.imu import IMUReader
-            self.imu = IMUReader(config)
+            self.imu = HardwareLockProxy(IMUReader(config), self._hardware_lock)
             logger.info("[ok] imu reader")
         except Exception as e:
             logger.warning(f"[mock] imu reader: {e}")
-            self.imu = _MockIMU()
+            self.imu = HardwareLockProxy(_MockIMU(), self._hardware_lock)
 
         # --- initialize vision subsystem ---
         try:

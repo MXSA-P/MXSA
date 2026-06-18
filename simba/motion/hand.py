@@ -168,7 +168,7 @@ class HandController:
             while True:
                 with self._lock:
                     current_angles = list(self.finger_angles)
-                    all_open = not any(a > self.open_angle for a in current_angles)
+                    all_open = all(abs(a - self.open_angle) < 0.1 for a in current_angles)
                 if all_open:
                     break
                     
@@ -176,6 +176,11 @@ class HandController:
                     if current_angles[i] > self.open_angle:
                         current_angles[i] = max(
                             current_angles[i] - speed,
+                            self.open_angle
+                        )
+                    elif current_angles[i] < self.open_angle:
+                        current_angles[i] = min(
+                            current_angles[i] + speed,
                             self.open_angle
                         )
                 with self._lock:

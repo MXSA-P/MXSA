@@ -150,7 +150,8 @@ class ObjectDetector:
         try:
             from simba.vision.yolo_detector import YoloDetector
             self.yolo = YoloDetector()
-        except ImportError:
+        except Exception as e:
+            logger.warning(f"Failed to load YoloDetector: {e}")
             self.yolo = None
 
         log_event("vision", "object detector initialised", {
@@ -271,6 +272,10 @@ class ObjectDetector:
 
         # resize to model input size
         resized = self._resize_frame(frame, self.input_size)
+        if len(resized.shape) == 2:
+            resized = np.stack((resized,) * 3, axis=-1)
+        elif resized.shape[2] == 4:
+            resized = resized[..., :3]
 
         # prepare input tensor: (1, h, w, 3) float32 normalised to [0, 1]
         input_data = np.expand_dims(resized.astype(np.float32) / 255.0, axis=0)
@@ -361,7 +366,7 @@ class ObjectDetector:
                 'confidence' — float 0–1.
                 'bbox'       — [x, y, w, h] in pixel coordinates.
         """
-        if frame is None or not hasattr(frame, 'shape'):
+        if frame is None or not hasattr(frame, 'shape') or len(frame.shape) < 2:
             return []
 
         h, w = frame.shape[:2]
@@ -416,7 +421,7 @@ class ObjectDetector:
             })
 
         # free intermediate arrays from the full ML pipeline
-        gc.collect()
+        # gc.collect() removed for performance
 
         return smoothed_detections
 

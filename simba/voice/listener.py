@@ -277,6 +277,15 @@ class VoiceListener:
                     else:
                         logger.error("failed to open 2-channel audio fallback: %s", e_fallback)
                     return False
+            
+            # Close any existing stream before creating a new one (safety measure)
+            if getattr(self, '_stream', None) is not None and getattr(self._stream, 'active', False):
+                try:
+                    self._stream.stop()
+                    self._stream.close()
+                except:
+                    pass
+            
             self._stream.start()
             self._listening = True
             self._process_thread = threading.Thread(target=self._process_audio, daemon=True)
@@ -288,26 +297,33 @@ class VoiceListener:
         except Exception as exc:
             logger.error("failed to start audio stream: %s", exc)
             self._listening = False
+            if getattr(self, '_stream', None) is not None:
+                try:
+                    self._stream.close()
+                except:
+                    pass
+                self._stream = None
             return False
 
     def stop(self) -> None:
         """stop listening and release the audio stream."""
-        if not self._listening:
-            return
+        was_listening = self._listening
+        self._listening = False
 
         try:
-            if self._stream is not None:
+            if getattr(self, '_stream', None) is not None:
                 self._stream.stop()
                 self._stream.close()
                 self._stream = None
         except Exception as exc:
             logger.error("error stopping audio stream: %s", exc)
         finally:
-            self._listening = False
             if self._process_thread and self._process_thread.is_alive():
-                self._process_thread.join(timeout=2)
-            logger.info("voice listener stopped")
-            log_event("voice", "listener stopped")
+                if threading.current_thread() != self._process_thread:
+                    self._process_thread.join(timeout=2)
+            if was_listening:
+                logger.info("voice listener stopped")
+                log_event("voice", "listener stopped")
 
     def on_text(self, callback: Callable[[str], None]) -> None:
         """register a callback to receive recognized text.

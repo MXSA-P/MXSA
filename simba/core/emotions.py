@@ -370,7 +370,7 @@ class EmotionEngine:
         self._max_history: int = 50
 
         # load reaction configs
-        self._reactions: dict = emotion_cfg.get("reactions", {})
+        self._reactions: dict = emotion_cfg.get("reactions") or {}
 
         logger.info("emotion engine v2 initialized (mood=%s, intensity=%.2f, "
                     "personality=%s)", self._emotion, self._intensity,
@@ -819,7 +819,11 @@ class EmotionEngine:
         }
 
     def __repr__(self) -> str:
+        with self._lock:
+            emotion = self._emotion
+            intensity = self._intensity
+            mood = self._mood
         return (
-            f"EmotionEngine(emotion='{self._emotion}', "
-            f"intensity={self._intensity:.3f}, mood='{self._mood}')"
+            f"EmotionEngine(emotion='{emotion}', "
+            f"intensity={intensity:.3f}, mood='{mood}')"
         )

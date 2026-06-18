@@ -71,7 +71,9 @@ fi
 
 # activate virtual environment
 if [ -d "venv" ]; then
+    set +u
     source venv/bin/activate
+    set -u
 else
     echo -e "${RED}Error: virtual environment 'venv' not found. Please run the install script first.${NC}"
     exit 1

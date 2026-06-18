@@ -65,11 +65,11 @@ def _load_config() -> dict:
 _MIN_INFERENCE_INTERVAL: float = 0.1  # seconds — caps inference at 10 FPS
 
 # ---------------------------------------------------------------------------
-# fallback camera process (cv2)
+# fallback camera process (cv2 for generic usb webcams / trainer pc)
 # ---------------------------------------------------------------------------
 
 class CV2CameraProcess:
-    """reads frames natively using OpenCV v4l2 wrapper."""
+    """reads frames natively using robust OpenCV fallback."""
     def __init__(self, resolution, framerate):
         self.resolution = resolution
         self.framerate = framerate
@@ -77,13 +77,17 @@ class CV2CameraProcess:
 
     def start(self):
         import cv2
-        logger.info("starting cv2 camera fallback on /dev/video0")
-        self.cap = cv2.VideoCapture(0)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.resolution[0])
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.resolution[1])
-        self.cap.set(cv2.CAP_PROP_FPS, self.framerate)
-        if not self.cap.isOpened():
-            raise RuntimeError("cv2.VideoCapture(0) failed to open")
+        for idx in [0, 2, 1, 3, 4]:
+            cap = cv2.VideoCapture(idx)
+            if cap.isOpened():
+                # Verify we can actually read a frame (avoids metadata nodes)
+                ret, _ = cap.read()
+                if ret:
+                    self.cap = cap
+                    logger.info(f"cv2 locked onto /dev/video{idx}")
+                    return
+                cap.release()
+        raise RuntimeError("cv2 failed to find any working video devices")
 
     def capture_array(self):
         if self.cap is None:
@@ -92,13 +96,97 @@ class CV2CameraProcess:
         ret, frame = self.cap.read()
         if not ret:
             raise RuntimeError("Failed to read frame from cv2")
-        # cv2 returns BGR, AI and dashboard expect RGB numpy array
+        # Resize in software rather than hardware to avoid v4l2 property crashes
+        frame = cv2.resize(frame, self.resolution)
         return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     def stop(self):
         if self.cap:
             self.cap.release()
             self.cap = None
+
+# ---------------------------------------------------------------------------
+# fallback camera process (ramdisk / rpicam-still looping)
+# ---------------------------------------------------------------------------
+    """reads frames by repeatedly invoking rpicam-still as requested by user."""
+    def __init__(self, resolution, framerate):
+        self.resolution = resolution
+        self.framerate = framerate
+        self._running = False
+        self._thread = None
+        
+        # Use /tmp as it is universally writable on Linux and mapped to RAM by default
+        self.shm_dir = "/tmp"
+        self.target_file = f"{self.shm_dir}/simba_capture.jpg"
+        
+        self._latest_frame = np.zeros((resolution[1], resolution[0], 3), dtype=np.uint8)
+        self._lock = threading.Lock()
+
+    def start(self):
+        os.makedirs(self.shm_dir, exist_ok=True)
+        if os.path.exists(self.target_file):
+            try: os.remove(self.target_file)
+            except: pass
+
+        self._running = True
+        self._thread = threading.Thread(target=self._capture_loop, daemon=True, name="rpicam-loop")
+        self._thread.start()
+        
+        # Wait up to 10 seconds for the first frame to ensure it actually works on slower Pis
+        start_wait = time.time()
+        while time.time() - start_wait < 10.0:
+            if os.path.exists(self.target_file):
+                return
+            time.sleep(0.1)
+            
+        self.stop()
+        raise RuntimeError("rpicam-still failed to capture a frame within 10 seconds")
+
+    def _capture_loop(self):
+        while self._running:
+            try:
+                # 10ms timeout breaks the sensor warmup. We use 1000ms.
+                result = subprocess.run([
+                    "rpicam-still",
+                    "-o", self.target_file,
+                    "-n",  # use -n instead of --nopreview for universal support
+                    "-t", "1000",
+                    "--width", str(self.resolution[0]),
+                    "--height", str(self.resolution[1])
+                ], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+                
+                if result.returncode != 0:
+                    logger.debug(f"rpicam-still failed: {result.stderr}")
+                
+                if os.path.exists(self.target_file):
+                    if Image is not None:
+                        img = Image.open(self.target_file)
+                        frame = np.array(img.convert("RGB"))
+                    else:
+                        import cv2
+                        bgr = cv2.imread(self.target_file)
+                        frame = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+                        
+                    with self._lock:
+                        self._latest_frame = frame
+                        
+            except Exception as e:
+                logger.debug(f"rpicam-still loop error: {e}")
+                
+            time.sleep(0.1)
+
+    def capture_array(self):
+        if not self._running:
+            raise RuntimeError("Camera not started")
+            
+        with self._lock:
+            return self._latest_frame.copy()
+
+    def stop(self):
+        self._running = False
+        if self._thread:
+            self._thread.join(timeout=2.0)
+        self._thread = None
 
 # ---------------------------------------------------------------------------
 # fallback camera process (rpicam-vid / libcamera-vid / ffmpeg stdout parser)
@@ -258,43 +346,37 @@ class CameraController:
 
         success = False
 
-        # 1. TRY OPENCV (USER REQUESTED PRIMARY)
-        try:
-            import cv2
-            self.camera = CV2CameraProcess(self.resolution, self._framerate)
-            self.camera.start()
-            self._running = True
-            self._capture_thread = threading.Thread(
-                target=self._capture_loop, daemon=True, name="camera-capture")
-            self._capture_thread.start()
-            logger.info("camera started (cv2 main mode)")
-            log_event("vision", "camera started via cv2")
-            success = True
-        except ImportError:
-            logger.warning("cv2 not installed, skipping OpenCV fallback.")
-        except Exception as e:
-            logger.warning(f"cv2 camera failed: {e}. Falling back to rpicam subprocess.")
-            if self.camera:
-                try:
-                    self.camera.stop()
-                except:
-                    pass
-            self.camera = None
+        import shutil
+        has_rpicam = shutil.which("rpicam-still") is not None
 
-        # 2. TRY RPICAM STDOUT (SECONDARY)
-        if not success:
+        strategies = []
+        if has_rpicam:
+            strategies = [
+                ("ramdisk", RamdiskCameraProcess),
+                ("cv2", CV2CameraProcess),
+                ("fallback", FallbackCameraProcess)
+            ]
+        else:
+            strategies = [
+                ("cv2", CV2CameraProcess),
+                ("ramdisk", RamdiskCameraProcess),
+                ("fallback", FallbackCameraProcess)
+            ]
+
+        for name, ProcessClass in strategies:
             try:
-                self.camera = FallbackCameraProcess(self.resolution, self._framerate)
+                self.camera = ProcessClass(self.resolution, self._framerate)
                 self.camera.start()
                 self._running = True
                 self._capture_thread = threading.Thread(
                     target=self._capture_loop, daemon=True, name="camera-capture")
                 self._capture_thread.start()
-                logger.info("camera started (rpicam mode)")
-                log_event("vision", "camera started via rpicam")
+                logger.info(f"camera started ({name} main mode)")
+                log_event("vision", f"camera started via {name}")
                 success = True
+                break
             except Exception as e:
-                logger.warning(f"rpicam subprocess failed: {e}. Falling back to Picamera2.")
+                logger.warning(f"{name} camera failed: {e}. Trying next fallback...")
                 if self.camera:
                     try:
                         self.camera.stop()
@@ -502,26 +584,21 @@ class CameraController:
             )
             # convert rgb -> bgr for opencv encoding
             bgr = cv2.cvtColor(resized, cv2.COLOR_RGB2BGR)
-            _, buf = cv2.imencode(
-                ".jpg", bgr,
-                [cv2.IMWRITE_JPEG_QUALITY, self.jpeg_quality],
-            )
-            return buf.tobytes()
-        except Exception:
-            pass
-
-        if Image is not None:
+            # frame is RGB, encode directly
+            ret, buf = cv2.imencode('.jpg', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+            if ret:
+                return buf.tobytes()
+        except Exception as e:
+            logger.error(f"cv2 mjpeg encode error: {e}")
             try:
+                from PIL import Image
                 img = Image.fromarray(frame)
-                resample = getattr(Image, "Resampling", Image).BILINEAR
-                # resize to stream resolution
-                img = img.resize(self.stream_resolution, resample)
                 buf = io.BytesIO()
-                img.save(buf, format="JPEG", quality=self.jpeg_quality)
+                img.save(buf, format="JPEG")
                 return buf.getvalue()
-            except Exception as e:
-                logger.error(f"Pillow jpeg encoding failed: {e}")
-
+            except Exception as pe:
+                logger.error(f"PIL mjpeg encode error: {pe}")
+        
         logger.error("neither cv2 nor pillow available for jpeg encoding")
         return None
 

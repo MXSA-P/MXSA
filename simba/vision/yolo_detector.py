@@ -26,7 +26,7 @@ class YoloDetector:
                     logger.error(f"YOLO load failed: {e}")
 
     def detect_objects(self, frame_np):
-        if self.model is None or frame_np is None:
+        if self.model is None or frame_np is None or not hasattr(frame_np, 'shape') or len(frame_np.shape) < 2:
             return []
 
         with _yolo_lock:

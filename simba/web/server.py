@@ -510,28 +510,34 @@ def api_diagnostics_run():
         test_name = test_name.lower().replace(" ", "_")
     
     if test_name == "arm_sweep":
-        try:
-            _brain.arm.move_smooth({"rotation": 90, "elbow": 90, "elbow_2": 90, "wrist": 90}, duration=0.5)
-            time.sleep(0.5)
-            _brain.arm.move_smooth({"rotation": 45, "elbow": 110, "elbow_2": 80, "wrist": 45}, duration=0.5)
-            time.sleep(0.5)
-            _brain.arm.move_smooth({"rotation": 135, "elbow": 70, "elbow_2": 100, "wrist": 135}, duration=0.5)
-            time.sleep(0.5)
-            _brain.arm.move_smooth({"rotation": 90, "elbow": 90, "elbow_2": 90, "wrist": 90}, duration=0.5)
-            return jsonify({"status": "arm sweep completed"})
-        except Exception as e:
-            return jsonify({"error": f"arm sweep failed: {e}"}), 500
+        def run_sweep():
+            try:
+                _brain.arm.move_smooth({"rotation": 90, "elbow": 90, "elbow_2": 90, "wrist": 90}, duration=0.5)
+                time.sleep(0.5)
+                _brain.arm.move_smooth({"rotation": 45, "elbow": 110, "elbow_2": 80, "wrist": 45}, duration=0.5)
+                time.sleep(0.5)
+                _brain.arm.move_smooth({"rotation": 135, "elbow": 70, "elbow_2": 100, "wrist": 135}, duration=0.5)
+                time.sleep(0.5)
+                _brain.arm.move_smooth({"rotation": 90, "elbow": 90, "elbow_2": 90, "wrist": 90}, duration=0.5)
+            except Exception as e:
+                logger.error(f"arm sweep failed: {e}")
+        
+        threading.Thread(target=run_sweep, daemon=True).start()
+        return jsonify({"status": "arm sweep started"})
             
     elif test_name == "chassis_spin":
-        try:
-            _brain.chassis.turn_left(speed=50)
-            time.sleep(1)
-            _brain.chassis.turn_right(speed=50)
-            time.sleep(1)
-            _brain.chassis.stop()
-            return jsonify({"status": "chassis spin completed"})
-        except Exception as e:
-            return jsonify({"error": f"chassis spin failed: {e}"}), 500
+        def run_spin():
+            try:
+                _brain.chassis.turn_left(speed=50)
+                time.sleep(1)
+                _brain.chassis.turn_right(speed=50)
+                time.sleep(1)
+                _brain.chassis.stop()
+            except Exception as e:
+                logger.error(f"chassis spin failed: {e}")
+                
+        threading.Thread(target=run_spin, daemon=True).start()
+        return jsonify({"status": "chassis spin started"})
             
     elif test_name == "camera_feed":
         try:
@@ -760,6 +766,7 @@ def handle_connect():
         if verify_password(request.authorization.username, request.authorization.password):
             auth_ok = True
     if not auth_ok:
+        logger.warning("websocket connection rejected: auth failed")
         return False
         
     logger.info("dashboard client connected")

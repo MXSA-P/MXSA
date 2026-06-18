@@ -62,7 +62,7 @@ class HybridDetector:
                 detections.append({
                     "label": svm_label,
                     "confidence": svm_conf,
-                    "box": [w * 0.1, h * 0.1, w * 0.9, h * 0.9]
+                    "bbox": [int(w * 0.1), int(h * 0.1), int(w * 0.8), int(h * 0.8)]
                 })
 
         return detections
@@ -86,7 +86,7 @@ class HybridDetector:
         svm_label, svm_conf = self.svm.classify(frame_np)
         if svm_label == target_label and svm_conf >= threshold:
             h, w = frame_np.shape[:2]
-            return True, svm_conf, [w * 0.1, h * 0.1, w * 0.9, h * 0.9]
+            return True, svm_conf, [int(w * 0.1), int(h * 0.1), int(w * 0.8), int(h * 0.8)]
 
         return False, 0.0, None
 

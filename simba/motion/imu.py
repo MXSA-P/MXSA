@@ -184,9 +184,12 @@ class IMUReader:
                 break
 
         n = max(1, valid_samples)
-        self.accel_offset = [s / n for s in accel_sum]
-        self.accel_offset[2] -= 1.0  # z should be 1g at rest
-        self.gyro_offset = [s / n for s in gyro_sum]
+        self.accel_offset[0] += accel_sum[0] / n
+        self.accel_offset[1] += accel_sum[1] / n
+        self.accel_offset[2] += (accel_sum[2] / n) - 1.0  # z should be 1g at rest
+        self.gyro_offset[0] += gyro_sum[0] / n
+        self.gyro_offset[1] += gyro_sum[1] / n
+        self.gyro_offset[2] += gyro_sum[2] / n
 
         logger.info("mpu6050 calibration complete")
         log_event("imu", "calibration complete", {

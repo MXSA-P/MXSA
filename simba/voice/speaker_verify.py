@@ -206,6 +206,9 @@ class SpeakerVerifier:
             features = self._extract_features(audio_float)
             if features is None:
                 self._last_confidence = 0.0
+                self._confidence_history.append(0.0)
+                if len(self._confidence_history) > self._history_max_len:
+                    self._confidence_history.pop(0)
                 return (False, 0.0)
 
             try:
@@ -215,8 +218,9 @@ class SpeakerVerifier:
                 # normalize score to 0-1 range using baseline
                 # positive difference from baseline means more likely owner
                 if self._baseline_score != 0:
+                    # shift the sigmoid so a score equal to baseline gives ~0.88 confidence
                     normalized = 1.0 / (1.0 + np.exp(
-                        -(score - self._baseline_score)
+                        -(score - self._baseline_score + 2.0)
                     ))
                 else:
                     # without baseline, use sigmoid of raw score
@@ -246,6 +250,9 @@ class SpeakerVerifier:
             except Exception as exc:
                 logger.error("speaker verification failed: %s", exc)
                 self._last_confidence = 0.0
+                self._confidence_history.append(0.0)
+                if len(self._confidence_history) > self._history_max_len:
+                    self._confidence_history.pop(0)
                 return (False, 0.0)
 
     def enroll(self, audio_samples: list) -> bool:

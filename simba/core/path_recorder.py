@@ -172,8 +172,7 @@ class PathRecorder:
     # movement execution
     # ------------------------------------------------------------------
 
-    @staticmethod
-    def _execute_movement(chassis, action: str, speed: float,
+    def _execute_movement(self, chassis, action: str, speed: float,
                           duration: float) -> None:
         """execute a single chassis movement for a given duration."""
         action_map = {
@@ -190,7 +189,11 @@ class PathRecorder:
         move_fn = action_map.get(action)
         if move_fn:
             move_fn(speed=speed)
-            time.sleep(duration)
+            end_time = time.time() + duration
+            while time.time() < end_time:
+                if not getattr(self, "_returning", False):
+                    break
+                time.sleep(min(0.1, end_time - time.time()))
             chassis.stop()
             time.sleep(0.2)  # brief settling pause between moves
 
@@ -225,9 +228,11 @@ class PathRecorder:
     def _save(self) -> None:
         """persist the path stack to disk."""
         try:
+            with self._lock:
+                stack_copy = list(self._stack)
             os.makedirs(os.path.dirname(self._save_path), exist_ok=True)
             with open(self._save_path, "w") as f:
-                json.dump(self._stack, f)
+                json.dump(stack_copy, f)
         except Exception as e:
             logger.warning(f"failed to save path log: {e}")
 

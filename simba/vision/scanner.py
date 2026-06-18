@@ -84,10 +84,10 @@ class AreaScanner:
         self.detector = detector
         self.memory = memory
 
-        self.angles: List[int] = [
-            int(a) for a in ai_cfg.get(
-                "scan_sweep_angles", [
-                    0, 45, 90, 135, 180])]
+        angles_raw = ai_cfg.get("scan_sweep_angles", [0, 45, 90, 135, 180])
+        if isinstance(angles_raw, str):
+            angles_raw = [int(x.strip()) for x in angles_raw.split(',')]
+        self.angles: List[int] = [int(a) for a in angles_raw]
 
         # continuous scanning state
         self._scanning: bool = False
@@ -407,7 +407,7 @@ class AreaScanner:
                         width = det["bbox"][2]  # [x, y, w, h]
                     else:
                         box = det.get("box", [0, 0, 1, 1])
-                        width = box[3] - box[1]  # xmax - xmin
+                        width = box[2] - box[0]  # xmax - xmin
                     distance_cm = (1.0 / (width + 0.001)) * \
                         30.0  # dummy calibration
 

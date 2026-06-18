@@ -202,9 +202,12 @@ class ChassisController:
         action = actions.get(direction, self.stop)
 
         if action in (self.brake, self.stop):
-            action()
-            # clear the event set by brake/stop so we can wait
-            self._stop_event.clear()
+            with self._motion_lock:
+                action()
+                # clear the event set by brake/stop so we can wait
+                self._stop_event.clear()
+                if duration > 0:
+                    self._stop_event.wait(duration)
         else:
             with self._motion_lock:
                 self._stop_event.clear()

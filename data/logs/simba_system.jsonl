@@ -308,3 +308,58 @@
 {"timestamp": "2026-06-18T01:20:38", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
 {"timestamp": "2026-06-18T01:20:38", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
 {"timestamp": "2026-06-18T01:20:38", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-19T00:30:22", "level": "INFO", "name": "simba.test", "message": "test message"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-19T00:33:04", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-19T00:33:04", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: SCANNING -> FETCHING (was in SCANNING for 0.0s)"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T00:33:04", "level": "WARNING", "name": "simba.core.state_machine", "message": "invalid transition BOOTING -> FETCHING (allowed: CHARGING, IDLE, SCANNING)"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> FETCHING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-19T00:33:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-19T00:39:47", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-19T00:39:47", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: SCANNING -> FETCHING (was in SCANNING for 0.0s)"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T00:39:47", "level": "WARNING", "name": "simba.core.state_machine", "message": "invalid transition BOOTING -> FETCHING (allowed: CHARGING, IDLE, SCANNING)"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> FETCHING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-19T00:39:47", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
