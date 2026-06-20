@@ -1,8 +1,8 @@
 # _max_cyan_ — project_mxsa
 """hand controller — 3-servo finger grip in triangle formation."""
 
-import time
 import threading
+import time
 
 try:
     import pigpio
@@ -19,9 +19,11 @@ class _MockPi:
     """mock pigpio for testing without hardware."""
 
     def set_servo_pulsewidth(self, pin, pw):
+        """set servo pulsewidth for testing."""
         pass
 
     def stop(self):
+        """stop mock pi."""
         pass
 
 
@@ -33,6 +35,7 @@ class HandController:
     """
 
     def __init__(self, config):
+        """initialize hand controller with config."""
         pins = config["pins"]
         self.finger_pins = [
             pins["finger_1"],  # gpio 4
@@ -48,6 +51,7 @@ class HandController:
         self.open_angle = finger_cfg["open"]       # 30
         self.closed_angle = finger_cfg["closed"]   # 150
         self.grab_speed = finger_cfg["grab_speed"]  # 2.0
+        self._pulse_range_per_deg = (self.pulse_max - self.pulse_min) / 180.0
 
         home = servo_cfg["home_position"]
         self.finger_angles = [
@@ -69,6 +73,14 @@ class HandController:
             logger.warning("pigpio not available, using mock")
             self.pi = _MockPi()
 
+        # configure servo pins as outputs
+        if _HAS_PIGPIO and hasattr(self.pi, 'connected') and self.pi.connected:
+            try:
+                for pin in self.finger_pins:
+                    self.pi.set_mode(pin, pigpio.OUTPUT)
+            except Exception as e:
+                logger.error("pigpio mode setting error: %s", e)
+
         # set initial position
         for i in range(3):
             self._set_finger(i, self.finger_angles[i])
@@ -76,34 +88,40 @@ class HandController:
         logger.info("hand controller initialized (3-finger triangle)")
 
     def _angle_to_pulse(self, angle):
+        """convert angle to pulsewidth."""
         angle = max(0, min(180, angle))
-        return int(self.pulse_min + (angle / 180.0) *
-                   (self.pulse_max - self.pulse_min))
+        pw = int(self.pulse_min + angle * self._pulse_range_per_deg)
+        # Enforce strict mechanical limits for servos
+        return max(500, min(2500, pw))
 
     def _set_finger(self, finger_id, angle):
         """set individual finger to angle."""
-        if 0 <= finger_id < 3:
-            # Enforce logical mechanical boundaries
-            min_limit = min(self.open_angle, self.closed_angle)
-            max_limit = max(self.open_angle, self.closed_angle)
-            angle = max(min_limit, min(max_limit, angle))
+        if not isinstance(finger_id, int):
+            raise TypeError(f"finger_id must be an int, got {type(finger_id).__name__}")
+        if not (0 <= finger_id < 3):
+            raise IndexError(f"finger_id {finger_id} out of bounds")
 
-            actual_angle = angle
-            if finger_id == 0:
-                # Finger 1 (index 0) is the top finger mounted upside down
-                actual_angle = 180 - angle
-            elif finger_id == 2:
-                # Finger 3 (index 2) is mirrored and physically obstructed.
-                # It only goes 180-80. We map logical [0, 180] to physical [180, 80]
-                actual_angle = 180 - (angle / 180.0) * 100.0
-                actual_angle = max(80, min(180, actual_angle))
-                
-            pw = self._angle_to_pulse(actual_angle)
-            try:
-                self.pi.set_servo_pulsewidth(self.finger_pins[finger_id], pw)
-            except Exception as e:
-                logger.error(f"Failed to set servo pulsewidth for finger {finger_id}: {e}")
-            self.finger_angles[finger_id] = angle
+        # Enforce logical mechanical boundaries
+        min_limit = min(self.open_angle, self.closed_angle)
+        max_limit = max(self.open_angle, self.closed_angle)
+        angle = max(min_limit, min(max_limit, angle))
+
+        actual_angle = angle
+        if finger_id == 0:
+            # Finger 1 (index 0) is the top finger mounted upside down
+            actual_angle = 180 - angle
+        elif finger_id == 2:
+            # Finger 3 (index 2) is mirrored and physically obstructed.
+            # It only goes 180-80. We map logical [0, 180] to physical [180, 80]
+            actual_angle = 180 - angle * (5.0 / 9.0)
+            actual_angle = max(80, min(180, actual_angle))
+
+        pw = self._angle_to_pulse(actual_angle)
+        try:
+            self.pi.set_servo_pulsewidth(self.finger_pins[finger_id], pw)
+        except Exception as e:
+            logger.error(f"Failed to set servo pulsewidth for finger {finger_id}: {e}")
+        self.finger_angles[finger_id] = angle
 
     def set_finger(self, finger_id, angle):
         """set a specific finger to an angle.
@@ -112,6 +130,11 @@ class HandController:
             finger_id: 0, 1, or 2
             angle: servo angle (open_angle to closed_angle)
         """
+        if not isinstance(finger_id, int):
+            raise TypeError(f"finger_id must be an int, got {type(finger_id).__name__}")
+        if not (0 <= finger_id < 3):
+            raise IndexError(f"finger_id {finger_id} out of bounds")
+
         min_limit = min(self.open_angle, self.closed_angle)
         max_limit = max(self.open_angle, self.closed_angle)
         angle = max(min_limit, min(max_limit, angle))
@@ -129,11 +152,12 @@ class HandController:
             max_dist = max([abs(d) for d in distances] + [0])
             speed = max(0.1, self.grab_speed)
             steps = max(1, int(max_dist / speed))
-    
+            step_sizes = [d / steps for d in distances]
+
             for step in range(1, steps + 1):
                 with self._lock:
                     for f in range(3):
-                        angle = start_angles[f] + (distances[f] * (step / steps))
+                        angle = start_angles[f] + (step_sizes[f] * step)
                         self._set_finger(f, angle)
                 time.sleep(0.02)
             with self._lock:
@@ -152,19 +176,20 @@ class HandController:
         with self._motion_lock:
             with self._lock:
                 start_angles = list(self.finger_angles)
-                
+
             distances = [target_angle - start for start in start_angles]
             max_dist = max([abs(d) for d in distances] + [0])
             speed = max(0.1, self.grab_speed)
             steps = max(1, int(max_dist / speed))
-    
+            step_sizes = [d / steps for d in distances]
+
             for step in range(1, steps + 1):
                 with self._lock:
                     for f in range(3):
-                        angle = start_angles[f] + (distances[f] * (step / steps))
+                        angle = start_angles[f] + (step_sizes[f] * step)
                         self._set_finger(f, angle)
                 time.sleep(0.02)
-    
+
             with self._lock:
                 self._grip_state = f"adaptive ({width_percentage:.1f}%)"
 
@@ -179,7 +204,7 @@ class HandController:
                     all_open = all(abs(a - self.open_angle) < 0.1 for a in current_angles)
                 if all_open:
                     break
-                    
+
                 for i in range(3):
                     if current_angles[i] > self.open_angle:
                         current_angles[i] = max(
@@ -195,7 +220,7 @@ class HandController:
                     for i in range(3):
                         self._set_finger(i, current_angles[i])
                 time.sleep(0.02)
-                
+
             with self._lock:
                 self._grip_state = "open"
         log_event("motion", "hand grip opened")

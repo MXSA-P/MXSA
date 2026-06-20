@@ -193,7 +193,7 @@ class PathRecorder:
             while time.time() < end_time:
                 if not getattr(self, "_returning", False):
                     break
-                time.sleep(min(0.1, end_time - time.time()))
+                time.sleep(max(0.0, min(0.1, end_time - time.time())))
             chassis.stop()
             time.sleep(0.2)  # brief settling pause between moves
 
@@ -231,8 +231,11 @@ class PathRecorder:
             with self._lock:
                 stack_copy = list(self._stack)
             os.makedirs(os.path.dirname(self._save_path), exist_ok=True)
-            with open(self._save_path, "w") as f:
+            import tempfile
+            fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(self._save_path), prefix="path_", suffix=".tmp")
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(stack_copy, f)
+            os.replace(tmp_path, self._save_path)
         except Exception as e:
             logger.warning(f"failed to save path log: {e}")
 

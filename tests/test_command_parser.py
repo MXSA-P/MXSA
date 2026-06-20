@@ -41,3 +41,16 @@ def test_identity_commands():
     assert result is not None
     assert result["action"] == "who_are_you"
     assert result["target"] is None
+
+def test_hyphenated_word():
+    parser = CommandParser()
+    result = parser.parse("get me the x-ray")
+    assert result is not None
+    assert result["action"] == "fetch"
+    assert result["target"] == "x-ray"
+
+def test_hyphenated_pattern():
+    parser = CommandParser()
+    result = parser.parse("cpu-temperature")
+    assert result is not None
+    assert result["action"] == "temperature"

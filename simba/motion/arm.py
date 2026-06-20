@@ -1,9 +1,11 @@
 # _max_cyan_ — project_mxsa
-"""arm controller — 4-servo articulated arm using pigpio."""
+"""Arm controller — 4-servo articulated arm using pigpio."""
 
-import time
+import functools
 import math
 import threading
+import time
+from typing import Any, Dict, Tuple  # Cleaned typing
 
 try:
     import pigpio
@@ -17,28 +19,104 @@ logger = get_logger("simba.motion.arm")
 
 
 class _MockPi:
-    """mock pigpio interface for testing without hardware."""
+    """Mock pigpio interface for testing without hardware."""
 
     def set_servo_pulsewidth(self, pin, pw):
+        """Set the pulsewidth for the specified servo pin."""
         pass
 
     def stop(self):
+        """Stop the mock pigpio interface."""
         pass
 
 
-from typing import Dict, Any  # Cleaned typing
+@functools.lru_cache(maxsize=1024)
+def _calculate_ik(x: float, y: float, z: float) -> Tuple[float, float, float]:
+    """Calculate inverse kinematics with caching to reduce CPU load."""
+    if x is None or y is None or z is None:
+        raise ValueError("XYZ coordinates cannot be None")
+
+    try:
+        x = float(x)
+        y = float(y)
+        z = float(z)
+    except (ValueError, TypeError) as e:
+        raise ValueError(f"XYZ coordinates must be numeric: {e}")
+
+    if not (math.isfinite(x) and math.isfinite(y) and math.isfinite(z)):
+        raise ValueError("XYZ coordinates must be finite numbers")
+
+    MAX_COORD = 100.0
+    if not (-MAX_COORD <= x <= MAX_COORD and
+            -MAX_COORD <= y <= MAX_COORD and
+            -MAX_COORD <= z <= MAX_COORD):
+        x = max(-MAX_COORD, min(MAX_COORD, x))
+        y = max(-MAX_COORD, min(MAX_COORD, y))
+        z = max(-MAX_COORD, min(MAX_COORD, z))
+
+    L1 = 15.0  # length from base to wrist (cm)
+    L2 = 10.0  # length from wrist to fingertip (cm)
+
+    # 1. Base Rotation (Y-axis twist)
+    rotation_rad = math.atan2(x, y)
+    rot_angle = 90 - math.degrees(rotation_rad)
+
+    # 2. Planar IK (r, z)
+    r = math.sqrt(x**2 + y**2)
+
+    # safe distance check
+    target_dist = math.sqrt(r**2 + z**2)
+    if target_dist > (L1 + L2):
+        logger.warning("Target xyz(%.1f, %.1f, %.1f) is unreachable. Clamping.", x, y, z)
+        scale = (L1 + L2 - 0.1) / target_dist
+        r *= scale
+        z *= scale
+    elif target_dist < abs(L1 - L2):
+        logger.warning("Target xyz(%.1f, %.1f, %.1f) is too close. Clamping.", x, y, z)
+        if target_dist < 0.001:
+            r = abs(L1 - L2) + 0.1
+            z = 0.0
+        else:
+            scale = (abs(L1 - L2) + 0.1) / target_dist
+            r *= scale
+            z *= scale
+
+    # calculate wrist angle (theta2) using cosine rule
+    c2 = (r**2 + z**2 - L1**2 - L2**2) / (2 * L1 * L2)
+
+    # strictly clamp c2 to [-1, 1] to prevent math domain errors
+    if math.isnan(c2):
+        c2 = 1.0
+    elif c2 > 1.0:
+        c2 = 1.0
+    elif c2 < -1.0:
+        c2 = -1.0
+
+    theta2_rad = math.acos(c2)
+
+    # calculate elbow angle (theta1)
+    k1 = L1 + L2 * c2
+    k2 = L2 * math.sin(theta2_rad)
+    theta1_rad = math.atan2(z, r) - math.atan2(k2, k1)
+
+    # convert to degrees and map to servo ranges
+    elbow_angle = 180 - math.degrees(theta1_rad)
+    elbow_2_offset = math.degrees(theta2_rad)
+
+    return rot_angle, elbow_angle, elbow_2_offset
+
 
 class ArmController:
-    """controls 4-servo arm: rotation (y-axis), elbow (up/down), elbow_2, wrist (up/down).
+    """Controls 4-servo arm: rotation (y-axis), elbow (up/down), elbow_2, wrist (up/down).
 
-    uses pigpio for hardware-timed pwm to avoid servo jitter.
-    all movements are smooth-interpolated for natural motion.
+    Uses pigpio for hardware-timed pwm to avoid servo jitter.
+    All movements are smooth-interpolated for natural motion.
     """
 
     def __init__(self, config: Dict[str, Any]) -> None:
-        """initialize arm controller.
+        """Initialize arm controller.
 
-        args:
+        Args:
             config: dict from simba_config.yaml
         """
         pins = config["pins"]
@@ -94,18 +172,26 @@ class ArmController:
             logger.warning("pigpio not available, using mock")
             self.pi = _MockPi()
 
+        # configure servo pins as outputs
+        if _HAS_PIGPIO:
+            try:
+                for pin in [self.rotation_pin, self.elbow_pin, self.elbow_2_pin, self.wrist_pin]:
+                    self.pi.set_mode(pin, pigpio.OUTPUT)
+            except Exception as e:
+                logger.error("pigpio mode setting error: %s", e)
+
         # move to home position
         self.home()
         logger.info("arm controller initialized")
 
     def _angle_to_pulse(self, angle: float) -> int:
-        """convert angle to pulse width (500-2500 microseconds)."""
+        """Convert angle to pulse width (500-2500 microseconds)."""
         angle = max(0, min(self.servo_max_angle, angle))
         return int(round(self.pulse_min + (angle / self.servo_max_angle) *
                    (self.pulse_max - self.pulse_min)))
 
     def _set_servo(self, pin: int, angle: float) -> None:
-        """set a servo to a specific angle."""
+        """Set a servo to a specific angle."""
         pw = self._angle_to_pulse(angle)
         try:
             self.pi.set_servo_pulsewidth(pin, pw)
@@ -113,10 +199,10 @@ class ArmController:
             logger.error("pigpio error setting pin %d to pw %d: %s", pin, pw, e)
 
     def _move_smooth(self, pin, current_angle, target_angle, speed=None):
-        """smoothly interpolate servo from current to target angle with ease-in-out."""
+        """Smoothly interpolate servo from current to target angle with ease-in-out."""
         if speed is None:
             speed = self.move_speed
-            
+
         speed = max(0.1, speed)
 
         distance = target_angle - current_angle
@@ -140,27 +226,27 @@ class ArmController:
         return target_angle
 
     def rotation(self, angle):
-        """rotate arm left/right."""
+        """Rotate arm left/right."""
         angle = max(self.rotation_min, min(self.rotation_max, angle))
         with self._motion_lock:
             with self._lock:
                 self._moving = True
                 current_angle = self.current["rotation"]
-                
+
             final_angle = self._move_smooth(
                 self.rotation_pin, current_angle, angle
             )
-            
+
             with self._lock:
                 self.current["rotation"] = final_angle
                 self._moving = False
-                
+
         log_event("motion", f"arm rotated to {angle}°")
 
     def raise_arm(self, angle):
-        """move arm elbows up/down simultaneously.
+        """Move arm elbows up/down simultaneously.
 
-        args:
+        Args:
             angle: target angle (elbow_min to elbow_max)
         """
         angle1 = max(self.elbow_min, min(self.elbow_max, angle))
@@ -171,25 +257,25 @@ class ArmController:
         log_event("motion", f"arm elbows to {angle}° (elbow_2 inverted to {angle2}°)")
 
     def wrist(self, angle):
-        """move wrist up/down."""
+        """Move wrist up/down."""
         angle = max(self.wrist_min, min(self.wrist_max, angle))
         with self._motion_lock:
             with self._lock:
                 self._moving = True
                 current_angle = self.current["wrist"]
-                
+
             final_angle = self._move_smooth(
                 self.wrist_pin, current_angle, angle
             )
-            
+
             with self._lock:
                 self.current["wrist"] = final_angle
                 self._moving = False
-                
+
         log_event("motion", f"wrist to {angle}°")
 
     def home(self):
-        """return all servos to home position."""
+        """Return all servos to home position."""
         self.move_smooth({
             "rotation": self.home_angles["rotation"],
             "elbow": self.home_angles["elbow"],
@@ -199,7 +285,7 @@ class ArmController:
         log_event("motion", "arm returned to home position")
 
     def move_smooth(self, target_angles, speed=None):
-        """move all arm servos simultaneously to target angles."""
+        """Move all arm servos simultaneously to target angles."""
         if speed is None:
             speed = self.move_speed
         speed = max(0.1, speed)
@@ -245,7 +331,7 @@ class ArmController:
                         (targets[key] - start_angles[key])
                     self._set_servo(pin, angle)
                     self.current[key] = angle
-                    
+
             if self._stop_event.wait(0.02):
                 interrupted = True
                 with self._lock:
@@ -263,65 +349,60 @@ class ArmController:
             self._moving = False
 
     def move_to_xyz(self, x: float, y: float, z: float, wrist_roll: float = None) -> None:
-        """move arm to xyz coordinate using inverse kinematics.
-        
+        """Move arm to xyz coordinate using inverse kinematics.
+
         wrist_roll: optional angle (0-180), 180=fingers up, 0=fingers down.
                     if None, maintains current wrist orientation.
 
-        args:
+        Args:
             x, y, z: float coordinates in cm
         """
-        L1 = 15.0  # length from base to wrist (cm)
-        L2 = 10.0  # length from wrist to fingertip (cm)
+        if x is None or y is None or z is None:
+            logger.error("move_to_xyz: Target coordinates cannot be None")
+            return
 
-        # 1. Base Rotation (Y-axis twist)
-        # 90 degrees is facing forward (x=0, y>0)
-        rotation_rad = math.atan2(x, y)
-        rot_angle = 90 - math.degrees(rotation_rad)
+        try:
+            x = float(x)
+            y = float(y)
+            z = float(z)
+        except (ValueError, TypeError) as e:
+            logger.error("move_to_xyz: Target coordinates must be numeric. %s", e)
+            return
 
-        # 2. Planar IK (r, z)
-        # r is horizontal distance from base
-        r = math.sqrt(x**2 + y**2)
+        if not (math.isfinite(x) and math.isfinite(y) and math.isfinite(z)):
+            logger.error("move_to_xyz: Target coordinates must be finite numbers.")
+            return
 
-        # safe distance check
-        target_dist = math.sqrt(r**2 + z**2)
-        if target_dist > (L1 + L2):
-            logger.warning("Target xyz(%.1f, %.1f, %.1f) is unreachable. Clamping.", x, y, z)
-            scale = (L1 + L2 - 0.1) / target_dist
-            r *= scale
-            z *= scale
-        elif target_dist < abs(L1 - L2):
-            logger.warning("Target xyz(%.1f, %.1f, %.1f) is too close. Clamping.", x, y, z)
-            scale = (abs(L1 - L2) + 0.1) / max(target_dist, 0.001)
-            r *= scale
-            z *= scale
+        MAX_COORD = 100.0
+        if not (-MAX_COORD <= x <= MAX_COORD and
+                -MAX_COORD <= y <= MAX_COORD and
+                -MAX_COORD <= z <= MAX_COORD):
+            logger.warning(
+                "move_to_xyz: Target coordinates xyz(%.1f, %.1f, %.1f) "
+                "wildly out of bounds. Clamping.", x, y, z)
+            x = max(-MAX_COORD, min(MAX_COORD, x))
+            y = max(-MAX_COORD, min(MAX_COORD, y))
+            z = max(-MAX_COORD, min(MAX_COORD, z))
 
-        # calculate wrist angle (theta2) using cosine rule
-        c2 = (r**2 + z**2 - L1**2 - L2**2) / (2 * L1 * L2)
-        
-        # strictly clamp c2 to [-1, 1] to prevent math domain errors
-        if math.isnan(c2):
-            c2 = 1.0
-        elif c2 > 1.0:
-            c2 = 1.0
-        elif c2 < -1.0:
-            c2 = -1.0
-            
-        theta2_rad = math.acos(c2)
+        # Round coordinates to 1 decimal place (1 mm precision) to maximize cache hits
+        x = round(x, 1)
+        y = round(y, 1)
+        z = round(z, 1)
 
-        # calculate elbow angle (theta1)
-        k1 = L1 + L2 * c2
-        k2 = L2 * math.sin(theta2_rad)
-        theta1_rad = math.atan2(z, r) - math.atan2(k2, k1)
+        rot_angle, elbow_angle, elbow_2_offset = _calculate_ik(x, y, z)
 
-        # convert to degrees and map to servo ranges
-        elbow_angle = 180 - math.degrees(theta1_rad)
-        
         # elbow_2 acts as the second pitch joint
-        elbow_2_angle = self.home_angles.get("elbow_2", 90) + math.degrees(theta2_rad)
-        
+        elbow_2_angle = self.home_angles.get("elbow_2", 90) + elbow_2_offset
+
         if wrist_roll is not None:
-            wrist_angle = wrist_roll
+            try:
+                wrist_angle = float(wrist_roll)
+                if not math.isfinite(wrist_angle):
+                    wrist_angle = self.current.get("wrist", 90)
+            except (ValueError, TypeError):
+                logger.warning(
+                    "move_to_xyz: wrist_roll could not be cast to float. Using current angle.")
+                wrist_angle = self.current.get("wrist", 90)
         else:
             wrist_angle = self.current.get("wrist", 90)
 
@@ -341,7 +422,7 @@ class ArmController:
         })
 
     def wave(self):
-        """wave the arm for greeting."""
+        """Wave the arm for greeting."""
         log_event("motion", "simba is waving!")
         self.raise_arm(150)
         for _ in range(3):
@@ -357,9 +438,9 @@ class ArmController:
             self.home()
 
     def wiggle(self, speed=3.0, angle_range=20, duration=2.0):
-        """wiggle the arm excitedly (for emotions like love/excitement).
+        """Wiggle the arm excitedly (for emotions like love/excitement).
 
-        args:
+        Args:
             speed: wiggle speed (degrees per step)
             angle_range: wiggle amplitude in degrees
             duration: how long to wiggle in seconds
@@ -388,7 +469,7 @@ class ArmController:
                     self.rotation_pin, self.current["rotation"], target_high, speed)
                 with self._lock:
                     self.current["rotation"] = final
-                    
+
                 if self._stop_event.is_set():
                     break
                 final = self._move_smooth(
@@ -402,12 +483,12 @@ class ArmController:
                     self.rotation_pin, self.current["rotation"], center, speed)
                 with self._lock:
                     self.current["rotation"] = final
-                    
+
             with self._lock:
                 self._moving = False
 
     def handshake(self):
-        """extend arm forward and do a handshake motion."""
+        """Extend arm forward and do a handshake motion."""
         log_event("motion", "simba wants to shake hands!")
         self.raise_arm(120)
         self.wrist(90)
@@ -427,13 +508,13 @@ class ArmController:
             self.home()
 
     def droop(self, angle=30):
-        """droop the arm down (for sadness)."""
+        """Droop the arm down (for sadness)."""
         log_event("motion", "arm drooping (sad)")
         self.raise_arm(self.elbow_min + angle)
         self.wrist(self.wrist_min + 20)
 
     def nod(self):
-        """nod the arm up and down (for agreement)."""
+        """Nod the arm up and down (for agreement)."""
         log_event("motion", "simba is nodding")
         center = self.current["elbow"]
         for _ in range(2):
@@ -442,7 +523,7 @@ class ArmController:
         self.raise_arm(center)
 
     def shake_head(self):
-        """shake the arm side to side (for disagreement)."""
+        """Shake the arm side to side (for disagreement)."""
         log_event("motion", "simba is shaking head")
         center = self.current["rotation"]
         for _ in range(2):
@@ -451,7 +532,7 @@ class ArmController:
         self.rotation(center)
 
     def celebrate(self):
-        """celebrate excitedly!"""
+        """Celebrate excitedly!"""
         log_event("motion", "simba is celebrating!")
         self.raise_arm(self.elbow_max - 20)
         self.wrist(self.wrist_max - 20)
@@ -464,24 +545,24 @@ class ArmController:
             self.home()
 
     def get_position(self):
-        """get current arm position.
+        """Get current arm position.
 
-        returns:
+        Returns:
             dict with current angles
         """
         with self._lock:
             return dict(self.current)
 
     def is_moving(self):
-        """check if arm is currently moving."""
+        """Check if arm is currently moving."""
         with self._lock:
             return self._moving
 
     def cleanup(self):
-        """release all servos and cleanup pigpio."""
+        """Release all servos and cleanup pigpio."""
         logger.info("cleaning up arm controller")
         self._stop_event.set()
-        
+
         with self._motion_lock:
             with self._lock:
                 for pin in [

@@ -1,6 +1,7 @@
 # _max_cyan_ — project_mxsa
 from simba.utils.logger import get_logger
 import threading
+import math
 
 _yolo_lock = threading.Lock()
 
@@ -38,6 +39,9 @@ class YoloDetector:
                     boxes = r.boxes
                     for box in boxes:
                         conf = float(box.conf[0].cpu().item() if hasattr(box.conf[0], 'cpu') else box.conf[0])
+                        if math.isnan(conf):
+                            conf = 0.0
+                        conf = max(0.0, min(1.0, conf))
                         if conf > 0.4:
                             cls_idx = int(box.cls[0].cpu().item() if hasattr(box.cls[0], 'cpu') else box.cls[0])
                             label = self.model.names[cls_idx]

@@ -7,9 +7,9 @@ via websocket to all connected clients.
 """
 
 import os
-import time
-import threading
 import secrets
+import threading
+import time
 from datetime import datetime
 from typing import Any, Optional
 
@@ -25,17 +25,32 @@ try:
     from flask_socketio import SocketIO, emit
 except ImportError:
     class SocketIO:
-        def __init__(self, *args, **kwargs): pass
-        def on(self, *args, **kwargs): return lambda f: f
-        def on_error_default(self, f): return f
+        def __init__(self, *args, **kwargs):
+            """initialize stub."""
+            pass
+        def on(self, *args, **kwargs):
+            """stub for on decorator."""
+            return lambda f: f
+        def on_error_default(self, f):
+            """stub for on_error_default decorator."""
+            return f
         def start_background_task(self, target, *args, **kwargs):
+            """stub for start_background_task."""
             t = threading.Thread(target=target, args=args, kwargs=kwargs, daemon=True)
             t.start()
             return t
-        def sleep(self, seconds): time.sleep(seconds)
-        def run(self, app, host=None, port=None, debug=None, **kwargs): app.run(host=host, port=port, debug=debug)
-        def emit(self, *args, **kwargs): pass
-    def emit(*args, **kwargs): pass
+        def sleep(self, seconds):
+            """stub for sleep."""
+            time.sleep(seconds)
+        def run(self, app, host=None, port=None, debug=None, **kwargs):
+            """stub for run."""
+            app.run(host=host, port=port, debug=debug)
+        def emit(self, *args, **kwargs):
+            """stub for emit."""
+            pass
+    def emit(*args, **kwargs):
+        """stub for emit."""
+        pass
 try:
     from flask_cors import CORS
 except ImportError:
@@ -44,14 +59,29 @@ try:
     from flask_httpauth import HTTPBasicAuth
 except ImportError:
     class HTTPBasicAuth:
-        def __init__(self): pass
-        def login_required(self, f): return f
-        def verify_password(self, f): return f
+        def __init__(self):
+            """initialize stub."""
+            pass
+        def login_required(self, f):
+            """stub for login_required."""
+            return f
+        def verify_password(self, f):
+            """stub for verify_password."""
+            return f
 
 auth = HTTPBasicAuth()
 
 @auth.verify_password
 def verify_password(username: str, password: str) -> Optional[str]:
+    """verify basic auth credentials.
+
+    args:
+        username: the provided username.
+        password: the provided password.
+
+    returns:
+        username if valid, else None.
+    """
     if secrets.compare_digest(username, "admin") and secrets.compare_digest(password, "mxsa123"):
         return username
     return None
@@ -99,6 +129,14 @@ else:
     # Fallback to manual headers if flask-cors is missing
     @app.after_request
     def add_cors_headers(response):
+        """add cors headers manually if flask-cors is not installed.
+
+        args:
+            response: the flask response object.
+
+        returns:
+            the modified flask response object.
+        """
         response.headers['Access-Control-Allow-Origin'] = '*'
         response.headers['Access-Control-Allow-Headers'] = '*'
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
@@ -110,6 +148,11 @@ socketio = SocketIO(app, cors_allowed_origins=_web_config.get("cors_origins", "*
 
 @socketio.on_error_default
 def default_error_handler(e):
+    """handle default websocket errors.
+
+    args:
+        e: the error that occurred.
+    """
     logger.error(f"WebSocket error: {e}")
 
 # ---------------------------------------------------------------------------
@@ -201,6 +244,7 @@ def _get_robot_state() -> dict:
         "detected_objects": [],
         "memory": [],
         "last_command": "",
+        "spoken_text": "",
     }
 
     if _brain is None:
@@ -245,46 +289,61 @@ def _get_robot_state() -> dict:
         pass
 
     try:
-        state["last_command"] = getattr(_brain, "last_command", "")
+        state["last_command"] = getattr(_brain, "last_command", "") or ""
+        state["spoken_text"] = getattr(_brain, "last_spoken_text", "") or ""
     except Exception:
         pass
 
     return state
 
 
+_last_slow_update = 0.0
+_slow_payload_cache = {"system": {}, "robot_base": {}, "logs": []}
+
 def _build_status_payload() -> dict:
-    """build the complete status payload for websocket push.
+    """build the comprehensive status payload for the dashboard.
 
     returns:
-        dict combining system stats, robot state, logs, and uptime.
+        dict containing system, robot, logs, uptime, and timestamp data.
     """
-    system = _get_system_stats()
-    robot = _get_robot_state()
-    logs = get_log_history(30)
-    uptime = _get_uptime_seconds()
+    global _last_slow_update, _slow_payload_cache
+    now = time.time()
+    
+    if now - _last_slow_update > 1.0:
+        system = _get_system_stats()
+        robot_base = _get_robot_state()
+        logs = get_log_history(30)
+        
+        # if brain has get_status(), use that for more complete data
+        if _brain is not None and hasattr(_brain, "get_status"):
+            try:
+                brain_status = _brain.get_status()
+                robot_base.update({
+                    "state": brain_status.get("state", robot_base["state"]),
+                    "emotion": brain_status.get("emotion", robot_base["emotion"]),
+                    "emotion_intensity": brain_status.get("emotion_intensity", 0.5),
+                    "emotion_emoji": brain_status.get("emotion_emoji", "🤖"),
+                    "thinking": brain_status.get("thinking", robot_base["thinking"]),
+                    "grip_state": brain_status.get("grip_state", "unknown"),
+                    "state_context": brain_status.get("state_context", {}),
+                })
+                system.update({
+                    "cpu_percent": brain_status.get("cpu_percent", system["cpu_percent"]),
+                    "ram_percent": brain_status.get("ram_percent", system["ram_percent"]),
+                    "ram_used_mb": brain_status.get("ram_used_mb", system["ram_used_mb"]),
+                    "ram_total_mb": brain_status.get("ram_total_mb", system["ram_total_mb"]),
+                    "temperature": brain_status.get("cpu_temp", system["temperature"]),
+                })
+            except Exception as exc:
+                logger.debug(f"brain get_status error: {exc}")
+                
+        _slow_payload_cache = {"system": system, "robot_base": robot_base, "logs": logs}
+        _last_slow_update = now
 
-    # if brain has get_status(), use that for more complete data
-    if _brain is not None and hasattr(_brain, "get_status"):
-        try:
-            brain_status = _brain.get_status()
-            robot.update({
-                "state": brain_status.get("state", robot["state"]),
-                "emotion": brain_status.get("emotion", robot["emotion"]),
-                "emotion_intensity": brain_status.get("emotion_intensity", 0.5),
-                "emotion_emoji": brain_status.get("emotion_emoji", "🤖"),
-                "thinking": brain_status.get("thinking", robot["thinking"]),
-                "grip_state": brain_status.get("grip_state", "unknown"),
-                "state_context": brain_status.get("state_context", {}),
-            })
-            system.update({
-                "cpu_percent": brain_status.get("cpu_percent", system["cpu_percent"]),
-                "ram_percent": brain_status.get("ram_percent", system["ram_percent"]),
-                "ram_used_mb": brain_status.get("ram_used_mb", system["ram_used_mb"]),
-                "ram_total_mb": brain_status.get("ram_total_mb", system["ram_total_mb"]),
-                "temperature": brain_status.get("cpu_temp", system["temperature"]),
-            })
-        except Exception as exc:
-            logger.debug(f"brain get_status error: {exc}")
+    system = _slow_payload_cache["system"]
+    robot = _slow_payload_cache["robot_base"].copy()
+    logs = _slow_payload_cache["logs"]
+    uptime = _get_uptime_seconds()
 
     # servo angles — arm + fingers
     servo_angles = {
@@ -433,9 +492,9 @@ def _status_push_loop() -> None:
 
     interval = _web_config.get("update_interval", 1.0)
 
-    # Throttle to max 10Hz (0.1s) to prevent network flooding
-    if interval < 0.1:
-        interval = 0.1
+    # Throttle to max ~60Hz (0.015s) to prevent network flooding
+    if interval < 0.015:
+        interval = 0.015
 
     logger.info(f"status push thread started — interval {interval}s")
 
@@ -462,14 +521,13 @@ def _status_push_loop() -> None:
 
             # Cache check to avoid network flooding
             # Ignore uptime and timestamp which change every tick
-            import json
-            state_to_hash = {
-                "system": payload.get("system"),
-                "robot": payload.get("robot"),
-                "logs_len": len(payload.get("logs", []))
-            }
             try:
-                current_hash = hash(json.dumps(state_to_hash, sort_keys=True))
+                # Optimized hashing for 60Hz telemetry: avoid json.dumps
+                # We use str() on isolated high-freq dicts and combine hashes
+                r = payload.get("robot", {})
+                fast_str = str(r.get("servo_angles")) + str(r.get("motor_state")) + str(r.get("imu_data"))
+                slow_hash = _last_slow_update # Changes every 1s
+                current_hash = hash(fast_str) ^ hash(slow_hash)
             except Exception:
                 current_hash = None  # Fallback if not serializable
 
@@ -517,11 +575,13 @@ def api_diagnostics_run():
     if not isinstance(data, dict):
         return jsonify({"error": "invalid payload format"}), 400
     test_name = data.get("test")
-    if test_name:
-        test_name = test_name.lower().replace(" ", "_")
+    if not isinstance(test_name, str):
+        return jsonify({"error": "test must be a string"}), 400
+    test_name = test_name.lower().replace(" ", "_")
     
     if test_name == "arm_sweep":
         def run_sweep():
+            """run a full arm sweep test."""
             try:
                 _brain.arm.move_smooth({"rotation": 90, "elbow": 90, "elbow_2": 90, "wrist": 90}, duration=0.5)
                 time.sleep(0.5)
@@ -538,6 +598,7 @@ def api_diagnostics_run():
             
     elif test_name == "chassis_spin":
         def run_spin():
+            """run a chassis spin test."""
             try:
                 _brain.chassis.turn_left(speed=50)
                 time.sleep(1)
@@ -615,6 +676,8 @@ def api_hardware_motor():
     if not isinstance(data, dict):
         return jsonify({"error": "invalid payload format"}), 400
     action = data.get("action")
+    if not isinstance(action, str):
+        return jsonify({"error": "action must be a string"}), 400
     speed = data.get("speed", 50)
 
     try:
@@ -651,7 +714,11 @@ def api_hardware_servo_test():
         return jsonify({"error": "brain not connected"}), 503
     
     data = request.get_json(silent=True) or {}
+    if not isinstance(data, dict):
+        return jsonify({"error": "invalid payload format"}), 400
     try:
+        if data.get("pin") is None:
+            return jsonify({"error": "missing pin"}), 400
         pin = int(data.get("pin"))
         p_min = int(data.get("pulse_min", 500))
         p_max = int(data.get("pulse_max", 2500))
@@ -681,6 +748,8 @@ def api_hardware_arm():
     if not isinstance(data, dict):
         return jsonify({"error": "invalid payload format"}), 400
     joint = data.get("joint")
+    if not isinstance(joint, str):
+        return jsonify({"error": "joint must be a string"}), 400
     angle = data.get("angle", 90)
 
     try:
@@ -730,6 +799,8 @@ def api_hardware_hand():
         return jsonify({"error": "invalid payload format"}), 400
     grip = data.get("grip")
     action = data.get("action")
+    if action is not None and not isinstance(action, str):
+        return jsonify({"error": "action must be a string"}), 400
 
     try:
         if grip is not None:
@@ -805,11 +876,14 @@ def handle_command_ws(data):
     args:
         data: dict with 'command' key.
     """
-    command = data.get(
-        "command",
-        "").strip().lower() if isinstance(
-        data,
-        dict) else ""
+    if not isinstance(data, dict):
+        return
+    command = data.get("command")
+    if not isinstance(command, str):
+        return
+        
+    # Sanitize incoming command
+    command = "".join(char for char in command if char.isprintable()).strip().lower()
     if not command:
         return
 
@@ -935,7 +1009,8 @@ def api_command():
     if not isinstance(command, str):
         return jsonify({"error": "command must be a string"}), 400
         
-    command = command.strip()
+    # Sanitize incoming command
+    command = "".join(char for char in command if char.isprintable()).strip()
     if not command:
         return jsonify({"error": "no command provided"}), 400
 

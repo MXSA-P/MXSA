@@ -9,10 +9,11 @@ uses qwen2.5-0.5b-instruct (q4_k_m quantization) via llama-cpp-python
 for natural language reasoning and personality.
 """
 
+import concurrent.futures
 import os
-import time
 import random
 import threading
+import time
 from typing import Any, Dict, Optional
 
 import numpy as np
@@ -52,16 +53,37 @@ def _resolve(path):
 # thread-safe proxy for hardware controllers
 # ---------------------------------------------------------------------------
 class HardwareLockProxy:
+    """HardwareLockProxy class."""
     def __init__(self, target: Any, lock: threading.Lock) -> None:
+        """initialize."""
         self._target = target
         self._lock = lock
-    
+        self._cache = {}
+
+    def hot_swap(self, new_target: Any) -> None:
+        """safely swap the underlying hardware target at runtime."""
+        with self._lock:
+            self._target = new_target
+            self._cache.clear()
+
     def __getattr__(self, name):
+        """__getattr__."""
+        if name in self._cache:
+            return self._cache[name]
+
         attr = getattr(self._target, name)
         if callable(attr):
             def wrapper(*args, **kwargs):
+                """wrapper."""
                 with self._lock:
-                    return attr(*args, **kwargs)
+                    # Dynamically get the method from the CURRENT _target
+                    current_attr = getattr(self._target, name)
+                    try:
+                        return current_attr(*args, **kwargs)
+                    except Exception as e:
+                        logger.error(f"Hardware API error on {name}: {e}")
+                        return None
+            self._cache[name] = wrapper
             return wrapper
         return attr
 
@@ -69,57 +91,182 @@ class HardwareLockProxy:
 # mock classes for testing without hardware
 # ---------------------------------------------------------------------------
 
+
 class _MockArm:
+    """mock class for _MockArm."""
     current = {"rotation": 90, "elbow": 90, "wrist": 90}
-    def rotate(self, a): self.current["rotation"] = a
-    def rotation(self, a): self.current["rotation"] = a
-    def raise_arm(self, a): self.current["elbow"] = a
-    def wrist(self, a): self.current["wrist"] = a
-    def home(self): self.current = {"rotation": 90, "elbow": 90, "wrist": 90}
-    def move_smooth(self, t, speed=None): self.current.update(t)
-    def wave(self): log_event("motion", "mock wave")
-    def wiggle(self, speed=3, angle_range=20, duration=2): log_event("motion", "mock wiggle")
-    def handshake(self): log_event("motion", "mock handshake")
-    def droop(self, angle=30): log_event("motion", "mock droop")
-    def nod(self): log_event("motion", "mock nod")
-    def shake_head(self): log_event("motion", "mock shake_head")
-    def move_to_xyz(self, x, y, z): log_event("motion", f"mock move_to_xyz {x},{y},{z}")
-    def get_position(self): return dict(self.current)
-    def is_moving(self): return False
-    def cleanup(self): pass
+    def rotate(self, a):
+        """rotate."""
+        self.current["rotation"] = a
+
+    def rotation(self, a):
+        """rotation."""
+        self.current["rotation"] = a
+
+    def raise_arm(self, a):
+        """raise_arm."""
+        self.current["elbow"] = a
+
+    def wrist(self, a):
+        """wrist."""
+        self.current["wrist"] = a
+
+    def home(self):
+        """home."""
+        self.current = {"rotation": 90, "elbow": 90, "wrist": 90}
+
+    def move_smooth(self, t, speed=None):
+        """move_smooth."""
+        self.current.update(t)
+
+    def wave(self):
+        """wave."""
+        log_event("motion", "mock wave")
+
+    def wiggle(self, speed=3, angle_range=20, duration=2):
+        """wiggle."""
+        log_event("motion", "mock wiggle")
+
+    def handshake(self):
+        """handshake."""
+        log_event("motion", "mock handshake")
+
+    def droop(self, angle=30):
+        """droop."""
+        log_event("motion", "mock droop")
+
+    def nod(self):
+        """nod."""
+        log_event("motion", "mock nod")
+
+    def shake_head(self):
+        """shake_head."""
+        log_event("motion", "mock shake_head")
+
+    def move_to_xyz(self, x, y, z):
+        """move_to_xyz."""
+        log_event("motion", f"mock move_to_xyz {x},{y},{z}")
+
+    def get_position(self):
+        """get_position."""
+        return dict(self.current)
+
+    def is_moving(self):
+        """is_moving."""
+        return False
+
+    def cleanup(self):
+        """cleanup."""
+        pass
+
 
 
 class _MockHand:
-    def grab(self): log_event("motion", "mock grab")
-    def release(self): log_event("motion", "mock release")
-    def set_finger(self, i, a): pass
-    def point(self): pass
-    def thumbs_up(self): log_event("motion", "mock thumbs_up")
-    def rock(self): log_event("motion", "mock rock")
-    def paper(self): log_event("motion", "mock paper")
-    def scissors(self): log_event("motion", "mock scissors")
-    def wave_fingers(self): log_event("motion", "mock wave fingers")
-    def get_grip_state(self): return "open"
-    def get_positions(self): return [30, 30, 30]
-    def cleanup(self): pass
+    """mock class for _MockHand."""
+    def grab(self):
+        """grab."""
+        log_event("motion", "mock grab")
+
+    def release(self):
+        """release."""
+        log_event("motion", "mock release")
+
+    def set_finger(self, i, a):
+        """set_finger."""
+        pass
+
+    def point(self):
+        """point."""
+        pass
+
+    def thumbs_up(self):
+        """thumbs_up."""
+        log_event("motion", "mock thumbs_up")
+
+    def rock(self):
+        """rock."""
+        log_event("motion", "mock rock")
+
+    def paper(self):
+        """paper."""
+        log_event("motion", "mock paper")
+
+    def scissors(self):
+        """scissors."""
+        log_event("motion", "mock scissors")
+
+    def wave_fingers(self):
+        """wave_fingers."""
+        log_event("motion", "mock wave fingers")
+
+    def get_grip_state(self):
+        """get_grip_state."""
+        return "open"
+
+    def get_positions(self):
+        """get_positions."""
+        return [30, 30, 30]
+
+    def cleanup(self):
+        """cleanup."""
+        pass
+
 
 
 class _MockChassis:
-    def forward(self, s=60): log_event("motion", "mock forward")
-    def backward(self, s=60): log_event("motion", "mock backward")
-    def turn_left(self, s=45): log_event("motion", "mock turn left")
-    def turn_right(self, s=45): log_event("motion", "mock turn right")
-    def spin_left(self, s=45): pass
-    def spin_right(self, s=45): pass
-    def stop(self): pass
-    def move_for_duration(self, d, s, t): pass
-    def move_to_angle(self, a, d=1): pass
-    def get_speed(self): return (0, 0)
-    def cleanup(self): pass
+    """mock class for _MockChassis."""
+    def forward(self, s=60):
+        """forward."""
+        log_event("motion", "mock forward")
+
+    def backward(self, s=60):
+        """backward."""
+        log_event("motion", "mock backward")
+
+    def turn_left(self, s=45):
+        """turn_left."""
+        log_event("motion", "mock turn left")
+
+    def turn_right(self, s=45):
+        """turn_right."""
+        log_event("motion", "mock turn right")
+
+    def spin_left(self, s=45):
+        """spin_left."""
+        pass
+
+    def spin_right(self, s=45):
+        """spin_right."""
+        pass
+
+    def stop(self):
+        """stop."""
+        pass
+
+    def move_for_duration(self, d, s, t):
+        """move_for_duration."""
+        pass
+
+    def move_to_angle(self, a, d=1):
+        """move_to_angle."""
+        pass
+
+    def get_speed(self):
+        """get_speed."""
+        return (0, 0)
+
+    def cleanup(self):
+        """cleanup."""
+        pass
+
 
 
 class _MockIMU:
-    def read_all(self): return {
+    """mock class for _MockIMU."""
+    def read_all(self):
+        """read_all."""
+        return {
+
         "accel": {
             "x": 0,
             "y": 0,
@@ -132,53 +279,135 @@ class _MockIMU:
         "orientation": "level",
         "tilt_angle": 0}
 
-    def get_hand_orientation(self): return "level"
-    def get_tilt_angle(self): return 0
-    def is_moving(self): return False
-    def calibrate(self): pass
-    def start_continuous(self, cb=None): pass
-    def stop_continuous(self): pass
-    def cleanup(self): pass
+    def get_hand_orientation(self):
+        """get_hand_orientation."""
+        return "level"
+
+    def get_tilt_angle(self):
+        """get_tilt_angle."""
+        return 0
+
+    def is_moving(self):
+        """is_moving."""
+        return False
+
+    def calibrate(self):
+        """calibrate."""
+        pass
+
+    def start_continuous(self, cb=None):
+        """start_continuous."""
+        pass
+
+    def stop_continuous(self):
+        """stop_continuous."""
+        pass
+
+    def cleanup(self):
+        """cleanup."""
+        pass
+
 
 
 class _MockCamera:
+    """mock class for _MockCamera."""
     _running = False
-    def start(self): self._running = True
-    def stop(self): self._running = False
-    def capture_frame(self): return np.zeros((480, 640, 3), dtype=np.uint8)
+    def start(self):
+        """start."""
+        self._running = True
+
+    def stop(self):
+        """stop."""
+        self._running = False
+
+    def capture_frame(self):
+        """capture_frame."""
+        return np.zeros((480, 640, 3), dtype=np.uint8)
+
 
     def capture_for_inference(
         self, size=(
+            """capture_for_inference."""
             224, 224)): return np.zeros(
         (size[1], size[0], 3), dtype=np.float32)
 
-    def get_mjpeg_frame(self): return b""
-    def is_running(self): return self._running
-    def cleanup(self): pass
+    def get_mjpeg_frame(self):
+        """get_mjpeg_frame."""
+        return b""
+
+    def is_running(self):
+        """is_running."""
+        return self._running
+
+    def cleanup(self):
+        """cleanup."""
+        pass
+
 
 
 class _MockDetector:
+    """mock class for _MockDetector."""
     confidence_threshold = 0.6
-    def detect_objects(self, f): return []
-    def classify(self, f): return ("unknown", 0.0)
-    def is_object_in_frame(self, f, lbl): return (False, 0.0, [])
-    def get_known_labels(self): return []
-    def extract_features(self, f): return np.zeros(1280, dtype=np.float32)
+    def detect_objects(self, f):
+        """detect_objects."""
+        return []
+
+    def classify(self, f):
+        """classify."""
+        return ("unknown", 0.0)
+
+    def is_object_in_frame(self, f, lbl):
+        """is_object_in_frame."""
+        return (False, 0.0, [])
+
+    def get_known_labels(self):
+        """get_known_labels."""
+        return []
+
+    def extract_features(self, f):
+        """extract_features."""
+        return np.zeros(1280, dtype=np.float32)
+
 
 
 class _MockListener:
+    """mock class for _MockListener."""
     def __init__(self):
+        """initialize."""
         self._callbacks = []
-    def start(self): pass
-    def stop(self): pass
-    def on_text(self, cb): self._callbacks.append(cb)
-    def get_last_text(self): return ""
-    def is_listening(self): return False
+
+    def start(self):
+        """start."""
+        pass
+
+    def stop(self):
+        """stop."""
+        pass
+
+    def on_text(self, cb):
+        """on_text."""
+        self._callbacks.append(cb)
+
+    def get_last_text(self):
+        """get_last_text."""
+        return ""
+
+    def is_listening(self):
+        """is_listening."""
+        return False
+
 
 
 class _MockSpeakerVerify:
-    def verify(self, audio): return (True, 1.0)
-    def is_enrolled(self): return False
+    """mock class for _MockSpeakerVerify."""
+    def verify(self, audio):
+        """verify."""
+        return (True, 1.0)
+
+    def is_enrolled(self):
+        """is_enrolled."""
+        return False
+
 
 
 # ---------------------------------------------------------------------------
@@ -222,6 +451,7 @@ class SimbaBrain:
         self._main_thread = None
         self._thinking_text = ""
         self._last_command = None
+        self.last_spoken_text = ""
         self._boot_time = time.time()
 
         logger.info("=" * 50)
@@ -231,6 +461,10 @@ class SimbaBrain:
 
         # hardware concurrency lock
         self._hardware_lock = threading.RLock()
+
+        # worker pool for transient tasks to avoid thread creation overhead
+        self._worker_pool = concurrent.futures.ThreadPoolExecutor(
+            max_workers=10, thread_name_prefix="simba-worker")
 
         # --- initialize motion subsystem ---
         try:
@@ -419,7 +653,11 @@ class SimbaBrain:
                 logger.info("[ok] path recorder initialized")
             except Exception as e:
                 logger.warning(f"path recorder failed: {e}")
-                self.path_recorder = type("PR", (), {"record": lambda *a: None, "replay": lambda *a: False, "clear": lambda *a: None, "step_count": 0})()
+                self.path_recorder = type("PR", (), {
+                                          "record": lambda *a: None,
+                                          "replay": lambda *a: False,
+                                          "clear": lambda *a: None,
+                                          "step_count": 0})()
 
             logger.info("simba brain initialized successfully!")
             log_event("system", "simba brain initialized")
@@ -495,12 +733,16 @@ class SimbaBrain:
         log_event("system", "shutting down...")
         self._running = False
 
-        if self._main_thread:
+        if getattr(self, "_main_thread", None):
             self._main_thread.join(timeout=5)
+
+        if getattr(self, "_worker_pool", None):
+            self._worker_pool.shutdown(wait=False)
 
         # stop subsystems
         try:
-            self.listener.stop()
+            if hasattr(self, "listener") and self.listener:
+                self.listener.stop()
         except Exception:
             pass
         try:
@@ -509,29 +751,35 @@ class SimbaBrain:
         except Exception:
             pass
         try:
-            self.camera.cleanup()
+            if hasattr(self, "camera") and self.camera:
+                self.camera.cleanup()
         except Exception:
             pass
         try:
-            self.arm.cleanup()
+            if hasattr(self, "arm") and self.arm:
+                self.arm.cleanup()
         except Exception:
             pass
         try:
-            self.hand.cleanup()
+            if hasattr(self, "hand") and self.hand:
+                self.hand.cleanup()
         except Exception:
             pass
         try:
-            self.chassis.cleanup()
+            if hasattr(self, "chassis") and self.chassis:
+                self.chassis.cleanup()
         except Exception:
             pass
         try:
-            self.imu.cleanup()
+            if hasattr(self, "imu") and self.imu:
+                self.imu.cleanup()
         except Exception:
             pass
 
         # save memory
         try:
-            self.memory.save()
+            if hasattr(self, "memory") and self.memory:
+                self.memory.save()
         except Exception:
             pass
 
@@ -557,23 +805,24 @@ class SimbaBrain:
 
                     gesture = imu_data.get('gesture', None)
                     if gesture == "tap":
-                        threading.Thread(target=lambda: (
+                        self._worker_pool.submit(lambda: (
                             self.generate_thought("whoops, someone tapped me!"),
                             self.emotions.update_from_event("tapped"),
-                            self.state.can_accept_command() and self.arm.wiggle(speed=5, angle_range=15, duration=0.5)
-                        ), daemon=True).start()
+                            self.state.can_accept_command() and self.arm.wiggle(
+                                speed=5, angle_range=15, duration=0.5)
+                        ))
                     elif gesture == "shake":
-                        threading.Thread(target=lambda: (
+                        self._worker_pool.submit(lambda: (
                             self.generate_thought("whoa, stop shaking me!"),
                             self.emotions.update_from_event("scolded"),
                             self.state.can_accept_command() and self.chassis.stop()
-                        ), daemon=True).start()
+                        ))
                     elif gesture == "fall":
-                        threading.Thread(target=lambda: (
+                        self._worker_pool.submit(lambda: (
                             self.generate_thought("help, i've fallen!"),
                             self.emotions.update_from_event("fallen"),
                             self.state.can_accept_command() and self._handle_stop()
-                        ), daemon=True).start()
+                        ))
 
                 # auto-return timer: go charge after N minutes of roaming
                 if current_state not in ("CHARGING", "BOOTING", "RETURNING"):
@@ -581,17 +830,19 @@ class SimbaBrain:
                     if minutes_since_charge >= self._auto_return_minutes:
                         if not self._auto_return_triggered:
                             self._auto_return_triggered = True
-                            threading.Thread(target=lambda: (
-                                self.generate_thought(f"been roaming for {self._auto_return_minutes} minutes — heading home to charge! 🔋"),
+                            self._worker_pool.submit(lambda: (
+                                self.generate_thought(
+                                    f"been roaming for {self._auto_return_minutes} "
+                                    "minutes — heading home to charge! 🔋"),
                                 self._handle_charge()
-                            ), daemon=True).start()
+                            ))
 
                 # idle behavior — roam periodically
                 if current_state == "IDLE" and self._roam_when_idle:
                     elapsed = time.time() - self._last_roam_time
                     if elapsed > self._roam_interval:
                         if hasattr(self, '_handle_roam'):
-                            threading.Thread(target=self._handle_roam, daemon=True).start()
+                            self._worker_pool.submit(self._handle_roam)
                         self._last_roam_time = time.time()
 
                 # check idle duration for sleepy emotion
@@ -612,12 +863,16 @@ class SimbaBrain:
 
     def _on_voice_text(self, text):
         """callback when voice listener recognizes text."""
+        if not isinstance(text, str):
+            logger.warning(f"voice listener received invalid text type: {type(text)}")
+            return
         if not text or not text.strip():
             return
 
         text = text.strip().lower()
         logger.info(f"heard: '{text}'")
         log_event("voice", f"heard: '{text}'")
+        self.last_spoken_text = text
 
         # parse command
         cmd = self.cmd_parser.parse(text)
@@ -629,7 +884,7 @@ class SimbaBrain:
 
         log_event("voice", f"command: {cmd['action']}", cmd)
         self._last_command = cmd
-        threading.Thread(target=self._handle_command, args=(cmd,), daemon=True).start()
+        self._worker_pool.submit(self._handle_command, cmd)
 
     def _handle_command(self, cmd):
         """route a parsed command to the appropriate handler."""
@@ -641,8 +896,9 @@ class SimbaBrain:
             if not self.state.can_accept_command():
                 self.generate_thought("I'm a bit busy right now!")
                 return
-            
-            complex_actions = {"fetch", "scan", "charge", "patrol", "play", "follow", "rest", "dance", "greet", "hold", "grab"}
+
+            complex_actions = {"fetch", "scan", "charge", "patrol",
+                               "play", "follow", "rest", "dance", "greet", "hold", "grab"}
             if action not in complex_actions:
                 # Mark as busy for simple hardware commands
                 self.state.transition("acting", {"action": action})
@@ -777,14 +1033,16 @@ class SimbaBrain:
             self.chassis.forward(50)
             time.sleep(1.5)
             self.chassis.stop()
-            if self._check_interrupt("FETCHING"): return
+            if self._check_interrupt("FETCHING"):
+                return
 
             # position arm using IK if we just scanned it
             width_percentage = 40.0
             if found and angle is not None:
                 # if we found it in the recent scan, we have the scan results
                 # wait, let's just use default IK down for now
-                self.arm.move_to_xyz(0, 15.0, 5.0, wrist_roll=0.0)  # reach straight out with fingers down
+                # reach straight out with fingers down
+                self.arm.move_to_xyz(0, 15.0, 5.0, wrist_roll=0.0)
             else:
                 self.arm.rotate(90)
                 self.arm.raise_arm(120)
@@ -807,11 +1065,13 @@ class SimbaBrain:
             self.chassis.spin_left(40)
             time.sleep(1.5)
             self.chassis.stop()
-            if self._check_interrupt("DELIVERING"): return
+            if self._check_interrupt("DELIVERING"):
+                return
             self.chassis.forward(50)
             time.sleep(2)
             self.chassis.stop()
-            if self._check_interrupt("DELIVERING"): return
+            if self._check_interrupt("DELIVERING"):
+                return
 
             # extend arm to deliver
             self.arm.raise_arm(130)
@@ -921,6 +1181,7 @@ class SimbaBrain:
             self.generate_thought("I'm not holding anything right now!")
 
     def _handle_forward(self, target):
+        """handle forward command."""
         duration = 0.5 if target and "little" in target else 2.0
         self.generate_thought("moving forward")
         self.chassis.forward()
@@ -929,6 +1190,7 @@ class SimbaBrain:
         self.path_recorder.record("forward", 60, duration)
 
     def _handle_backward(self, target):
+        """handle backward command."""
         duration = 0.5 if target and "little" in target else 2.0
         self.generate_thought("moving backward")
         self.chassis.backward()
@@ -937,6 +1199,7 @@ class SimbaBrain:
         self.path_recorder.record("backward", 60, duration)
 
     def _handle_left(self, target):
+        """handle left command."""
         duration = 0.3 if target and "little" in target else 1.0
         self.generate_thought("turning left")
         self.chassis.turn_left()
@@ -945,6 +1208,7 @@ class SimbaBrain:
         self.path_recorder.record("turn_left", 45, duration)
 
     def _handle_right(self, target):
+        """handle right command."""
         duration = 0.3 if target and "little" in target else 1.0
         self.generate_thought("turning right")
         self.chassis.turn_right()
@@ -969,26 +1233,31 @@ class SimbaBrain:
             self.hand.point()
 
     def _handle_rock(self):
+        """handle rock command."""
         self.generate_thought("Rock! ✊")
         if hasattr(self.hand, "rock"):
             self.hand.rock()
 
     def _handle_paper(self):
+        """handle paper command."""
         self.generate_thought("Paper! ✋")
         if hasattr(self.hand, "paper"):
             self.hand.paper()
 
     def _handle_scissors(self):
+        """handle scissors command."""
         self.generate_thought("Scissors! ✌️")
         if hasattr(self.hand, "scissors"):
             self.hand.scissors()
 
     def _handle_thumbs_up(self):
+        """handle thumbs_up command."""
         self.generate_thought("Awesome! 👍")
         if hasattr(self.hand, "thumbs_up"):
             self.hand.thumbs_up()
 
     def _handle_wave_fingers(self):
+        """handle wave_fingers command."""
         self.generate_thought("Hello there! 👋")
         if hasattr(self.hand, "wave_fingers"):
             self.hand.wave_fingers()
@@ -1033,7 +1302,9 @@ class SimbaBrain:
         log_event("navigation", f"returning to base — {steps} steps")
 
         def return_task():
+            """return_task."""
             def on_step(step_num, total, action):
+                """on_step."""
                 if step_num % 5 == 0 or step_num == total:
                     self.generate_thought(
                         f"retracing step {step_num}/{total}: {action}")
@@ -1079,7 +1350,7 @@ class SimbaBrain:
 
             self._idle_since = time.time()
 
-        threading.Thread(target=return_task, daemon=True).start()
+        self._worker_pool.submit(return_task)
 
     def _handle_play(self):
         """enter play mode with random fun movements."""
@@ -1213,7 +1484,8 @@ class SimbaBrain:
         """Respond to who am i."""
         owner = self.config.get("robot", {}).get("owner_name", "unknown")
         if owner == "unknown":
-            msg = "I do not know who you are yet. Please set your identity in the trainer dashboard."
+            msg = ("I do not know who you are yet. Please set your identity "
+                   "in the trainer dashboard.")
         else:
             msg = f"You are {owner}, my creator and owner."
 
@@ -1253,6 +1525,7 @@ class SimbaBrain:
         self.emotions.set_emotion("focused", 0.9)
 
         def _tracking_loop():
+            """_tracking_loop."""
             target = "person"
             self.chassis.stop()
             while self.state.get_state() == "FOLLOWING" and self._running:
@@ -1283,7 +1556,7 @@ class SimbaBrain:
             self.chassis.stop()
             self.generate_thought("stopped tracking.")
 
-        threading.Thread(target=_tracking_loop, daemon=True).start()
+        self._worker_pool.submit(_tracking_loop)
 
     def _handle_time(self):
         """Respond with the current time."""
@@ -1305,7 +1578,8 @@ class SimbaBrain:
 
     def _handle_story(self):
         """Tell a short story."""
-        msg = "Once upon a time, a robotic bionic arm was built using MXSA technology. It learned to see, hear, and think. And it lived happily ever after on a desk."
+        msg = ("Once upon a time, a robotic bionic arm was built using MXSA technology. "
+               "It learned to see, hear, and think. And it lived happily ever after on a desk.")
         self.generate_thought(msg)
         self.emotions.set_emotion("curious", 0.8)
         self.arm.wiggle()
@@ -1491,7 +1765,9 @@ class SimbaBrain:
             return context_event
 
         emotion_name, _ = self.emotions.get_emotion()
-        prompt = f"Event: {context_event}\nCurrent Emotion: {emotion_name}\nWrite a very short (1 sentence), playful internal thought or dialogue reacting to this."
+        prompt = (f"Event: {context_event}\nCurrent Emotion: {emotion_name}\n"
+                  "Write a very short (1 sentence), playful internal thought "
+                  "or dialogue reacting to this.")
         thought = self.think(prompt)
         self._thinking_text = thought
         return thought
@@ -1533,12 +1809,16 @@ class SimbaBrain:
             return answer
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 500:
-                logger.warning("Ollama HTTP Error 500: Model might be missing. Run 'ollama pull qwen2.5:0.5b'")
+                logger.warning(
+                    "Ollama HTTP Error 500: Model might be missing. "
+                    "Run 'ollama pull qwen2.5:0.5b'")
             else:
                 logger.warning("Ollama HTTP Error %s: %s", e.response.status_code, e.response.text)
             return self._simple_response(prompt)
         except requests.exceptions.ConnectionError:
-            logger.warning("Ollama daemon is not running or unreachable at %s. Falling back to simple responses.", self.ollama_url)
+            logger.warning(
+                "Ollama daemon is not running or unreachable at %s. "
+                "Falling back to simple responses.", self.ollama_url)
             return self._simple_response(prompt)
         except Exception as e:
             logger.warning(f"Ollama error (falling back to simple response): {e}")
@@ -1567,13 +1847,16 @@ class SimbaBrain:
         args:
             text: command text string
         """
+        if not isinstance(text, str):
+            logger.warning(f"send_command received invalid text type: {type(text)}")
+            return
+        if not text.strip():
+            return
         text = text.strip().lower()
         log_event("web", f"web command: '{text}'")
         cmd = self.cmd_parser.parse(text)
         if cmd:
-            threading.Thread(
-                target=self._handle_command, args=(cmd,), daemon=True
-            ).start()
+            self._worker_pool.submit(self._handle_command, cmd)
         else:
             self.generate_thought(f"didn't understand: '{text}'")
 

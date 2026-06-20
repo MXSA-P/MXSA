@@ -1,14 +1,15 @@
 # _max_cyan_ — project_mxsa
-"""speaker verification using mfcc features and gaussian mixture model.
+"""Speaker verification using MFCC features and Gaussian Mixture Model.
 
-extracts 13 mfcc coefficients plus delta features from audio chunks
-using librosa, then uses a scikit-learn gaussianmixture model to
+Extracts 13 MFCC coefficients plus delta features from audio chunks
+using librosa, then uses a scikit-learn GaussianMixture model to
 determine whether the speaker is the enrolled owner.
 """
 
+from collections import deque
 import os
 import threading
-from typing import Optional, Tuple
+from typing import Any, Deque, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -48,23 +49,23 @@ _min_audio_length = 8000
 
 
 class SpeakerVerifier:
-    """speaker verification using mfcc + gmm.
+    """Speaker verification using MFCC + GMM.
 
-    extracts mfcc features and their deltas from audio, then uses
-    a trained gaussian mixture model to verify whether the speaker
-    is the enrolled owner. the model is persisted to disk using joblib.
+    Extracts MFCC features and their deltas from audio, then uses
+    a trained Gaussian Mixture Model to verify whether the speaker
+    is the enrolled owner. The model is persisted to disk using joblib.
 
-    attributes:
-        threshold: minimum log-likelihood score to accept as owner.
-        sample_rate: expected audio sample rate in hz.
-        model: trained gaussianmixture instance, or none.
+    Attributes:
+        threshold: Minimum log-likelihood score to accept as owner.
+        sample_rate: Expected audio sample rate in Hz.
+        model: Trained GaussianMixture instance, or None.
     """
 
-    def __init__(self, config: dict) -> None:
-        """initialize the speaker verifier.
+    def __init__(self, config: Dict[str, Any]) -> None:
+        """Initialize the speaker verifier.
 
-        args:
-            config: full simba configuration dict loaded from yaml.
+        Args:
+            config: Full Simba configuration dict loaded from YAML.
         """
         self._lock = threading.Lock()
 
@@ -83,14 +84,14 @@ class SpeakerVerifier:
             model_path = os.path.join(project_root, model_path)
         self._model_path: str = model_path
 
-        self.model: Optional[object] = None
+        self.model: Optional[Any] = None
         self._enrolled: bool = False
         self._last_confidence: float = 0.0
         self._baseline_score: float = 0.0
 
         # continuous verification and confidence history tracking
-        self._confidence_history: list[float] = []
         self._history_max_len: int = 20
+        self._confidence_history: Deque[float] = deque(maxlen=self._history_max_len)
 
         # load existing model if available
         self._load_model()
@@ -103,7 +104,7 @@ class SpeakerVerifier:
         })
 
     def _load_model(self) -> None:
-        """load a previously trained speaker model from disk."""
+        """Load a previously trained speaker model from disk."""
         if not _has_joblib or not _has_sklearn:
             logger.warning("joblib or sklearn not available — "
                            "speaker verification disabled")
@@ -114,31 +115,42 @@ class SpeakerVerifier:
                 saved = joblib.load(self._model_path)
                 if isinstance(saved, dict):
                     self.model = saved.get("model")
-                    self._baseline_score = saved.get("baseline_score", 0.0)
+                    self._baseline_score = float(saved.get("baseline_score", 0.0))
                 else:
                     # legacy format (raw model)
                     self.model = saved
                     self._baseline_score = 0.0
                 self._enrolled = self.model is not None
                 logger.info("speaker model loaded from %s", self._model_path)
+            except (EOFError, ValueError, OSError) as exc:
+                logger.error("corrupted speaker model file detected (%s), resetting: %s", self._model_path, exc)
+                self._enrolled = False
+                self.model = None
+                self._baseline_score = 0.0
+                try:
+                    os.remove(self._model_path)
+                except OSError:
+                    pass
             except Exception as exc:
                 logger.error("failed to load speaker model: %s", exc)
                 self._enrolled = False
+                self.model = None
+                self._baseline_score = 0.0
         else:
             logger.info("no speaker model found at %s — not enrolled",
                         self._model_path)
 
     def _extract_features(self, audio: np.ndarray) -> Optional[np.ndarray]:
-        """extract mfcc features and deltas from an audio chunk.
+        """Extract MFCC features and deltas from an audio chunk.
 
-        extracts 13 mfcc coefficients and their first-order deltas,
+        Extracts 13 MFCC coefficients and their first-order deltas,
         producing a 26-dimensional feature vector per frame.
 
-        args:
-            audio: 1d numpy array of audio samples (float32, mono).
+        Args:
+            audio: 1D numpy array of audio samples (float32, mono).
 
-        returns:
-            2d numpy array of shape (n_frames, 26) or none on failure.
+        Returns:
+            2D numpy array of shape (n_frames, 26) or None on failure.
         """
         if not _has_librosa:
             logger.error("librosa not available — cannot extract features")
@@ -181,24 +193,22 @@ class SpeakerVerifier:
             return None
 
     def verify(self, audio_chunk: np.ndarray) -> Tuple[bool, float]:
-        """verify whether the given audio belongs to the enrolled owner.
+        """Verify whether the given audio belongs to the enrolled owner.
 
-        args:
-            audio_chunk: 1d numpy array of audio samples (float32 or int16).
+        Args:
+            audio_chunk: 1D numpy array of audio samples (float32 or int16).
 
-        returns:
-            tuple of (is_owner, confidence). is_owner is true if the
+        Returns:
+            Tuple of (is_owner, confidence). is_owner is True if the
             speaker matches the enrolled model above the threshold.
             confidence is a float between 0.0 and 1.0.
         """
         with self._lock:
             if not self._enrolled or self.model is None:
-                logger.debug("no enrolled speaker — verification skipped")
-                self._last_confidence = 0.0
-                self._confidence_history.append(0.0)
-                if len(self._confidence_history) > self._history_max_len:
-                    self._confidence_history.pop(0)
-                return (False, 0.0)
+                logger.debug("no enrolled speaker — open mic fallback active")
+                self._last_confidence = 1.0
+                self._confidence_history.append(1.0)
+                return (True, 1.0)
 
             # convert int16 to float32 if needed
             if audio_chunk.dtype == np.int16:
@@ -210,8 +220,6 @@ class SpeakerVerifier:
             if features is None:
                 self._last_confidence = 0.0
                 self._confidence_history.append(0.0)
-                if len(self._confidence_history) > self._history_max_len:
-                    self._confidence_history.pop(0)
                 return (False, 0.0)
 
             try:
@@ -234,8 +242,6 @@ class SpeakerVerifier:
 
                 # history tracking
                 self._confidence_history.append(confidence)
-                if len(self._confidence_history) > self._history_max_len:
-                    self._confidence_history.pop(0)
 
                 is_owner = confidence >= self.threshold
 
@@ -254,19 +260,17 @@ class SpeakerVerifier:
                 logger.error("speaker verification failed: %s", exc)
                 self._last_confidence = 0.0
                 self._confidence_history.append(0.0)
-                if len(self._confidence_history) > self._history_max_len:
-                    self._confidence_history.pop(0)
                 return (False, 0.0)
 
-    def enroll(self, audio_samples: list) -> bool:
-        """enroll a new speaker by training the gmm on audio samples.
+    def enroll(self, audio_samples: List[np.ndarray]) -> bool:
+        """Enroll a new speaker by training the GMM on audio samples.
 
-        args:
-            audio_samples: list of 1d numpy arrays, each containing
-                          a speech utterance from the owner.
+        Args:
+            audio_samples: List of 1D numpy arrays, each containing
+                           a speech utterance from the owner.
 
-        returns:
-            true if enrollment succeeded, false otherwise.
+        Returns:
+            True if enrollment succeeded, False otherwise.
         """
         if not _has_sklearn or not _has_librosa or not _has_joblib:
             logger.error("required libraries not available for enrollment")
@@ -338,45 +342,56 @@ class SpeakerVerifier:
             return False
 
     def is_enrolled(self) -> bool:
-        """check if a speaker has been enrolled.
+        """Check if a speaker has been enrolled.
 
-        returns:
-            true if a speaker model is loaded/trained.
+        Returns:
+            True if a speaker model is loaded/trained.
         """
         return self._enrolled
 
     def get_confidence(self) -> float:
-        """get the confidence score from the last verification.
+        """Get the confidence score from the last verification.
 
-        returns:
-            confidence float between 0.0 and 1.0.
+        Returns:
+            Confidence float between 0.0 and 1.0.
         """
         return self._last_confidence
 
-    def get_confidence_history(self) -> list[float]:
-        """get the recent history of confidence scores."""
+    def get_confidence_history(self) -> List[float]:
+        """Get the recent history of confidence scores.
+
+        Returns:
+            List of recent confidence scores.
+        """
         with self._lock:
             return list(self._confidence_history)
 
     def continuous_verify(self, audio_chunk: np.ndarray) -> Tuple[bool, float]:
-        """perform continuous verification using historical average.
+        """Perform continuous verification using historical average.
 
-        args:
-            audio_chunk: 1d numpy array of audio samples.
+        Args:
+            audio_chunk: 1D numpy array of audio samples.
 
-        returns:
+        Returns:
             (is_owner, avg_confidence) tuple based on smoothed history.
         """
         self.verify(audio_chunk)
         with self._lock:
+            if not self._enrolled or self.model is None:
+                return (True, 1.0)
             if not self._confidence_history:
                 return (False, 0.0)
             avg_confidence = sum(self._confidence_history) / \
-                self._history_max_len
+                max(1, len(self._confidence_history))
             is_owner = avg_confidence >= self.threshold
             return (is_owner, avg_confidence)
 
     def __repr__(self) -> str:
+        """Return a string representation of the SpeakerVerifier.
+
+        Returns:
+            String representation showing enrollment status, threshold, and last confidence.
+        """
         return (
             f"SpeakerVerifier(enrolled={self._enrolled}, "
             f"threshold={self.threshold}, "

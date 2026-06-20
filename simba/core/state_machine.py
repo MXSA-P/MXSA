@@ -10,21 +10,39 @@ import copy
 import json
 import threading
 import time
-from typing import Any, Dict, List, Optional, FrozenSet
+from collections import deque
+from typing import Any, Dict, FrozenSet, List, Optional
 
 from simba.utils.logger import get_logger, log_event
 
 logger = get_logger("simba.core.state_machine")
 
 # all valid states
-_valid_states = frozenset({
-    "BOOTING", "SCANNING", "ROAMING", "FETCHING", "DELIVERING",
-    "SEARCHING", "PLAYING", "CHARGING", "IDLE", "GREETING", "EXPRESSING",
-    "HOLDING", "FOLLOWING", "GRABBING", "ACTING", "RETURNING",
-})
+_valid_states = frozenset(
+    {
+        "BOOTING",
+        "SCANNING",
+        "ROAMING",
+        "FETCHING",
+        "DELIVERING",
+        "SEARCHING",
+        "PLAYING",
+        "CHARGING",
+        "IDLE",
+        "GREETING",
+        "EXPRESSING",
+        "HOLDING",
+        "FOLLOWING",
+        "GRABBING",
+        "ACTING",
+        "RETURNING",
+    }
+)
 
 # states that indicate the robot is busy with a task
-_busy_states = frozenset({"FETCHING", "DELIVERING", "SEARCHING", "HOLDING", "FOLLOWING", "GRABBING", "RETURNING"})
+_busy_states = frozenset(
+    {"FETCHING", "DELIVERING", "SEARCHING", "HOLDING", "FOLLOWING", "GRABBING", "RETURNING"}
+)
 
 # states that block accepting new commands
 _critical_states = frozenset({"BOOTING", "CHARGING"})
@@ -32,59 +50,143 @@ _critical_states = frozenset({"BOOTING", "CHARGING"})
 # valid state transitions — from_state: set of valid to_states
 # most states can transition to IDLE and common interrupt states
 _transitions: Dict[str, FrozenSet[str]] = {
-    "BOOTING": frozenset({
-        "IDLE", "SCANNING", "CHARGING",
-    }),
-    "IDLE": frozenset({
-        "SCANNING", "ROAMING", "FETCHING", "SEARCHING", "PLAYING",
-        "CHARGING", "GREETING", "EXPRESSING", "HOLDING", "FOLLOWING",
-        "GRABBING", "ACTING", "RETURNING",
-    }),
-    "SCANNING": frozenset({
-        "IDLE", "ROAMING", "FETCHING", "SEARCHING", "CHARGING",
-        "GREETING", "EXPRESSING",
-    }),
-    "ROAMING": frozenset({
-        "IDLE", "SCANNING", "FETCHING", "SEARCHING", "PLAYING",
-        "CHARGING", "GREETING", "EXPRESSING", "RETURNING",
-    }),
-    "FETCHING": frozenset({
-        "IDLE", "HOLDING", "DELIVERING", "SEARCHING", "SCANNING",
-    }),
-    "DELIVERING": frozenset({
-        "IDLE", "SCANNING", "EXPRESSING", "HOLDING",
-    }),
-    "SEARCHING": frozenset({
-        "IDLE", "FETCHING", "SCANNING", "ROAMING",
-    }),
-    "PLAYING": frozenset({
-        "IDLE", "SCANNING", "GREETING", "EXPRESSING",
-    }),
-    "CHARGING": frozenset({
-        "IDLE", "SCANNING", "EXPRESSING",
-    }),
-    "GREETING": frozenset({
-        "IDLE", "SCANNING", "ROAMING", "EXPRESSING",
-    }),
-    "EXPRESSING": frozenset({
-        "IDLE", "SCANNING", "ROAMING", "FETCHING", "PLAYING",
-        "GREETING",
-    }),
-    "HOLDING": frozenset({
-        "IDLE", "SCANNING", "EXPRESSING", "DELIVERING", "ROAMING",
-    }),
-    "FOLLOWING": frozenset({
-        "IDLE", "SCANNING", "EXPRESSING", "GRABBING",
-    }),
-    "GRABBING": frozenset({
-        "IDLE", "HOLDING", "EXPRESSING",
-    }),
-    "ACTING": frozenset({
-        "IDLE", "SCANNING", "EXPRESSING", "ROAMING", "RETURNING"
-    }),
-    "RETURNING": frozenset({
-        "CHARGING", "IDLE",
-    }),
+    "BOOTING": frozenset(
+        {
+            "IDLE",
+            "SCANNING",
+            "CHARGING",
+        }
+    ),
+    "IDLE": frozenset(
+        {
+            "SCANNING",
+            "ROAMING",
+            "FETCHING",
+            "SEARCHING",
+            "PLAYING",
+            "CHARGING",
+            "GREETING",
+            "EXPRESSING",
+            "HOLDING",
+            "FOLLOWING",
+            "GRABBING",
+            "ACTING",
+            "RETURNING",
+        }
+    ),
+    "SCANNING": frozenset(
+        {
+            "IDLE",
+            "ROAMING",
+            "FETCHING",
+            "SEARCHING",
+            "CHARGING",
+            "GREETING",
+            "EXPRESSING",
+        }
+    ),
+    "ROAMING": frozenset(
+        {
+            "IDLE",
+            "SCANNING",
+            "FETCHING",
+            "SEARCHING",
+            "PLAYING",
+            "CHARGING",
+            "GREETING",
+            "EXPRESSING",
+            "RETURNING",
+        }
+    ),
+    "FETCHING": frozenset(
+        {
+            "IDLE",
+            "HOLDING",
+            "DELIVERING",
+            "SEARCHING",
+            "SCANNING",
+        }
+    ),
+    "DELIVERING": frozenset(
+        {
+            "IDLE",
+            "SCANNING",
+            "EXPRESSING",
+            "HOLDING",
+        }
+    ),
+    "SEARCHING": frozenset(
+        {
+            "IDLE",
+            "FETCHING",
+            "SCANNING",
+            "ROAMING",
+        }
+    ),
+    "PLAYING": frozenset(
+        {
+            "IDLE",
+            "SCANNING",
+            "GREETING",
+            "EXPRESSING",
+        }
+    ),
+    "CHARGING": frozenset(
+        {
+            "IDLE",
+            "SCANNING",
+            "EXPRESSING",
+        }
+    ),
+    "GREETING": frozenset(
+        {
+            "IDLE",
+            "SCANNING",
+            "ROAMING",
+            "EXPRESSING",
+        }
+    ),
+    "EXPRESSING": frozenset(
+        {
+            "IDLE",
+            "SCANNING",
+            "ROAMING",
+            "FETCHING",
+            "PLAYING",
+            "GREETING",
+        }
+    ),
+    "HOLDING": frozenset(
+        {
+            "IDLE",
+            "SCANNING",
+            "EXPRESSING",
+            "DELIVERING",
+            "ROAMING",
+        }
+    ),
+    "FOLLOWING": frozenset(
+        {
+            "IDLE",
+            "SCANNING",
+            "EXPRESSING",
+            "GRABBING",
+        }
+    ),
+    "GRABBING": frozenset(
+        {
+            "IDLE",
+            "HOLDING",
+            "EXPRESSING",
+        }
+    ),
+    "ACTING": frozenset({"IDLE", "SCANNING", "EXPRESSING", "ROAMING", "RETURNING"}),
+    "RETURNING": frozenset(
+        {
+            "CHARGING",
+            "IDLE",
+        }
+    ),
 }
 
 
@@ -105,16 +207,14 @@ class StateMachine:
         self._state: str = "BOOTING"
         self._context: Dict[str, Any] = {}
         self._state_start: float = time.time()
-        self._history: List[Dict[str, Any]] = []
         self._max_history: int = 100
+        self._history: deque[Dict[str, Any]] = deque(maxlen=self._max_history)
         self._transition_count: int = 0
 
         logger.info("state machine initialized in BOOTING state")
         log_event("state", "state machine initialized", {"state": "BOOTING"})
 
-    def transition(
-        self, new_state: str, context: Optional[Dict[str, Any]] = None
-    ) -> bool:
+    def transition(self, new_state: str, context: Optional[Dict[str, Any]] = None) -> bool:
         """transition to a new state with optional context data.
 
         validates that the transition is allowed from the current state.
@@ -128,10 +228,18 @@ class StateMachine:
         returns:
             true if the transition succeeded, false if invalid.
         """
-        new_state = new_state.upper()
+        if not isinstance(new_state, str):
+            logger.error("invalid state type: %s", type(new_state).__name__)
+            return False
+
+        if len(new_state) > 20:
+            logger.error("state string too long: %d", len(new_state))
+            return False
+
+        new_state = new_state.strip().upper()
 
         if new_state not in _valid_states:
-            logger.error("invalid state '%s'", new_state)
+            logger.error("invalid state %s", repr(new_state))
             return False
 
         with self._lock:
@@ -146,40 +254,57 @@ class StateMachine:
             # validate transition
             allowed = _transitions.get(old_state, frozenset())
             if new_state not in allowed:
-                logger.warning("invalid transition %s -> %s (allowed: %s)",
-                               old_state, new_state,
-                               ", ".join(sorted(allowed)))
-                return False
+                invalid_transition = True
+            else:
+                invalid_transition = False
 
-            # calculate duration
-            now = time.time()
-            duration = now - self._state_start
+                # calculate duration
+                now = time.time()
+                duration = now - self._state_start
 
-            # record transition history
-            self._history.append({
-                "from_state": old_state,
-                "to_state": new_state,
-                "timestamp": now,
-                "duration_in_previous": round(duration, 2),
-                "context": copy.deepcopy(self._context),
-            })
-            if len(self._history) > self._max_history:
-                self._history.pop(0)
+                # record transition history
+                self._history.append(
+                    {
+                        "from_state": old_state,
+                        "to_state": new_state,
+                        "timestamp": now,
+                        "duration_in_previous": round(duration, 2),
+                        "context": copy.deepcopy(self._context),
+                    }
+                )
 
-            # perform transition
-            self._state = new_state
-            self._context = copy.deepcopy(context) if context else {}
-            self._state_start = now
-            self._transition_count += 1
+                # perform transition
+                self._state = new_state
+                self._context = copy.deepcopy(context) if context else {}
+                self._state_start = now
+                self._transition_count += 1
 
-        logger.info("state transition: %s -> %s (was in %s for %.1fs)",
-                    old_state, new_state, old_state, duration)
-        log_event("state", f"{old_state} -> {new_state}", {
-            "from": old_state,
-            "to": new_state,
-            "duration": round(duration, 2),
-            "context": context or {},
-        })
+        if invalid_transition:
+            logger.warning(
+                "invalid transition %s -> %s (allowed: %s)",
+                old_state,
+                new_state,
+                ", ".join(sorted(allowed)),
+            )
+            return False
+
+        logger.info(
+            "state transition: %s -> %s (was in %s for %.1fs)",
+            old_state,
+            new_state,
+            old_state,
+            duration,
+        )
+        log_event(
+            "state",
+            f"{old_state} -> {new_state}",
+            {
+                "from": old_state,
+                "to": new_state,
+                "duration": round(duration, 2),
+                "context": context or {},
+            },
+        )
 
         return True
 
@@ -223,7 +348,7 @@ class StateMachine:
             list of transition dicts (most recent last).
         """
         with self._lock:
-            return copy.deepcopy(self._history[-count:])
+            return copy.deepcopy(list(self._history)[-count:])
 
     def is_busy(self) -> bool:
         """check if the robot is busy with a task.
@@ -255,7 +380,7 @@ class StateMachine:
             duration = time.time() - self._state_start
             context = copy.deepcopy(self._context)
             count = self._transition_count
-            history = copy.deepcopy(self._history[-10:])
+            history = copy.deepcopy(list(self._history)[-10:])
 
         return {
             "state": state,
@@ -269,7 +394,7 @@ class StateMachine:
 
     def dump_history(self, filepath: str) -> None:
         """dump full state transition history to a file.
-        
+
         args:
             filepath: path to the output json file.
         """
@@ -295,6 +420,11 @@ class StateMachine:
         return "[]"
 
     def __repr__(self) -> str:
+        """return a string representation of the state machine.
+
+        returns:
+            string representation with current state, duration, and transition count.
+        """
         with self._lock:
             state = self._state
             duration = time.time() - self._state_start

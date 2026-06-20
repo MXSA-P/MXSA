@@ -1,8 +1,9 @@
 # _max_cyan_ — project_mxsa
 """chassis controller — 2wd differential drive via L298N motor driver."""
 
-import time
 import threading
+import time
+from typing import Any, Dict, Optional, Tuple  # Cleaned typing
 
 try:
     import pigpio
@@ -16,15 +17,36 @@ logger = get_logger("simba.motion.chassis")
 
 
 class _MockPi:
-    def write(self, pin, val): pass
-    def set_PWM_dutycycle(self, pin, dc): pass
-    def set_PWM_frequency(self, pin, freq): pass
-    def set_PWM_range(self, pin, range_val): pass
-    def stop(self): pass
-    def brake(self): pass
+    """Mock interface for pigpio.pi() when pigpio is not available."""
 
+    def write(self, pin: int, val: int) -> None:
+        """Write a digital value to the specified pin."""
+        pass
 
-from typing import Dict, Any  # Cleaned typing
+    def set_PWM_dutycycle(self, pin: int, dc: int) -> None:
+        """Set the PWM duty cycle for the specified pin."""
+        pass
+
+    def set_PWM_frequency(self, pin: int, freq: int) -> None:
+        """Set the PWM frequency for the specified pin."""
+        pass
+
+    def set_PWM_range(self, pin: int, range_val: int) -> None:
+        """Set the PWM range for the specified pin."""
+        pass
+
+    def stop(self) -> None:
+        """Stop the connection to the pigpio daemon."""
+        pass
+
+    def brake(self) -> None:
+        """Mock brake method."""
+        pass
+
+    def set_mode(self, pin: int, mode: int) -> None:
+        """Set the mode of the specified pin."""
+        pass
+
 
 class ChassisController:
     """2wd differential drive with 6-pin L298N motor driver module.
@@ -35,6 +57,11 @@ class ChassisController:
     """
 
     def __init__(self, config: Dict[str, Any]) -> None:
+        """Initialize the chassis controller with given configuration.
+
+        args:
+            config: dictionary containing pin and motor configuration
+        """
         pins = config["pins"]
         self.in1 = pins["motor_a_in1"]       # gpio 5
         self.in2 = pins["motor_a_in2"]       # gpio 6
@@ -49,9 +76,13 @@ class ChassisController:
         self.turn_speed = motor_cfg["turn_speed"]
         self.slow_speed = motor_cfg["slow_speed"]
 
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         self._motion_lock = threading.RLock()
         self._current_speed = (0, 0)
+        self._motor_a_dir = 0
+        self._motor_b_dir = 0
+        self._motor_a_duty = 0
+        self._motor_b_duty = 0
         self._stop_event = threading.Event()
 
         if _HAS_PIGPIO:
@@ -63,11 +94,15 @@ class ChassisController:
 
         # set pin modes and frequency
         try:
+            out_mode = pigpio.OUTPUT if _HAS_PIGPIO else 1
+            for pin in [self.in1, self.in2, self.in3, self.in4, self.ena, self.enb]:
+                self.pi.set_mode(pin, out_mode)
+
             for pin in [self.in1, self.in2, self.in3, self.in4]:
                 self.pi.write(pin, 0)
 
             for pin in [self.ena, self.enb]:
-                self.pi.set_PWM_frequency(pin, 1000)
+                self.pi.set_PWM_frequency(pin, 100)
                 self.pi.set_PWM_range(pin, 100)
                 self.pi.set_PWM_dutycycle(pin, 0)
         except Exception as e:
@@ -78,39 +113,51 @@ class ChassisController:
 
     def _set_motor_a(self, speed: float) -> None:
         """set left motor speed. positive = forward, negative = backward."""
-        duty = int(round(abs(speed)))  # 0-100
+        duty = min(int(round(abs(speed))), 100)  # 0-100
+        new_dir = 1 if speed > 0 else (-1 if speed < 0 else 0)
         try:
-            self.pi.set_PWM_dutycycle(self.ena, min(duty, 100))
-            if speed > 0:
-                self.pi.write(self.in1, 1)
-                self.pi.write(self.in2, 0)
-            elif speed < 0:
-                self.pi.write(self.in1, 0)
-                self.pi.write(self.in2, 1)
-            else:
-                self.pi.write(self.in1, 0)
-                self.pi.write(self.in2, 0)
+            if duty != self._motor_a_duty:
+                self.pi.set_PWM_dutycycle(self.ena, duty)
+                self._motor_a_duty = duty
+
+            if new_dir != self._motor_a_dir:
+                if new_dir == 1:
+                    self.pi.write(self.in1, 1)
+                    self.pi.write(self.in2, 0)
+                elif new_dir == -1:
+                    self.pi.write(self.in1, 0)
+                    self.pi.write(self.in2, 1)
+                else:
+                    self.pi.write(self.in1, 0)
+                    self.pi.write(self.in2, 0)
+                self._motor_a_dir = new_dir
         except Exception as e:
             logger.error("pigpio motor_a error: %s", e)
 
     def _set_motor_b(self, speed: float) -> None:
         """set right motor speed. positive = forward, negative = backward."""
-        duty = int(round(abs(speed)))
+        duty = min(int(round(abs(speed))), 100)  # 0-100
+        new_dir = 1 if speed > 0 else (-1 if speed < 0 else 0)
         try:
-            self.pi.set_PWM_dutycycle(self.enb, min(duty, 100))
-            if speed > 0:
-                self.pi.write(self.in3, 1)
-                self.pi.write(self.in4, 0)
-            elif speed < 0:
-                self.pi.write(self.in3, 0)
-                self.pi.write(self.in4, 1)
-            else:
-                self.pi.write(self.in3, 0)
-                self.pi.write(self.in4, 0)
+            if duty != self._motor_b_duty:
+                self.pi.set_PWM_dutycycle(self.enb, duty)
+                self._motor_b_duty = duty
+
+            if new_dir != self._motor_b_dir:
+                if new_dir == 1:
+                    self.pi.write(self.in3, 1)
+                    self.pi.write(self.in4, 0)
+                elif new_dir == -1:
+                    self.pi.write(self.in3, 0)
+                    self.pi.write(self.in4, 1)
+                else:
+                    self.pi.write(self.in3, 0)
+                    self.pi.write(self.in4, 0)
+                self._motor_b_dir = new_dir
         except Exception as e:
             logger.error("pigpio motor_b error: %s", e)
 
-    def set_speed(self, left, right):
+    def set_speed(self, left: float, right: float) -> None:
         """set raw motor speeds.
 
         args:
@@ -124,50 +171,50 @@ class ChassisController:
             self._set_motor_b(right)
             self._current_speed = (left, right)
 
-    def forward(self, speed=None):
+    def forward(self, speed: Optional[float] = None) -> None:
         """move forward."""
         speed = speed or self.cruise_speed
         self.set_speed(speed, speed)
         log_event("motion", f"chassis forward at {speed}%")
 
-    def backward(self, speed=None):
+    def backward(self, speed: Optional[float] = None) -> None:
         """move backward."""
         speed = speed or self.cruise_speed
         self.set_speed(-speed, -speed)
         log_event("motion", f"chassis backward at {speed}%")
 
-    def turn_left(self, speed=None):
+    def turn_left(self, speed: Optional[float] = None) -> None:
         """turn left (right wheel faster)."""
         speed = speed or self.turn_speed
         self.set_speed(speed * 0.3, speed)
         log_event("motion", "chassis turning left")
 
-    def turn_right(self, speed=None):
+    def turn_right(self, speed: Optional[float] = None) -> None:
         """turn right (left wheel faster)."""
         speed = speed or self.turn_speed
         self.set_speed(speed, speed * 0.3)
         log_event("motion", "chassis turning right")
 
-    def spin_left(self, speed=None):
+    def spin_left(self, speed: Optional[float] = None) -> None:
         """spin in place to the left."""
         speed = speed or self.turn_speed
         self.set_speed(-speed, speed)
         log_event("motion", "chassis spinning left")
 
-    def spin_right(self, speed=None):
+    def spin_right(self, speed: Optional[float] = None) -> None:
         """spin in place to the right."""
         speed = speed or self.turn_speed
         self.set_speed(speed, -speed)
         log_event("motion", "chassis spinning right")
 
-    def stop(self):
+    def stop(self) -> None:
         """stop both motors immediately."""
         self._stop_event.set()
         with self._motion_lock:
             self.set_speed(0, 0)
             log_event("motion", "chassis stopped")
 
-    def brake(self):
+    def brake(self) -> None:
         """stop motors abruptly by shorting terminals."""
         self._stop_event.set()
         with self._motion_lock:
@@ -182,9 +229,13 @@ class ChassisController:
                 except Exception as e:
                     logger.error("pigpio brake error: %s", e)
                 self._current_speed = (0, 0)
+                self._motor_a_dir = None
+                self._motor_b_dir = None
+                self._motor_a_duty = 100
+                self._motor_b_duty = 100
             log_event("motion", "chassis active brake applied")
 
-    def move_for_duration(self, direction, speed, duration):
+    def move_for_duration(self, direction: str, speed: float, duration: float) -> None:
         """move in a direction for a set duration.
 
         args:
@@ -214,12 +265,12 @@ class ChassisController:
             with self._motion_lock:
                 self._stop_event.clear()
                 action(speed)
-                
+
                 # wait returns False if the timeout occurred, True if the event was set.
                 if not self._stop_event.wait(duration):
                     self.stop()
 
-    def move_to_angle(self, angle, duration=1.0):
+    def move_to_angle(self, angle: float, duration: float = 1.0) -> None:
         """move chassis to face a specific angle.
 
         approximates by spinning proportional to angle difference.
@@ -237,17 +288,17 @@ class ChassisController:
             elif angle > 100:
                 self.spin_left(self.turn_speed)
                 interrupted = self._stop_event.wait(duration * (angle - 90) / 90)
-    
+
             if not interrupted:
                 self.set_speed(0, 0)
             log_event("motion", f"chassis aimed at ~{angle}°")
 
-    def get_speed(self):
+    def get_speed(self) -> Tuple[float, float]:
         """get current motor speeds."""
         with self._lock:
             return self._current_speed
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """stop motors and cleanup."""
         logger.info("cleaning up chassis controller")
         self.stop()

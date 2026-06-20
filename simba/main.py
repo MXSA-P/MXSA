@@ -1,24 +1,26 @@
 # _max_cyan_ — project_mxsa
-"""simba main entry point — boots the robot on startup.
+"""Simba main entry point — boots the robot on startup.
 
-usage:
+Usage:
     python -m simba.main
     python -m simba.main --no-web
     python -m simba.main --web-only
 """
 
-from simba.utils.logger import get_logger, log_event
-import os
-import sys
-import signal
 import argparse
-import yaml
+import os
+import signal
+import sys
 import threading
 
+import yaml
+
+from simba.utils.logger import get_logger, log_event
+
 # add project root to path
-_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if _PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, _PROJECT_ROOT)
+_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
 
 
 logger = get_logger("simba.main")
@@ -29,8 +31,9 @@ _brain = None
 
 _shutdown_requested = False
 
+
 def _signal_handler(sig, frame):
-    """handle ctrl+c for clean shutdown."""
+    """Handle Ctrl+C for clean shutdown."""
     global _shutdown_requested
     print("\n[!] Ctrl+C detected. Initiating clean shutdown sequence...")
     logger.critical("Received shutdown signal (Ctrl+C).")
@@ -38,8 +41,8 @@ def _signal_handler(sig, frame):
 
 
 def load_config():
-    """load configuration from yaml file."""
-    config_path = os.path.join(_PROJECT_ROOT, "config", "simba_config.yaml")
+    """Load configuration from YAML file."""
+    config_path = os.path.join(_project_root, "config", "simba_config.yaml")
     if not os.path.isfile(config_path):
         logger.error(f"config not found: {config_path}")
         sys.exit(1)
@@ -52,16 +55,22 @@ def load_config():
 
 
 def main():
-    """main entry point for simba robot."""
+    """Main entry point for Simba robot."""
     global _brain
 
     parser = argparse.ArgumentParser(description="simba bionic arm robot")
-    parser.add_argument("--no-web", action="store_true",
-                        help="start without web dashboard")
-    parser.add_argument("--web-only", action="store_true",
-                        help="start web dashboard only (no hardware)")
-    parser.add_argument("--port", type=int, default=None,
-                        help="web dashboard port (default: from config)")
+    parser.add_argument(
+        "--no-web", action="store_true", help="start without web dashboard"
+    )
+    parser.add_argument(
+        "--web-only", action="store_true", help="start web dashboard only (no hardware)"
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=None,
+        help="web dashboard port (default: from config)",
+    )
     args = parser.parse_args()
 
     # register signal handler
@@ -91,6 +100,7 @@ def main():
         logger.info("Initializing hardware subsystems (Brain)...")
         try:
             from simba.core.brain import SimbaBrain
+
             _brain = SimbaBrain(config)
         except Exception as e:
             logger.critical(f"Failed to initialize brain: {e}")
@@ -119,6 +129,7 @@ def main():
             try:
                 logger.info("Starting web dashboard...")
                 from simba.web.server import create_app
+
                 web_cfg = config.get("web", {})
                 host = web_cfg.get("host", "0.0.0.0")
                 port = args.port or web_cfg.get("port", 8080)
@@ -130,22 +141,26 @@ def main():
                 # run web server in background thread
                 web_thread = threading.Thread(
                     target=lambda: socketio.run(
-                        web_server, host=host, port=port,
-                        debug=False, allow_unsafe_werkzeug=True,
+                        web_server,
+                        host=host,
+                        port=port,
+                        debug=False,
+                        allow_unsafe_werkzeug=True,
                         use_reloader=False,
                     ),
-                    daemon=True, name="web-server",
+                    daemon=True,
+                    name="web-server",
                 )
                 web_thread.start()
 
-                logger.info(
-                    f"Web dashboard successfully started: http://{host}:{port}")
+                logger.info(f"Web dashboard successfully started: http://{host}:{port}")
                 log_event("system", f"web dashboard started on port {port}")
                 print(f"  📊 dashboard: http://localhost:{port}")
                 print()
             except Exception as e:
                 logger.error(f"web dashboard failed: {e}")
                 import traceback
+
                 traceback.print_exc()
 
         # consolidated main loop
@@ -154,7 +169,7 @@ def main():
                 signal.pause()
             else:
                 threading.Event().wait(1)
-                
+
     except KeyboardInterrupt:
         pass
     except SystemExit:

@@ -6,12 +6,11 @@ their position angles, confidence scores, embeddings, and timestamps.
 data is persisted to a json file and auto-saved after every change.
 """
 
+import copy
 import json
 import os
-
 import tempfile
 import threading
-import copy
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -19,9 +18,18 @@ from simba.utils.logger import get_logger, log_event
 
 logger = get_logger("simba.core.memory")
 
+
 class NumpyEncoder(json.JSONEncoder):
     """custom encoder to handle numpy arrays in json serialization."""
     def default(self, obj: Any) -> Any:
+        """default behavior for json serialization of unknown objects.
+
+        args:
+            obj: the object to serialize.
+
+        returns:
+            serializable representation of the object.
+        """
         if hasattr(obj, "tolist"):
             return obj.tolist()
         return super().default(obj)
@@ -51,11 +59,21 @@ class MemorySystem:
         self._objects: Dict[str, Dict[str, Any]] = {}
         self._dirty: bool = False
 
+        if not isinstance(config, dict):
+            config = {}
         ai_cfg = config.get("ai", {})
+        if not isinstance(ai_cfg, dict):
+            ai_cfg = {}
+
         self.max_items: int = ai_cfg.get("max_memory_items", 500)
+        if not isinstance(self.max_items, int):
+            self.max_items = 500
 
         # resolve database path relative to project root
         db_path = ai_cfg.get("memory_db_path", "data/memory.json")
+        if not isinstance(db_path, str):
+            db_path = str(db_path) if db_path is not None else "data/memory.json"
+
         if not os.path.isabs(db_path):
             project_root = os.path.dirname(os.path.dirname(
                 os.path.dirname(os.path.abspath(__file__))
@@ -92,14 +110,17 @@ class MemorySystem:
             y: vertical (depth) coordinate on the floor (cm)
         """
         label = label.strip().lower()
-        now = datetime.now().isoformat()
+        now_dt = datetime.now()
+        now_iso = now_dt.isoformat()
+        now_ts = now_dt.timestamp()
 
         with self._lock:
             if label in self._objects:
                 entry = self._objects[label]
                 entry["position_angle"] = position_angle
                 entry["confidence"] = confidence
-                entry["last_seen_timestamp"] = now
+                entry["last_seen_timestamp"] = now_iso
+                entry["last_seen_ts"] = now_ts
                 entry["times_seen"] = entry.get("times_seen", 0) + 1
                 if embedding is not None:
                     entry["embedding"] = list(embedding)
@@ -118,8 +139,9 @@ class MemorySystem:
                     "label": label,
                     "position_angle": position_angle,
                     "confidence": confidence,
-                    "last_seen_timestamp": now,
-                    "first_seen_timestamp": now,
+                    "last_seen_timestamp": now_iso,
+                    "first_seen_timestamp": now_iso,
+                    "last_seen_ts": now_ts,
                     "times_seen": 1,
                     "embedding": list(embedding) if embedding is not None else None,
                     "x": x,
@@ -190,7 +212,7 @@ class MemorySystem:
             objects = [copy.deepcopy(obj) for obj in self._objects.values()]
 
         objects.sort(
-            key=lambda o: o.get("last_seen_timestamp", ""),
+            key=lambda o: o.get("last_seen_ts", 0.0),
             reverse=True,
         )
         return objects
@@ -220,7 +242,7 @@ class MemorySystem:
 
             newest_label = max(
                 self._objects,
-                key=lambda k: self._objects[k].get("last_seen_timestamp", ""),
+                key=lambda k: self._objects[k].get("last_seen_ts", 0.0),
             )
 
             return {
@@ -252,17 +274,22 @@ class MemorySystem:
             with self._lock:
                 if not self._dirty:
                     return True
-                # deep copy to safely format without mutating actual state
-                data = copy.deepcopy(self._objects)
+                # serialize inside the lock to avoid expensive deepcopy
+                num_objects = len(self._objects)
+                json_str = json.dumps(
+                    self._objects, indent=2, ensure_ascii=False, cls=NumpyEncoder
+                )
                 self._dirty = False
-    
+
             # disk I/O outside main lock but inside save lock
             tmp_path = None
             try:
                 os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-                fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(self.db_path), prefix="memory_", suffix=".tmp")
+                fd, tmp_path = tempfile.mkstemp(
+                    dir=os.path.dirname(self.db_path), prefix="memory_", suffix=".tmp"
+                )
                 with os.fdopen(fd, "w", encoding="utf-8") as fh:
-                    json.dump(data, fh, indent=2, ensure_ascii=False, cls=NumpyEncoder)
+                    fh.write(json_str)
                     fh.flush()
                     os.fsync(fh.fileno())
                 os.replace(tmp_path, self.db_path)
@@ -272,10 +299,10 @@ class MemorySystem:
                     os.close(dir_fd)
                 except OSError:
                     pass
-    
-                logger.debug("memory saved (%d objects)", len(data))
+
+                logger.debug("memory saved (%d objects)", num_objects)
                 return True
-    
+
             except Exception as exc:
                 logger.error("failed to save memory: %s", exc)
                 with self._lock:
@@ -303,9 +330,22 @@ class MemorySystem:
             with open(self.db_path, "r", encoding="utf-8") as fh:
                 data = json.load(fh)
 
+            if not isinstance(data, dict):
+                raise ValueError(f"Memory data must be a dictionary, got {type(data).__name__}")
+
             with self._lock:
                 self._objects = {}
                 for label, entry in data.items():
+                    if not isinstance(entry, dict):
+                        logger.warning("skipping non-dict entry for '%s'", label)
+                        continue
+                    if "last_seen_ts" not in entry and "last_seen_timestamp" in entry:
+                        try:
+                            entry["last_seen_ts"] = datetime.fromisoformat(
+                                entry["last_seen_timestamp"]
+                            ).timestamp()
+                        except (ValueError, TypeError):
+                            entry["last_seen_ts"] = 0.0
                     self._objects[label.strip().lower()] = entry
                 while len(self._objects) > self.max_items:
                     self._evict_oldest()
@@ -342,16 +382,13 @@ class MemorySystem:
                     "newest": None,
                 }
 
-            timestamps = [
-                obj.get("last_seen_timestamp", "")
-                for obj in self._objects.values()
-                if obj.get("last_seen_timestamp")
-            ]
+            oldest_obj = min(self._objects.values(), key=lambda o: o.get("last_seen_ts", 0.0))
+            newest_obj = max(self._objects.values(), key=lambda o: o.get("last_seen_ts", 0.0))
 
             return {
                 "count": count,
-                "oldest": min(timestamps) if timestamps else None,
-                "newest": max(timestamps) if timestamps else None,
+                "oldest": oldest_obj.get("last_seen_timestamp"),
+                "newest": newest_obj.get("last_seen_timestamp"),
             }
 
     def _evict_oldest(self) -> None:
@@ -365,22 +402,29 @@ class MemorySystem:
 
         oldest_label = min(
             self._objects,
-            key=lambda k: self._objects[k].get("last_seen_timestamp", ""),
+            key=lambda k: self._objects[k].get("last_seen_ts", 0.0),
         )
         logger.info("evicting oldest object '%s' to make room", oldest_label)
         del self._objects[oldest_label]
 
     def decay(self, max_age_seconds: float = 86400) -> None:
-        """remove objects older than max_age_seconds."""
-        now = datetime.now()
+        """remove objects older than max_age_seconds.
+
+        args:
+            max_age_seconds: maximum allowed age in seconds before removal.
+        """
+        now_ts = datetime.now().timestamp()
         removed = 0
         with self._lock:
             for label in list(self._objects.keys()):
                 entry = self._objects[label]
                 try:
-                    last_seen = datetime.fromisoformat(
-                        entry["last_seen_timestamp"])
-                    if (now - last_seen).total_seconds() > max_age_seconds:
+                    last_seen_ts = entry.get("last_seen_ts")
+                    if last_seen_ts is None:
+                        last_seen_ts = datetime.fromisoformat(
+                            entry["last_seen_timestamp"]
+                        ).timestamp()
+                    if (now_ts - last_seen_ts) > max_age_seconds:
                         del self._objects[label]
                         removed += 1
                         self._dirty = True
@@ -396,6 +440,11 @@ class MemorySystem:
         self.save()
 
     def __repr__(self) -> str:
+        """get string representation of the memory system.
+
+        returns:
+            string representation indicating number of objects and db path.
+        """
         return (
             f"MemorySystem(objects={len(self._objects)}, "
             f"db_path='{self.db_path}')"

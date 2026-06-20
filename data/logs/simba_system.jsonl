@@ -606,3 +606,467 @@
 {"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
 {"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
 {"timestamp": "2026-06-19T01:09:43", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-20T17:38:24", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-20T17:38:24", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: SCANNING -> FETCHING (was in SCANNING for 0.0s)"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:38:24", "level": "WARNING", "name": "simba.core.state_machine", "message": "invalid transition BOOTING -> FETCHING (allowed: CHARGING, IDLE, SCANNING)"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> FETCHING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T17:38:24", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T17:46:48", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:46:48", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'greet', 'target': None, 'modifier': None} (exact match from 'hello simba-man')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'clear_path', 'target': None, 'modifier': None} (exact match from 'clear path')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'clear_path', 'target': None, 'modifier': None} (exact match from 'reset path')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'clear_path', 'target': None, 'modifier': None} (exact match from 'forget the way home')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'clear_path', 'target': None, 'modifier': None} (exact match from 'clear breadcrumbs')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'path_status', 'target': None, 'modifier': None} (exact match from 'how far from home')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'path_status', 'target': None, 'modifier': None} (exact match from 'path status')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'path_status', 'target': None, 'modifier': None} (exact match from 'how many steps')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'path_status', 'target': None, 'modifier': None} (exact match from 'where am i')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'speed_up', 'target': None, 'modifier': None} (exact match from 'speed up')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'speed_up', 'target': None, 'modifier': None} (exact match from 'go faster')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'speed_up', 'target': None, 'modifier': None} (exact match from 'faster')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'slow_down', 'target': None, 'modifier': None} (exact match from 'slow down')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'slow_down', 'target': None, 'modifier': None} (exact match from 'go slower')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'slow_down', 'target': None, 'modifier': None} (exact match from 'slower')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'calibrate', 'target': None, 'modifier': None} (exact match from 'calibrate')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'calibrate', 'target': None, 'modifier': None} (exact match from 'calibrate servos')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'calibrate', 'target': None, 'modifier': None} (exact match from 'reset servos')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'calibrate', 'target': None, 'modifier': None} (exact match from 'calibrate arm')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'temperature', 'target': None, 'modifier': None} (exact match from 'temperature')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'temperature', 'target': None, 'modifier': None} (exact match from 'how hot are you')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'temperature', 'target': None, 'modifier': None} (exact match from 'cpu temperature')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'temperature', 'target': None, 'modifier': None} (exact match from 'system temperature')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': None, 'modifier': None} (exact match from 'get me the')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': None, 'modifier': None} (exact match from 'pass me the')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': None, 'modifier': None} (exact match from 'bring me the')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': None, 'modifier': None} (exact match from 'fetch the')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': None, 'modifier': None} (exact match from 'hand me the')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': None, 'modifier': None} (exact match from 'give me the')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': None, 'modifier': None} (exact match from 'grab that')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': None, 'modifier': None} (exact match from 'grab the')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': None, 'modifier': None} (exact match from 'pick up the')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': None, 'modifier': None} (exact match from 'grab it')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': None, 'modifier': None} (exact match from 'pick it up')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_am_i', 'target': None, 'modifier': None} (exact match from 'who am i')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_am_i', 'target': None, 'modifier': None} (exact match from 'what is my name')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_am_i', 'target': None, 'modifier': None} (exact match from 'who is the owner')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_am_i', 'target': None, 'modifier': None} (exact match from 'who is my owner')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_am_i', 'target': None, 'modifier': None} (exact match from 'who is your owner')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_am_i', 'target': None, 'modifier': None} (exact match from 'who created you')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'what are you')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'introduce yourself')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'joke', 'target': None, 'modifier': None} (exact match from 'tell me a joke')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'joke', 'target': None, 'modifier': None} (exact match from 'make me laugh')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'joke', 'target': None, 'modifier': None} (exact match from 'joke')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'time', 'target': None, 'modifier': None} (exact match from 'what time is it')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'time', 'target': None, 'modifier': None} (exact match from 'tell me the time')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'time', 'target': None, 'modifier': None} (exact match from 'current time')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'sing', 'target': None, 'modifier': None} (exact match from 'sing a song')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'sing', 'target': None, 'modifier': None} (exact match from 'sing for me')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'sing', 'target': None, 'modifier': None} (exact match from 'sing something')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'sing', 'target': None, 'modifier': None} (exact match from 'sing')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'story', 'target': None, 'modifier': None} (exact match from 'tell me a story')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'story', 'target': None, 'modifier': None} (exact match from 'read me a story')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'story', 'target': None, 'modifier': None} (exact match from 'story time')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'what is your status')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'how are you')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'report status')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'battery level')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'status report')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'patrol', 'target': None, 'modifier': None} (exact match from 'patrol')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'patrol', 'target': None, 'modifier': None} (exact match from 'explore')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'patrol', 'target': None, 'modifier': None} (exact match from 'look around')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'patrol', 'target': None, 'modifier': None} (exact match from 'go on patrol')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'patrol', 'target': None, 'modifier': None} (exact match from 'start patrolling')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'dance', 'target': None, 'modifier': None} (exact match from 'dance')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'dance', 'target': None, 'modifier': None} (exact match from 'do a dance')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'dance', 'target': None, 'modifier': None} (exact match from 'show me your moves')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'follow', 'target': None, 'modifier': None} (exact match from 'follow me')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'follow', 'target': None, 'modifier': None} (exact match from 'come here')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'follow', 'target': None, 'modifier': None} (exact match from 'follow')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'charge', 'target': None, 'modifier': None} (exact match from 'go charge')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'charge', 'target': None, 'modifier': None} (exact match from 'charge yourself')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'charge', 'target': None, 'modifier': None} (exact match from 'go to charger')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'charge', 'target': None, 'modifier': None} (exact match from 'charge up')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'charge', 'target': None, 'modifier': None} (exact match from 'recharge')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'charge', 'target': None, 'modifier': None} (exact match from 'go recharge')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scan', 'target': None, 'modifier': None} (exact match from 'scan')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'patrol', 'target': None, 'modifier': None} (exact match from 'look around')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scan', 'target': None, 'modifier': None} (exact match from 'scan the area')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scan', 'target': None, 'modifier': None} (exact match from 'scan around')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scan', 'target': None, 'modifier': None} (exact match from 'survey')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scan', 'target': None, 'modifier': None} (exact match from 'check around')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scan', 'target': None, 'modifier': None} (exact match from 'what's around you')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'play', 'target': None, 'modifier': None} (exact match from 'play with me')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'play', 'target': None, 'modifier': None} (exact match from 'let's play')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'play', 'target': None, 'modifier': None} (exact match from 'lets play')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'play', 'target': None, 'modifier': None} (exact match from 'wanna play')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'play', 'target': None, 'modifier': None} (exact match from 'play time')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'play', 'target': None, 'modifier': None} (exact match from 'playtime')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'play', 'target': None, 'modifier': None} (exact match from 'time to play')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'greet', 'target': None, 'modifier': None} (exact match from 'hello')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'greet', 'target': None, 'modifier': None} (exact match from 'hi')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'greet', 'target': None, 'modifier': None} (exact match from 'hey simba')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'greet', 'target': None, 'modifier': None} (exact match from 'hi simba')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'greet', 'target': None, 'modifier': None} (exact match from 'hello simba')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'greet', 'target': None, 'modifier': None} (exact match from 'hey there')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'greet', 'target': None, 'modifier': None} (exact match from 'good morning')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'greet', 'target': None, 'modifier': None} (exact match from 'good evening')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'greet', 'target': None, 'modifier': None} (exact match from 'howdy')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'love', 'target': None, 'modifier': None} (exact match from 'i love you')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'love', 'target': None, 'modifier': None} (exact match from 'love you simba')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'love', 'target': None, 'modifier': None} (exact match from 'love you')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'love', 'target': None, 'modifier': None} (exact match from 'you're the best')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'love', 'target': None, 'modifier': None} (exact match from 'you are the best')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'love', 'target': None, 'modifier': None} (exact match from 'i adore you')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'love', 'target': None, 'modifier': None} (exact match from 'you're awesome')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'stop', 'target': None, 'modifier': None} (exact match from 'stop')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'stop', 'target': None, 'modifier': None} (exact match from 'halt')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'stop', 'target': None, 'modifier': None} (exact match from 'freeze')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'stop', 'target': None, 'modifier': None} (exact match from 'don't move')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'stop', 'target': None, 'modifier': None} (exact match from 'stay')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'stop', 'target': None, 'modifier': None} (exact match from 'wait')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'stop', 'target': None, 'modifier': None} (exact match from 'hold on')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'stop', 'target': None, 'modifier': None} (exact match from 'pause')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'hold', 'target': None, 'modifier': None} (exact match from 'hold this')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'hold', 'target': None, 'modifier': None} (exact match from 'hold it')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'hold', 'target': None, 'modifier': None} (exact match from 'take this')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'hold', 'target': None, 'modifier': None} (exact match from 'grab this')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'hold', 'target': None, 'modifier': None} (exact match from 'hold')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'release', 'target': None, 'modifier': None} (exact match from 'that's fine')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'release', 'target': None, 'modifier': None} (exact match from 'let go')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'release', 'target': None, 'modifier': None} (exact match from 'release it')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'release', 'target': None, 'modifier': None} (exact match from 'drop it')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'release', 'target': None, 'modifier': None} (exact match from 'thats fine')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'release', 'target': None, 'modifier': None} (exact match from 'release')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'forward', 'target': None, 'modifier': None} (exact match from 'go forward')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'forward', 'target': None, 'modifier': None} (exact match from 'move forward')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'forward', 'target': None, 'modifier': None} (exact match from 'forward')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'backward', 'target': None, 'modifier': None} (exact match from 'go backward')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'backward', 'target': None, 'modifier': None} (exact match from 'move backward')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'backward', 'target': None, 'modifier': None} (exact match from 'backward')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'backward', 'target': None, 'modifier': None} (exact match from 'go back')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'backward', 'target': None, 'modifier': None} (exact match from 'move back')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'left', 'target': None, 'modifier': None} (exact match from 'go left')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'left', 'target': None, 'modifier': None} (exact match from 'move left')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'left', 'target': None, 'modifier': None} (exact match from 'turn left')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'left', 'target': None, 'modifier': None} (exact match from 'left')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'right', 'target': None, 'modifier': None} (exact match from 'go right')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'right', 'target': None, 'modifier': None} (exact match from 'move right')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'right', 'target': None, 'modifier': None} (exact match from 'turn right')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'right', 'target': None, 'modifier': None} (exact match from 'right')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'follow', 'target': None, 'modifier': None} (exact match from 'come here')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'come', 'target': None, 'modifier': None} (exact match from 'come to me')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'come', 'target': None, 'modifier': None} (exact match from 'come over')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'come', 'target': None, 'modifier': None} (exact match from 'come closer')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'come', 'target': None, 'modifier': None} (exact match from 'over here')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'come', 'target': None, 'modifier': None} (exact match from 'this way')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'describe', 'target': None, 'modifier': None} (exact match from 'what do you see')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'describe', 'target': None, 'modifier': None} (exact match from 'what's around')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'describe', 'target': None, 'modifier': None} (exact match from 'whats around')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'describe', 'target': None, 'modifier': None} (exact match from 'describe')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'describe', 'target': None, 'modifier': None} (exact match from 'what can you see')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'describe', 'target': None, 'modifier': None} (exact match from 'tell me what you see')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'describe', 'target': None, 'modifier': None} (exact match from 'what is around you')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'what are you looking at')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'good boy')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'well done')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'nice')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'great job')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'awesome')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'perfect')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'good job')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'excellent')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'bravo')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'nice work')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'amazing')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'that's great')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'praise', 'target': None, 'modifier': None} (exact match from 'wonderful')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scold', 'target': None, 'modifier': None} (exact match from 'bad')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scold', 'target': None, 'modifier': None} (exact match from 'no')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scold', 'target': None, 'modifier': None} (exact match from 'wrong')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scold', 'target': None, 'modifier': None} (exact match from 'bad boy')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'stop', 'target': None, 'modifier': None} (exact match from 'stop that')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scold', 'target': None, 'modifier': None} (exact match from 'don't do that')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scold', 'target': None, 'modifier': None} (exact match from 'not like that')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scold', 'target': None, 'modifier': None} (exact match from 'incorrect')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scold', 'target': None, 'modifier': None} (exact match from 'that's wrong')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scold', 'target': None, 'modifier': None} (exact match from 'nope')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'dance', 'target': None, 'modifier': None} (exact match from 'dance')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'dance', 'target': None, 'modifier': None} (exact match from 'do a dance')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'dance', 'target': None, 'modifier': None} (exact match from 'show me some moves')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'dance', 'target': None, 'modifier': None} (exact match from 'let's dance')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'dance', 'target': None, 'modifier': None} (exact match from 'dance for me')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'dance', 'target': None, 'modifier': None} (exact match from 'break it down')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'what is your status')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'how are you')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'how are you doing')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'battery level')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'are you ok')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'report status')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'patrol', 'target': None, 'modifier': None} (exact match from 'patrol')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'patrol', 'target': None, 'modifier': None} (exact match from 'go on patrol')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'patrol', 'target': None, 'modifier': None} (exact match from 'guard the area')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'patrol', 'target': None, 'modifier': None} (exact match from 'start patrolling')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'patrol', 'target': None, 'modifier': None} (exact match from 'keep watch')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'rest', 'target': None, 'modifier': None} (exact match from 'go to sleep')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'rest', 'target': None, 'modifier': None} (exact match from 'rest now')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'rest', 'target': None, 'modifier': None} (exact match from 'shutdown')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'rest', 'target': None, 'modifier': None} (exact match from 'power off')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'rest', 'target': None, 'modifier': None} (exact match from 'go rest')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'feeling', 'target': None, 'modifier': None} (exact match from 'how do you feel')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'feeling', 'target': None, 'modifier': None} (exact match from 'are you okay')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'are you ok')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'status', 'target': None, 'modifier': None} (exact match from 'how are you feeling')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'what are you feeling')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'point', 'target': None, 'modifier': None} (exact match from 'point at that')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'point', 'target': None, 'modifier': None} (exact match from 'point there')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'point', 'target': None, 'modifier': None} (exact match from 'point')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'thumbs_up', 'target': None, 'modifier': None} (exact match from 'thumbs up')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'thumbs_up', 'target': None, 'modifier': None} (exact match from 'give me a thumbs up')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'rock', 'target': None, 'modifier': None} (exact match from 'rock')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'rock', 'target': None, 'modifier': None} (exact match from 'make a rock')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'rock', 'target': None, 'modifier': None} (exact match from 'rock sign')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'paper', 'target': None, 'modifier': None} (exact match from 'paper')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'paper', 'target': None, 'modifier': None} (exact match from 'make paper')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'paper', 'target': None, 'modifier': None} (exact match from 'paper sign')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scissors', 'target': None, 'modifier': None} (exact match from 'scissors')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scissors', 'target': None, 'modifier': None} (exact match from 'make scissors')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'scissors', 'target': None, 'modifier': None} (exact match from 'scissors sign')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'wave_fingers', 'target': None, 'modifier': None} (exact match from 'wave your fingers')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'wave_fingers', 'target': None, 'modifier': None} (exact match from 'finger wave')"}
+{"timestamp": "2026-06-20T17:47:13", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'wave_fingers', 'target': None, 'modifier': None} (exact match from 'wiggle your fingers')"}
+{"timestamp": "2026-06-20T17:47:17", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:47:17", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'greet', 'target': None, 'modifier': None} (fuzzy match from 'hi-there')"}
+{"timestamp": "2026-06-20T17:47:18", "level": "INFO", "name": "simba.core.emotions", "message": "emotion engine v2 initialized (mood=curious, intensity=0.50, personality={'curiosity': 0.8, 'playfulness': 0.7, 'loyalty': 0.9, 'sensitivity': 0.6})"}
+{"timestamp": "2026-06-20T17:47:18", "level": "INFO", "name": "simba.core.emotions", "message": "emotion changed: curious (0.50) -> happy (0.50)"}
+{"timestamp": "2026-06-20T17:47:18", "level": "INFO", "name": "simba.core.emotions", "message": "emotion changed: happy (0.50) -> sad (0.80)"}
+{"timestamp": "2026-06-20T17:47:18", "level": "INFO", "name": "simba.core.emotions", "message": "event 'scolded' -> emotion 'sad' (1.00)"}
+{"timestamp": "2026-06-20T17:47:25", "level": "INFO", "name": "simba.core.emotions", "message": "emotion engine v2 initialized (mood=curious, intensity=0.50, personality={'curiosity': 0.8, 'playfulness': 0.7, 'loyalty': 0.9, 'sensitivity': 0.6})"}
+{"timestamp": "2026-06-20T17:47:37", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:47:37", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-20T17:47:37", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:47:37", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-20T17:47:37", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:47:37", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-20T17:47:37", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:47:37", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:47:37", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-20T17:47:37", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:47:37", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-20T17:47:39", "level": "INFO", "name": "simba.core.emotions", "message": "emotion engine v2 initialized (mood=curious, intensity=0.50, personality={'curiosity': 0.8, 'playfulness': 0.7, 'loyalty': 0.9, 'sensitivity': 0.6})"}
+{"timestamp": "2026-06-20T17:47:39", "level": "INFO", "name": "simba.core.emotions", "message": "emotion changed: curious (0.50) -> happy (1.00)"}
+{"timestamp": "2026-06-20T17:47:44", "level": "WARNING", "name": "simba.motion.hand", "message": "pigpio not available, using mock"}
+{"timestamp": "2026-06-20T17:47:44", "level": "ERROR", "name": "simba.motion.hand", "message": "pigpio mode setting error: '_MockPi' object has no attribute 'set_mode'"}
+{"timestamp": "2026-06-20T17:47:44", "level": "INFO", "name": "simba.motion.hand", "message": "hand controller initialized (3-finger triangle)"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: SCANNING -> FETCHING (was in SCANNING for 0.0s)"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:48:02", "level": "WARNING", "name": "simba.core.state_machine", "message": "invalid transition BOOTING -> FETCHING (allowed: CHARGING, IDLE, SCANNING)"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> FETCHING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T17:48:02", "level": "WARNING", "name": "simba.motion.hand", "message": "pigpio not available, using mock"}
+{"timestamp": "2026-06-20T17:48:02", "level": "INFO", "name": "simba.motion.hand", "message": "hand controller initialized (3-finger triangle)"}
+{"timestamp": "2026-06-20T17:48:28", "level": "INFO", "name": "simba.core.emotions", "message": "emotion engine v2 initialized (mood=curious, intensity=0.50, personality={'curiosity': 0.8, 'playfulness': 0.7, 'loyalty': 0.9, 'sensitivity': 0.6})"}
+{"timestamp": "2026-06-20T17:48:28", "level": "INFO", "name": "simba.core.emotions", "message": "emotion changed: curious (0.50) -> happy (0.90)"}
+{"timestamp": "2026-06-20T17:48:28", "level": "WARNING", "name": "simba.core.emotions", "message": "invalid emotion type '<class 'NoneType'>' \u2014 ignoring"}
+{"timestamp": "2026-06-20T17:48:28", "level": "INFO", "name": "simba.core.emotions", "message": "emotion engine v2 initialized (mood=curious, intensity=0.50, personality={'curiosity': 0.8, 'playfulness': 0.7, 'loyalty': 0.9, 'sensitivity': 0.6})"}
+{"timestamp": "2026-06-20T17:49:27", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:28", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'greet', 'target': None, 'modifier': None} (fuzzy match from 'hello-simba')"}
+{"timestamp": "2026-06-20T17:49:28", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'clear_path', 'target': None, 'modifier': None} (fuzzy match from 'clear-path')"}
+{"timestamp": "2026-06-20T17:49:28", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'forward', 'target': None, 'modifier': None} (fuzzy match from 'go-forward')"}
+{"timestamp": "2026-06-20T17:49:28", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'play', 'target': None, 'modifier': None} (fuzzy match from 'let's-play')"}
+{"timestamp": "2026-06-20T17:49:28", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'speed_up', 'target': None, 'modifier': None} (fuzzy match from 'speed-up')"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:42", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'x-ray', 'modifier': None} (exact match from 'get me the x-ray')"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'x-ray', 'modifier': None} (exact match from 'get me the x-ray')"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:49:47", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'temperature', 'target': None, 'modifier': None} (fuzzy match from 'cpu-temperature')"}
+{"timestamp": "2026-06-20T17:50:05", "level": "INFO", "name": "simba.motion.chassis", "message": "chassis controller initialized (6-pin L298N 2wd differential)"}
+{"timestamp": "2026-06-20T17:50:08", "level": "INFO", "name": "simba.motion.chassis", "message": "cleaning up chassis controller"}
+{"timestamp": "2026-06-20T17:51:03", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'x-ray', 'modifier': None} (exact match from 'get me the x-ray')"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:35", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'temperature', 'target': None, 'modifier': None} (fuzzy match from 'cpu-temperature')"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'x-ray', 'modifier': None} (exact match from 'get me the x-ray')"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'temperature', 'target': None, 'modifier': None} (fuzzy match from 'cpu-temperature')"}
+{"timestamp": "2026-06-20T17:54:53", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-20T17:54:53", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: SCANNING -> FETCHING (was in SCANNING for 0.0s)"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:54:53", "level": "WARNING", "name": "simba.core.state_machine", "message": "invalid transition BOOTING -> FETCHING (allowed: CHARGING, IDLE, SCANNING)"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> FETCHING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T17:54:53", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: SCANNING -> FETCHING (was in SCANNING for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:01:10", "level": "WARNING", "name": "simba.core.state_machine", "message": "invalid transition BOOTING -> FETCHING (allowed: CHARGING, IDLE, SCANNING)"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> FETCHING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:10", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'x-ray', 'modifier': None} (exact match from 'get me the x-ray')"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'temperature', 'target': None, 'modifier': None} (fuzzy match from 'cpu-temperature')"}
+{"timestamp": "2026-06-20T18:01:25", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-20T18:01:25", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: SCANNING -> FETCHING (was in SCANNING for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:01:25", "level": "WARNING", "name": "simba.core.state_machine", "message": "invalid transition BOOTING -> FETCHING (allowed: CHARGING, IDLE, SCANNING)"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> FETCHING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T18:01:25", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T18:02:46", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:04:57", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-20T18:04:57", "level": "INFO", "name": "simba.motion.imu", "message": "calibrating mpu6050 (100 samples)..."}
+{"timestamp": "2026-06-20T18:04:58", "level": "INFO", "name": "simba.motion.imu", "message": "mpu6050 calibration complete"}
+{"timestamp": "2026-06-20T18:05:06", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-20T18:05:06", "level": "INFO", "name": "simba.motion.imu", "message": "calibrating mpu6050 (100 samples)..."}
+{"timestamp": "2026-06-20T18:05:08", "level": "INFO", "name": "simba.motion.imu", "message": "mpu6050 calibration complete"}
+{"timestamp": "2026-06-20T18:05:10", "level": "INFO", "name": "simba.motion.imu", "message": "imu continuous reading stopped"}
+{"timestamp": "2026-06-20T18:05:10", "level": "INFO", "name": "simba.motion.imu", "message": "imu cleanup complete"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'fetch the bottle')"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'remote', 'modifier': None} (fuzzy match from 'bringe me the remote')"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'bottle', 'modifier': None} (exact match from 'um simba could you please fetch the bottle quickly')"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'grab', 'target': 'blue ball', 'modifier': None} (exact match from 'grab the blue ball')"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'who_are_you', 'target': None, 'modifier': None} (exact match from 'who are you')"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'fetch', 'target': 'x-ray', 'modifier': None} (exact match from 'get me the x-ray')"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parser initialized with 45 command patterns"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.voice.command_parser", "message": "command parsed: {'action': 'temperature', 'target': None, 'modifier': None} (fuzzy match from 'cpu-temperature')"}
+{"timestamp": "2026-06-20T18:07:04", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-20T18:07:04", "level": "WARNING", "name": "simba.motion.imu", "message": "smbus2 not available, using mock"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: SCANNING -> FETCHING (was in SCANNING for 0.0s)"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:07:04", "level": "WARNING", "name": "simba.core.state_machine", "message": "invalid transition BOOTING -> FETCHING (allowed: CHARGING, IDLE, SCANNING)"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> FETCHING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
+{"timestamp": "2026-06-20T18:07:04", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}

@@ -6,12 +6,14 @@ feeds chunks to the vosk recognizer, and dispatches recognized text
 to registered callbacks. no wake word — always active.
 """
 
+import collections
 import json
 import os
 import threading
-import queue
+import time
+from typing import Any, Callable, Deque, Dict, List, Optional
+
 import numpy as np
-from typing import Callable, List, Optional
 
 try:
     import sounddevice as sd
@@ -48,19 +50,19 @@ class VoiceListener:
         recognizer: vosk kaldi recognizer instance.
     """
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: Dict[str, Any]) -> None:
         """initialize the voice listener.
 
         args:
             config: full simba configuration dict loaded from yaml.
         """
-        self._lock = threading.Lock()
+        self._lock: threading.Lock = threading.Lock()
         self._callbacks: List[Callable[[str], None]] = []
         self._last_text: str = ""
         self._listening: bool = False
         self._stream: Optional[object] = None
-        self._audio_queue = queue.Queue(maxsize=100)
-        self._process_thread = None
+        self._audio_queue: Deque[bytes] = collections.deque(maxlen=100)
+        self._process_thread: Optional[threading.Thread] = None
 
         # energy monitoring and dynamic silence threshold
         self._current_energy: float = 0.0
@@ -105,7 +107,9 @@ class VoiceListener:
             "model_loaded": self.model is not None,
         })
 
-    def _audio_callback(self, indata, frames: int, time_info, status) -> None:
+    def _audio_callback(
+        self, indata: np.ndarray, frames: int, time_info: Dict[str, Any], status: Any
+    ) -> None:
         """sounddevice input stream callback — process incoming audio.
 
         args:
@@ -116,17 +120,33 @@ class VoiceListener:
         """
         if status:
             logger.warning("portaudio status: %s", status)
+            if hasattr(status, 'input_overflow') and status.input_overflow:
+                logger.warning("buffer overrun detected (input overflow) - clearing audio queue")
+                self._audio_queue.clear()
 
-        if self.recognizer is None or frames == 0 or indata.size == 0:
+        # Guard against invalid frame sizes and bad input types
+        if self.recognizer is None:
+            return
+
+        if not isinstance(frames, int) or frames <= 0:
+            return
+
+        if not isinstance(indata, np.ndarray) or indata.size == 0:
+            return
+
+        # Guard against size mismatch
+        if indata.shape[0] != frames:
+            logger.debug("invalid frame size or mismatch: frames=%s, indata.shape=%s",
+                         frames, indata.shape)
             return
 
         # convert float32 numpy array to int16 bytes for vosk
         try:
             if indata.ndim != 2 or indata.shape[1] == 0:
                 return
-            if np.isnan(indata).any():
+            if np.isnan(indata).any() or np.isinf(indata).any():
                 return
-                
+
             # INMP441 wired with L/R to GND outputs exclusively on the Left channel (index 0)
             if indata.shape[1] >= 2:
                 audio_data = indata[:, 0]
@@ -134,10 +154,10 @@ class VoiceListener:
                 audio_data = indata[:, 0]
 
             # calculate rms energy
-            energy = float(np.sqrt(np.mean(audio_data**2)))
+            energy = float(np.sqrt(np.mean(audio_data ** 2)))
             if np.isnan(energy) or np.isinf(energy):
                 return
-                
+
             self._current_energy = energy
 
             # update ambient energy (dynamic threshold)
@@ -153,21 +173,27 @@ class VoiceListener:
                 if self._silence_frames > 5:  # about 1 sec of silence at 4000 chunks/16khz
                     self._is_speaking = False
 
-            audio_bytes = (audio_data * 32767).astype(np.int16).tobytes()
-            try:
-                self._audio_queue.put_nowait(audio_bytes)
-            except queue.Full:
-                logger.warning("audio queue full, dropping frame (processing too slow)")
+            audio_data_clipped = np.clip(audio_data * 32767, -32768, 32767)
+            audio_bytes = audio_data_clipped.astype(np.int16).tobytes()
+            if len(self._audio_queue) == self._audio_queue.maxlen:
+                logger.warning("audio queue full, buffer overrun. dropping oldest frame")
+            self._audio_queue.append(audio_bytes)
         except Exception as exc:
             logger.error("audio processing error: %s", exc)
-            return
+            raise sd.CallbackAbort
 
-    def _process_audio(self):
+    def _process_audio(self) -> None:
         """background thread for processing audio queue with vosk."""
         while self._listening:
             try:
-                audio_bytes = self._audio_queue.get(timeout=0.1)
-            except queue.Empty:
+                audio_bytes = self._audio_queue.popleft()
+            except IndexError:
+                time.sleep(0.01)
+                continue
+
+            # Guard against unexpected byte lengths for 16-bit PCM (must be a multiple of 2)
+            if (not isinstance(audio_bytes, bytes) or len(audio_bytes) == 0 or
+                    len(audio_bytes) % 2 != 0):
                 continue
 
             try:
@@ -203,7 +229,7 @@ class VoiceListener:
                     cb(t)
                 except Exception as exc:
                     logger.error("callback error for text '%s': %s", t, exc)
-            
+
             threading.Thread(target=_run, args=(callback, text), daemon=True).start()
 
     def start(self) -> bool:
@@ -231,9 +257,13 @@ class VoiceListener:
                 devices = sd.query_devices()
                 for i, dev in enumerate(devices):
                     name = dev['name'].lower()
-                    if dev['max_input_channels'] > 0 and ('i2s' in name or 'inmp441' in name or 'snd' in name or 'mic' in name):
+                    if dev['max_input_channels'] > 0 and (
+                            'i2s' in name or 'inmp441' in name or 'snd' in name or 'mic' in name):
                         device_id = i
-                        logger.info("Found potential I2S microphone at device index %d: %s", i, dev['name'])
+                        logger.info(
+                            "Found potential I2S microphone at device index %d: %s",
+                            i, dev['name']
+                        )
                         if 'i2s' in name or 'snd' in name or 'voicehat' in name:
                             is_i2s = True
                             self.channels = 2
@@ -255,7 +285,8 @@ class VoiceListener:
                 )
             except Exception as e_default:
                 if not is_i2s:
-                    logger.warning("failed to open audio stream (device=%s): %s", device_id, e_default)
+                    logger.warning("failed to open audio stream (device=%s): %s",
+                                   device_id, e_default)
                     if "sample rate" in str(e_default).lower():
                         logger.warning("Falling back to 48000Hz for compatibility.")
                         self.sample_rate = 48000
@@ -272,20 +303,23 @@ class VoiceListener:
                         callback=self._audio_callback,
                     )
                 except Exception as e_fallback:
-                    if "device -1" in str(e_fallback) or "Error querying device" in str(e_fallback):
-                        logger.warning("No microphone detected (device -1). Voice listener disabled.")
+                    if ("device -1" in str(e_fallback) or
+                            "Error querying device" in str(e_fallback)):
+                        logger.warning(
+                            "No microphone detected (device -1). Voice listener disabled.")
                     else:
                         logger.error("failed to open 2-channel audio fallback: %s", e_fallback)
                     return False
-            
+
             # Close any existing stream before creating a new one (safety measure)
-            if getattr(self, '_stream', None) is not None and getattr(self._stream, 'active', False):
+            if (getattr(self, '_stream', None) is not None and
+                    getattr(self._stream, 'active', False)):
                 try:
                     self._stream.stop()
                     self._stream.close()
-                except:
+                except Exception:
                     pass
-            
+
             self._stream.start()
             self._listening = True
             self._process_thread = threading.Thread(target=self._process_audio, daemon=True)
@@ -300,7 +334,7 @@ class VoiceListener:
             if getattr(self, '_stream', None) is not None:
                 try:
                     self._stream.close()
-                except:
+                except Exception:
                     pass
                 self._stream = None
             return False
@@ -339,7 +373,11 @@ class VoiceListener:
             logger.debug("registered text callback: %s", callback.__name__)
 
     def remove_callback(self, callback: Callable[[str], None]) -> None:
-        """remove a registered callback."""
+        """remove a registered callback.
+
+        args:
+            callback: function that accepts a string argument.
+        """
         if callback in self._callbacks:
             self._callbacks.remove(callback)
             logger.debug("removed text callback: %s", callback.__name__)
@@ -354,11 +392,19 @@ class VoiceListener:
             return self._last_text
 
     def get_energy(self) -> float:
-        """return the current rms energy of the audio stream."""
+        """return the current rms energy of the audio stream.
+
+        returns:
+            the current rms energy as a float.
+        """
         return self._current_energy
 
     def is_speaking(self) -> bool:
-        """check if someone is currently speaking (above dynamic threshold)."""
+        """check if someone is currently speaking (above dynamic threshold).
+
+        returns:
+            true if speaking, false otherwise.
+        """
         return self._is_speaking
 
     def is_listening(self) -> bool:
@@ -374,6 +420,7 @@ class VoiceListener:
         self.stop()
 
     def __repr__(self) -> str:
+        """return string representation of the voice listener."""
         return (
             f"VoiceListener(listening={self._listening}, "
             f"rate={self.sample_rate}, model_loaded={self.model is not None})"

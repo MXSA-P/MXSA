@@ -329,10 +329,10 @@ class EmotionEngine:
         """
         self._lock = threading.RLock()
 
-        emotion_cfg = config.get("emotions", {})
-        self.decay_rate: float = emotion_cfg.get("mood_decay_rate", 0.01)
-        self.update_interval: float = emotion_cfg.get(
-            "mood_update_interval", 5)
+        emotion_cfg = config.get("emotions", {}) or {}
+        self.decay_rate: float = float(emotion_cfg.get("mood_decay_rate", 0.01))
+        self.update_interval: float = float(emotion_cfg.get(
+            "mood_update_interval", 5))
 
         default_mood = emotion_cfg.get("default_mood", "curious")
         if default_mood not in _valid_emotions:
@@ -357,7 +357,7 @@ class EmotionEngine:
         self.valence: float = 0.5
 
         # personality traits (0.0 to 1.0)
-        personality_cfg = emotion_cfg.get("personality", {})
+        personality_cfg = emotion_cfg.get("personality", {}) or {}
         self.personality: Dict[str, float] = {
             "curiosity": float(personality_cfg.get("curiosity", 0.8)),
             "playfulness": float(personality_cfg.get("playfulness", 0.7)),
@@ -370,7 +370,7 @@ class EmotionEngine:
         self._max_history: int = 50
 
         # load reaction configs
-        self._reactions: dict = emotion_cfg.get("reactions") or {}
+        self._reactions: dict = emotion_cfg.get("reactions", {}) or {}
 
         logger.info("emotion engine v2 initialized (mood=%s, intensity=%.2f, "
                     "personality=%s)", self._emotion, self._intensity,
@@ -392,10 +392,20 @@ class EmotionEngine:
             emotion: emotion name (must be one of the valid emotions).
             intensity: emotion intensity between 0.0 and 1.0.
         """
+        if not isinstance(emotion, str):
+            logger.warning("invalid emotion type '%s' — ignoring", type(emotion))
+            return
+
         emotion = emotion.strip().lower()
         if emotion not in _valid_emotions:
             logger.warning("invalid emotion '%s' — ignoring", emotion)
             return
+
+        if not isinstance(intensity, (int, float)):
+            logger.warning("invalid intensity type '%s' — defaulting to 1.0", type(intensity))
+            intensity = 1.0
+        else:
+            intensity = float(intensity)
 
         intensity = max(0.0, min(1.0, intensity))
 
@@ -491,7 +501,7 @@ class EmotionEngine:
         returns:
             the new emotion name after the update.
         """
-        mapping = _event_emotion_map.get(event_type)
+        mapping = _event_emotion_map.get(event_type, None)
         if mapping is None:
             logger.debug("unknown event type '%s' — no emotion change",
                          event_type)
@@ -587,34 +597,34 @@ class EmotionEngine:
         }
 
         if emotion == "happy":
-            reaction = self._reactions.get("happy", {})
+            reaction = self._reactions.get("happy", {}) or {}
             behavior["speed_modifier"] = 1.0 + (0.2 * intensity)
             behavior["arm_behavior"] = "wiggle"
-            behavior["wiggle_speed"] = reaction.get(
-                "arm_wiggle_speed", 3.0) * intensity
+            behavior["wiggle_speed"] = float(reaction.get(
+                "arm_wiggle_speed", 3.0)) * intensity
             behavior["wiggle_range"] = int(
-                reaction.get("arm_wiggle_range", 15) * intensity)
+                float(reaction.get("arm_wiggle_range", 15)) * intensity)
 
         elif emotion == "sad":
-            reaction = self._reactions.get("sad", {})
-            behavior["speed_modifier"] = reaction.get(
-                "speed_modifier", 0.5)
+            reaction = self._reactions.get("sad", {}) or {}
+            behavior["speed_modifier"] = float(reaction.get(
+                "speed_modifier", 0.5))
             behavior["arm_behavior"] = "droop"
 
         elif emotion == "curious":
-            reaction = self._reactions.get("curious", {})
+            reaction = self._reactions.get("curious", {}) or {}
             behavior["speed_modifier"] = 1.0
             behavior["arm_behavior"] = "scan"
-            behavior["wiggle_speed"] = reaction.get("scan_speed", 1.0)
-            behavior["wiggle_range"] = reaction.get("head_tilt", 15)
+            behavior["wiggle_speed"] = float(reaction.get("scan_speed", 1.0))
+            behavior["wiggle_range"] = int(float(reaction.get("head_tilt", 15)))
 
         elif emotion == "excited":
-            reaction = self._reactions.get("excited", {})
-            behavior["speed_modifier"] = reaction.get(
-                "speed_modifier", 1.5)
+            reaction = self._reactions.get("excited", {}) or {}
+            behavior["speed_modifier"] = float(reaction.get(
+                "speed_modifier", 1.5))
             behavior["arm_behavior"] = "wiggle"
-            behavior["wiggle_speed"] = reaction.get(
-                "arm_wiggle_speed", 4.0) * intensity
+            behavior["wiggle_speed"] = float(reaction.get(
+                "arm_wiggle_speed", 4.0)) * intensity
             behavior["wiggle_range"] = int(25 * intensity)
 
         elif emotion == "proud":
@@ -624,13 +634,13 @@ class EmotionEngine:
             behavior["wiggle_range"] = 20
 
         elif emotion == "love":
-            reaction = self._reactions.get("love", {})
+            reaction = self._reactions.get("love", {}) or {}
             behavior["speed_modifier"] = 1.2
             behavior["arm_behavior"] = "wiggle"
-            behavior["wiggle_speed"] = reaction.get(
-                "arm_wiggle_speed", 5.0) * intensity
+            behavior["wiggle_speed"] = float(reaction.get(
+                "arm_wiggle_speed", 5.0)) * intensity
             behavior["wiggle_range"] = int(
-                reaction.get("arm_wiggle_range", 30) * intensity)
+                float(reaction.get("arm_wiggle_range", 30)) * intensity)
 
         elif emotion == "sleepy":
             behavior["speed_modifier"] = 0.3
@@ -737,22 +747,26 @@ class EmotionEngine:
         higher intensity emotions decay slower (resist fading).
         when intensity drops below threshold, emotion resets to neutral.
         """
+        now = time.time()
         with self._lock:
             if self._emotion == "neutral":
                 # also decay secondary
-                if self._secondary_intensity > 0:
-                    self._secondary_intensity = max(
-                        0, self._secondary_intensity - 0.01)
+                if self._secondary_intensity > 0.0:
+                    self._secondary_intensity -= 0.01
+                    if self._secondary_intensity <= 0.0:
+                        self._secondary_intensity = 0.0
                 return
 
-            elapsed = time.time() - self._last_update
+            elapsed = now - self._last_update
+            self._last_update = now
+
             # higher intensity = slower decay (logarithmic resistance)
             resistance = 1.0 + (self._intensity * 0.5)
-            decay_amount = (self.decay_rate / resistance) * (
-                elapsed / self.update_interval)
+
+            # mathematically simplify to reduce ops (1 division instead of 2)
+            decay_amount = (self.decay_rate * elapsed) / (self.update_interval * resistance)
 
             self._intensity -= decay_amount
-            self._intensity = max(0.0, self._intensity)
 
             if self._intensity <= 0.05:
                 old = self._emotion
@@ -760,16 +774,11 @@ class EmotionEngine:
                 self._intensity = 0.5
                 self.arousal = 0.5
                 self.valence = 0.5
-                self._last_update = time.time()
                 logger.debug("emotion decayed: %s -> neutral", old)
-            else:
-                self._last_update = time.time()
 
             # decay secondary emotion too
-            if self._secondary_intensity > 0:
+            if self._secondary_intensity > 0.0:
                 self._secondary_intensity -= decay_amount * 1.5
-                self._secondary_intensity = max(
-                    0, self._secondary_intensity)
                 if self._secondary_intensity <= 0.02:
                     self._secondary_emotion = "neutral"
                     self._secondary_intensity = 0.0
@@ -819,6 +828,7 @@ class EmotionEngine:
         }
 
     def __repr__(self) -> str:
+        """return a string representation of the emotion engine state."""
         with self._lock:
             emotion = self._emotion
             intensity = self._intensity

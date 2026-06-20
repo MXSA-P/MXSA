@@ -171,6 +171,15 @@
             startTypingEffect(robot.thinking);
         }
 
+        // spoken text feedback
+        if (dom.commandInput) {
+            if (robot.spoken_text) {
+                dom.commandInput.placeholder = '🎙️ Heard: "' + robot.spoken_text + '"';
+            } else if (robot.spoken_text === "") {
+                dom.commandInput.placeholder = 'type a command for simba...';
+            }
+        }
+
         // detected objects
         if (dom.objectChips) {
             updateObjectChips(robot.detected_objects || []);

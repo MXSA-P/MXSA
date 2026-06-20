@@ -1,9 +1,11 @@
 # _max_cyan_ — project_mxsa
 """imu reader — mpu6050 gyroscope/accelerometer via i2c."""
 
-import time
 import math
+import struct
 import threading
+import time
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 try:
     from smbus2 import SMBus
@@ -15,8 +17,30 @@ from simba.utils.logger import get_logger, log_event
 
 logger = get_logger("simba.motion.imu")
 
+_UNPACK_7H = struct.Struct('>7h')
 
-from typing import Dict, Any, Tuple  # Cleaned typing
+def _run_with_timeout(func: Callable[..., Any], *args: Any, timeout: float = 0.5) -> Any:
+    """Run a function in a thread with a strict timeout boundary."""
+    result: List[Any] = []
+    exception: List[Exception] = []
+
+    def worker() -> None:
+        try:
+            result.append(func(*args))
+        except Exception as e:
+            exception.append(e)
+
+    t = threading.Thread(target=worker, daemon=True)
+    t.start()
+    t.join(timeout)
+
+    if t.is_alive():
+        raise TimeoutError(f"Function {func.__name__} timed out after {timeout} seconds")
+    if exception:
+        raise exception[0]
+    if result:
+        return result[0]
+    return None
 
 class IMUReader:
     """reads mpu6050 accelerometer + gyroscope data over i2c.
@@ -25,17 +49,18 @@ class IMUReader:
     """
 
     # class level lock for shared I2C bus
-    _i2c_lock = threading.Lock()
+    _i2c_lock: threading.Lock = threading.Lock()
     
     # mpu6050 registers
-    PWR_MGMT_1 = 0x6b
-    ACCEL_XOUT_H = 0x3b
-    GYRO_XOUT_H = 0x43
-    TEMP_OUT_H = 0x41
-    ACCEL_CONFIG = 0x1c
-    GYRO_CONFIG = 0x1b
+    PWR_MGMT_1: int = 0x6b
+    ACCEL_XOUT_H: int = 0x3b
+    GYRO_XOUT_H: int = 0x43
+    TEMP_OUT_H: int = 0x41
+    ACCEL_CONFIG: int = 0x1c
+    GYRO_CONFIG: int = 0x1b
 
     def __init__(self, config: Dict[str, Any]) -> None:
+        """initialize the IMU reader with given config."""
         imu_cfg = config["imu"]
         self.address = imu_cfg["i2c_address"]    # 0x68
         self.accel_range = imu_cfg["accel_range"]  # 2g
@@ -44,25 +69,34 @@ class IMUReader:
         self.cal_samples = imu_cfg["calibration_samples"]  # 100
 
         # calibration offsets
-        self.accel_offset = [0.0, 0.0, 0.0]
-        self.gyro_offset = [0.0, 0.0, 0.0]
+        self.accel_offset: List[float] = [0.0, 0.0, 0.0]
+        self.gyro_offset: List[float] = [0.0, 0.0, 0.0]
 
         # scale factors
-        accel_scales = {2: 16384.0, 4: 8192.0, 8: 4096.0, 16: 2048.0}
-        gyro_scales = {250: 131.0, 500: 65.5, 1000: 32.8, 2000: 16.4}
-        self.accel_scale = max(1e-6, float(accel_scales.get(self.accel_range, 16384.0)))
-        self.gyro_scale = max(1e-6, float(gyro_scales.get(self.gyro_range, 131.0)))
+        accel_scales: Dict[int, float] = {2: 16384.0, 4: 8192.0, 8: 4096.0, 16: 2048.0}
+        gyro_scales: Dict[int, float] = {250: 131.0, 500: 65.5, 1000: 32.8, 2000: 16.4}
+        self.accel_scale: float = max(1e-6, float(accel_scales.get(self.accel_range, 16384.0)))
+        self.gyro_scale: float = max(1e-6, float(gyro_scales.get(self.gyro_range, 131.0)))
 
-        self._running = False
-        self._thread = None
-        self._lock = threading.Lock()
-        self._last_data = None
-        self._stop_event = threading.Event()
+        self._running: bool = False
+        self._thread: Optional[threading.Thread] = None
+        self._lock: threading.Lock = threading.Lock()
+        self._last_data: Optional[Dict[str, Any]] = None
+        self._stop_event: threading.Event = threading.Event()
+        self._connected: bool = True
+        self.bus: Any = None
+        
+        # Tilt state
+        self._pitch: Optional[float] = None
+        self._roll: Optional[float] = None
+        self._last_time: float = time.time()
 
         if _HAS_SMBUS:
             try:
                 self.bus = SMBus(1)
-                self.bus.write_byte_data(self.address, self.PWR_MGMT_1, 0)
+                _run_with_timeout(
+                    self.bus.write_byte_data, self.address, self.PWR_MGMT_1, 0, timeout=0.5
+                )
                 time.sleep(0.1)
                 logger.info("mpu6050 initialized on i2c bus 1")
             except Exception as e:
@@ -101,34 +135,55 @@ class IMUReader:
             return 0.0
         return data["temp"]
 
-    def read_all(self):
+    def read_all(self) -> Optional[Dict[str, Any]]:
         """read all sensor data atomically."""
         if self.bus is None:
             return None
             
         with IMUReader._i2c_lock:
             try:
+                if not getattr(self, '_connected', True):
+                    _run_with_timeout(
+                        self.bus.write_byte_data, self.address, self.PWR_MGMT_1, 0, timeout=0.2
+                    )
+                    
                 # Read 14 bytes starting from ACCEL_XOUT_H (0x3B)
                 # This ensures atomic snapshot of Accel (6), Temp (2), and Gyro (6)
-                data = self.bus.read_i2c_block_data(self.address, self.ACCEL_XOUT_H, 14)
+                data = _run_with_timeout(
+                    self.bus.read_i2c_block_data, self.address, self.ACCEL_XOUT_H, 14, timeout=0.2
+                )
+                
+                if not getattr(self, '_connected', True):
+                    logger.info("mpu6050 reconnected")
+                    self._connected = True
             except Exception as e:
-                logger.error(f"mpu6050 read error: {e}")
+                if getattr(self, '_connected', True):
+                    logger.error(f"mpu6050 read error: {e}")
+                    self._connected = False
                 return None
                 
-        def _parse_16(high, low):
-            val = (high << 8) | low
-            return val - 0x10000 if val >= 0x8000 else val
+        if not data or len(data) != 14:
+            logger.error(f"mpu6050 read error: malformed data length {len(data) if data else 0}")
+            return None
+            
+        try:
+            # Unpack 14 bytes into 7 big-endian signed 16-bit integers
+            ax_raw, ay_raw, az_raw, raw_temp, gx_raw, gy_raw, gz_raw = (
+                _UNPACK_7H.unpack(bytes(data))
+            )
+        except (struct.error, ValueError) as e:
+            logger.error(f"mpu6050 unpack error: {e}")
+            return None
 
-        ax = _parse_16(data[0], data[1]) / self.accel_scale - self.accel_offset[0]
-        ay = _parse_16(data[2], data[3]) / self.accel_scale - self.accel_offset[1]
-        az = _parse_16(data[4], data[5]) / self.accel_scale - self.accel_offset[2]
+        ax = ax_raw / self.accel_scale - self.accel_offset[0]
+        ay = ay_raw / self.accel_scale - self.accel_offset[1]
+        az = az_raw / self.accel_scale - self.accel_offset[2]
         
-        raw_temp = _parse_16(data[6], data[7])
         temp = (raw_temp / 340.0) + 36.53
         
-        gx = _parse_16(data[8], data[9]) / self.gyro_scale - self.gyro_offset[0]
-        gy = _parse_16(data[10], data[11]) / self.gyro_scale - self.gyro_offset[1]
-        gz = _parse_16(data[12], data[13]) / self.gyro_scale - self.gyro_offset[2]
+        gx = gx_raw / self.gyro_scale - self.gyro_offset[0]
+        gy = gy_raw / self.gyro_scale - self.gyro_offset[1]
+        gz = gz_raw / self.gyro_scale - self.gyro_offset[2]
 
         accel = (ax, ay, az)
         gyro = (gx, gy, gz)
@@ -147,7 +202,7 @@ class IMUReader:
             self._last_data = parsed_data
         return parsed_data
 
-    def get_hand_orientation(self, accel=None):
+    def get_hand_orientation(self, accel: Optional[Tuple[float, float, float]] = None) -> str:
         """determine hand orientation from accelerometer."""
         ax, ay, az = accel if accel else self.read_accel()
 
@@ -163,7 +218,7 @@ class IMUReader:
             return "pointing_down"
         return "level"
 
-    def calibrate(self):
+    def calibrate(self) -> None:
         """calibrate by averaging readings at rest."""
         logger.info(f"calibrating mpu6050 ({self.cal_samples} samples)...")
         accel_sum = [0.0, 0.0, 0.0]
@@ -197,7 +252,11 @@ class IMUReader:
             "gyro_offset": self.gyro_offset,
         })
 
-    def get_tilt_angle(self, accel=None, gyro=None):
+    def get_tilt_angle(
+        self,
+        accel: Optional[Tuple[float, float, float]] = None,
+        gyro: Optional[Tuple[float, float, float]] = None
+    ) -> float:
         """get tilt angle from vertical in degrees using complementary filter."""
         # Note: caller should provide accel/gyro to avoid circular reads,
         # but fallback reads are possible if accessed directly.
@@ -205,14 +264,14 @@ class IMUReader:
             data = self.read_all()
             if not data:
                 return 0.0
-            return data["tilt_angle"]
+            return data["tilt_angle"] if data else 0.0
 
         ax, ay, az = accel
         gx, gy, gz = gyro
 
         with self._lock:
             now = time.time()
-            dt = now - getattr(self, '_last_time', now)
+            dt = now - self._last_time
             self._last_time = now
             if dt > 1.0 or dt <= 0:
                 dt = 0.02
@@ -225,7 +284,7 @@ class IMUReader:
                 accel_pitch = 0.0
                 accel_roll = 0.0
     
-            if not hasattr(self, '_pitch'):
+            if self._pitch is None or self._roll is None:
                 self._pitch = accel_pitch
                 self._roll = accel_roll
     
@@ -236,35 +295,35 @@ class IMUReader:
                 (1.0 - alpha) * accel_roll
     
             # Approximate tilt from vertical
-            tilt = math.sqrt(self._pitch**2 + self._roll**2)
+            tilt = math.sqrt(self._pitch ** 2 + self._roll ** 2)
             
         return round(tilt, 1)
 
-    def detect_fall(self, accel=None):
+    def detect_fall(self, accel: Optional[Tuple[float, float, float]] = None) -> bool:
         """detect if the device is falling (freefall)."""
         ax, ay, az = accel if accel else self.read_accel()
         magnitude = math.sqrt(ax * ax + ay * ay + az * az)
         return magnitude < 0.3
 
-    def detect_shake(self, accel=None):
+    def detect_shake(self, accel: Optional[Tuple[float, float, float]] = None) -> bool:
         """detect rapid shaking."""
         ax, ay, az = accel if accel else self.read_accel()
-        magnitude = math.sqrt(ax * ax + ay * ay + (az - 1.0)**2)
+        magnitude = math.sqrt(ax * ax + ay * ay + (az - 1.0) ** 2)
         return magnitude > 1.5
 
-    def detect_tap(self, accel=None):
+    def detect_tap(self, accel: Optional[Tuple[float, float, float]] = None) -> bool:
         """detect a sharp tap."""
         ax, ay, az = accel if accel else self.read_accel()
         accel_mag = math.sqrt(ax * ax + ay * ay + az * az)
         return 1.5 < accel_mag < 3.0
 
-    def is_moving(self, gyro=None):
+    def is_moving(self, gyro: Optional[Tuple[float, float, float]] = None) -> bool:
         """detect if hand is in motion based on gyro readings."""
         gx, gy, gz = gyro if gyro else self.read_gyro()
         magnitude = math.sqrt(gx * gx + gy * gy + gz * gz)
         return magnitude > 10.0  # threshold in deg/s
 
-    def start_continuous(self, callback=None):
+    def start_continuous(self, callback: Optional[Callable[[Dict[str, Any]], None]] = None) -> None:
         """start continuous reading in background thread.
 
         args:
@@ -278,15 +337,20 @@ class IMUReader:
         def _reader():
             while not self._stop_event.is_set():
                 data = self.read_all()
-                if callback:
-                    callback(data)
-                self._stop_event.wait(1.0 / max(0.1, self.sample_rate))
+                if data is not None:
+                    if callback:
+                        callback(data)
+                    wait_time = 1.0 / max(0.1, self.sample_rate)
+                else:
+                    # Sleep longer if disconnected to avoid spamming the bus and consuming CPU
+                    wait_time = 1.0
+                self._stop_event.wait(wait_time)
 
         self._thread = threading.Thread(target=_reader, daemon=True)
         self._thread.start()
         logger.info(f"imu continuous reading started at {self.sample_rate}hz")
 
-    def stop_continuous(self):
+    def stop_continuous(self) -> None:
         """stop continuous reading."""
         self._stop_event.set()
         if self._thread:
@@ -294,19 +358,19 @@ class IMUReader:
             self._thread = None
         logger.info("imu continuous reading stopped")
 
-    def get_last_data(self):
+    def get_last_data(self) -> Optional[Dict[str, Any]]:
         """get last read data from continuous mode."""
         with self._lock:
             return self._last_data
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """cleanup i2c resources."""
         self.stop_continuous()
         self._stop_event.set()
         if self.bus:
             try:
                 with IMUReader._i2c_lock:
-                    self.bus.close()
+                    _run_with_timeout(self.bus.close, timeout=0.5)
             except Exception:
                 pass
         logger.info("imu cleanup complete")
@@ -322,7 +386,7 @@ if __name__ == "__main__":
         data = imu.read_all()
         print(
             f"orientation: {
-                data['orientation']}, tilt: {
-                data['tilt_angle']}°")
+                data["orientation"] if data else "mock_orientation"}, tilt: {
+                data["tilt_angle"] if data else 0.0}°")
         time.sleep(0.2)
     imu.cleanup()

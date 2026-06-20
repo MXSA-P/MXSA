@@ -6,8 +6,8 @@ to structured command dictionaries with action, target, and modifier fields.
 all input is normalized to lowercase before processing.
 """
 
-import re
 from difflib import SequenceMatcher
+import re
 from typing import Dict, List, Optional, Tuple
 
 from simba.utils.logger import get_logger, log_event
@@ -318,6 +318,25 @@ _command_patterns: List[Tuple[List[str], str, bool]] = [
 ]
 
 
+# precompile regexes to avoid runtime compilation
+_PUNCTUATION_RE = re.compile(r"[^\w\s\'-]")
+_WHITESPACE_RE = re.compile(r"\s+")
+
+_fillers_list = [
+    "um", "uh", "like", "you know", "please", "could you",
+    "can you", "would you", "simba"
+]
+_fillers_list.sort(key=len, reverse=True)
+_fillers_regex_str = "|".join(re.escape(f) for f in _fillers_list)
+_FILLER_RE = re.compile(rf"(?<![\w'-])(?:{_fillers_regex_str})(?![\w'-])", flags=re.IGNORECASE)
+
+
+_compiled_patterns = {}
+for _patterns, _, _ in _command_patterns:
+    for _pattern in _patterns:
+        _compiled_patterns[_pattern] = re.compile(rf"(?<![\w'-]){re.escape(_pattern)}(?![\w'-])")
+
+
 class CommandParser:
     """extracts structured commands from recognized speech text.
 
@@ -349,6 +368,11 @@ class CommandParser:
             was matched, or none if no command was recognized.
         """
         if not text or not text.strip():
+            return None
+
+        # prevent algorithmic complexity dos on massive strings
+        if len(text) > 2000:
+            logger.warning("input text too long (%d chars), discarding", len(text))
             return None
 
         self._parse_count += 1
@@ -385,17 +409,14 @@ class CommandParser:
     def _clean_text(self, text: str) -> str:
         """remove common filler words and extra whitespace."""
         # remove punctuation and collapse spaces
-        result = re.sub(r'[^\w\s\-\']', '', text)
-        result = re.sub(r"\s+", " ", result).strip()
+        result = _PUNCTUATION_RE.sub('', text)
+        result = _WHITESPACE_RE.sub(' ', result).strip()
         
-        fillers = ["um", "uh", "like", "you know", "please", "could you",
-                   "can you", "would you", "simba"]
-        fillers.sort(key=len, reverse=True)
-        for filler in fillers:
-            escaped_filler = re.escape(filler)
-            result = re.sub(rf"(?<![\w\-\']){escaped_filler}(?![\w\-\'])", " ", result, flags=re.IGNORECASE)
+        # remove fillers using precompiled regex
+        result = _FILLER_RE.sub(" ", result)
+        
         # collapse multiple spaces again
-        result = re.sub(r"\s+", " ", result).strip()
+        result = _WHITESPACE_RE.sub(' ', result).strip()
         return result
 
     def _try_exact_match(
@@ -412,7 +433,7 @@ class CommandParser:
         """
         for patterns, action, has_target in _command_patterns:
             for pattern in patterns:
-                pattern_regex = re.compile(rf"(?<![\w\-\']){re.escape(pattern)}(?![\w\-\'])")
+                pattern_regex = _compiled_patterns[pattern]
                 if pattern_regex.search(cleaned) or pattern_regex.search(original):
                     target = None
                     modifier = None
@@ -491,22 +512,49 @@ class CommandParser:
         return None
 
     def _extract_target(self, text: str, pattern: str) -> Optional[str]:
-        match = re.search(rf"(?<![\w\-\']){re.escape(pattern)}(?![\w\-\'])", text)
+        """extract target object from text after matching pattern.
+
+        args:
+            text: full text containing the pattern and target.
+            pattern: matched command pattern.
+
+        returns:
+            target string if found, none otherwise.
+        """
+        pattern_regex = _compiled_patterns.get(pattern)
+        if pattern_regex:
+            match = pattern_regex.search(text)
+        else:
+            match = re.search(rf"(?<![\w'-]){re.escape(pattern)}(?![\w'-])", text)
+
         if not match:
             return None
         
         remainder = text[match.end():].strip()
 
-        # remove trailing filler words
-        filler_pattern = r"(?i)(?<![\w\-\'])(?:please|now|quickly|fast|right now|for me)\s*$"
-        while True:
-            new_remainder = re.sub(filler_pattern, "", remainder).strip()
-            if new_remainder == remainder:
+        # remove trailing filler words efficiently using string manipulation
+        # to prevent O(N^2) regex behavior on massive strings
+        trailing_fillers = ("please", "now", "quickly", "fast", "right now", "for me")
+        end_idx = len(remainder)
+        remainder_lower = remainder.lower()
+        
+        while end_idx > 0:
+            matched = False
+            for filler in trailing_fillers:
+                filler_len = len(filler)
+                if end_idx >= filler_len and remainder_lower[end_idx - filler_len : end_idx] == filler:
+                    idx = end_idx - filler_len
+                    if idx == 0 or not (remainder_lower[idx - 1].isalnum() or remainder_lower[idx - 1] in ("'", "-", "_")):
+                        end_idx = idx
+                        matched = True
+                        while end_idx > 0 and remainder_lower[end_idx - 1].isspace():
+                            end_idx -= 1
+                        break
+            if not matched:
                 break
-            remainder = new_remainder
 
-        if remainder:
-            return remainder
+        if end_idx > 0:
+            return remainder[:end_idx]
         return None
 
     def get_stats(self) -> Dict[str, int]:
@@ -521,6 +569,7 @@ class CommandParser:
         }
 
     def __repr__(self) -> str:
+        """return string representation of the parser."""
         return (
             f"CommandParser(parsed={self._parse_count}, "
             f"matched={self._match_count})"

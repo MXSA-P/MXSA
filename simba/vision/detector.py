@@ -1,14 +1,14 @@
 # _max_cyan_ — project_mxsa
-"""object detector — mobilenetv2 features + svm classifier.
+"""Object detector — mobilenetv2 features + svm classifier.
 
-two-stage detection pipeline:
-  1. feature extraction  — tflite mobilenetv2 produces a 1280-dim vector.
-  2. classification      — scikit-learn svm maps features to object labels.
+Two-stage detection pipeline:
+  1. Feature extraction  — tflite mobilenetv2 produces a 1280-dim vector.
+  2. Classification      — scikit-learn svm maps features to object labels.
 
-also provides a simple sliding-window detector that tiles the frame,
+Also provides a simple sliding-window detector that tiles the frame,
 extracts features from each tile, and classifies them independently.
 
-models are lazy-loaded: if model files are missing the module degrades
+Models are lazy-loaded: if model files are missing the module degrades
 gracefully (returns 'unknown' labels with zero confidence).
 """
 
@@ -56,7 +56,7 @@ _config_path = os.path.join(_project_root, "config", "simba_config.yaml")
 
 
 def _load_config() -> dict:
-    """load and return the simba configuration dictionary."""
+    """Load and return the simba configuration dictionary."""
     try:
         with open(_config_path, "r") as fh:
             return yaml.safe_load(fh)
@@ -66,13 +66,13 @@ def _load_config() -> dict:
 
 
 def _resolve_path(relative: str) -> str:
-    """resolve a path relative to the project root.
+    """Resolve a path relative to the project root.
 
-    args:
-        relative: path string from config (e.g. 'models/foo.tflite').
+    Args:
+        relative: Path string from config (e.g. 'models/foo.tflite').
 
-    returns:
-        absolute path string.
+    Returns:
+        Absolute path string.
     """
     if os.path.isabs(relative):
         return relative
@@ -84,9 +84,9 @@ def _resolve_path(relative: str) -> str:
 # ---------------------------------------------------------------------------
 
 class ObjectDetector:
-    """mobilenetv2 feature extractor + svm object classifier.
+    """Mobilenetv2 feature extractor + svm object classifier.
 
-    attributes:
+    Attributes:
         interpreter:         tflite interpreter for mobilenetv2 (or none).
         classifier:          scikit-learn svm pipeline (or none).
         labels:              list of known class labels.
@@ -96,11 +96,16 @@ class ObjectDetector:
     """
 
     def __init__(self) -> None:
-        """initialise the detector (models are loaded lazily)."""
+        """Initialise the detector (models are loaded lazily)."""
         cfg = _load_config()
         ai_cfg = cfg.get("ai", {})
 
-        feature_model = ai_cfg.get("vision_model_path", "models/mobilenetv2_feature_extractor.tflite")
+        feature_model = ai_cfg.get(
+            "vision_model_path", "models/mobilenetv2_feature_extractor.tflite")
+        if not isinstance(feature_model, str) or not feature_model.lower().endswith(".tflite"):
+            logger.error("invalid vision_model_path format: %s", feature_model)
+            feature_model = "models/mobilenetv2_feature_extractor.tflite"
+
         self._feature_model_path: str = _resolve_path(feature_model)
         if not os.path.isfile(self._feature_model_path):
             fallback_path = _resolve_path("models/mobilenet_v2_1.0_224.tflite")
@@ -134,6 +139,7 @@ class ObjectDetector:
         # tflite tensor indices (populated on load)
         self._input_index: int = 0
         self._output_index: int = 0
+        self._input_dtype: type = np.float32
 
         # sliding window config
         self._window_scales: List[float] = [1.0, 0.5]
@@ -146,7 +152,7 @@ class ObjectDetector:
         # attempt to load models at init
         self.load_feature_extractor()
         self.load_classifier()
-        
+
         try:
             from simba.vision.yolo_detector import YoloDetector
             self.yolo = YoloDetector()
@@ -165,10 +171,10 @@ class ObjectDetector:
     # ------------------------------------------------------------------
 
     def load_feature_extractor(self) -> bool:
-        """load the mobilenetv2 tflite model for feature extraction.
+        """Load the mobilenetv2 tflite model for feature extraction.
 
-        returns:
-            true if the model was loaded successfully.
+        Returns:
+            True if the model was loaded successfully.
         """
         if tflite is None:
             logger.warning(
@@ -184,13 +190,24 @@ class ObjectDetector:
         try:
             self.interpreter = tflite.Interpreter(
                 model_path=self._feature_model_path)
-            self.interpreter.allocate_tensors()
+
+            try:
+                self.interpreter.allocate_tensors()
+            except RuntimeError as exc:
+                err_str = str(exc).lower()
+                if ("delegate" in err_str or "unresolved custom op" in err_str
+                        or "custom op" in err_str):
+                    logger.error("hardware delegate failed silently or unsupported ops: %s", exc)
+                    self.interpreter = None
+                    return False
+                raise exc
 
             input_details = self.interpreter.get_input_details()
             output_details = self.interpreter.get_output_details()
 
             self._input_index = input_details[0]["index"]
             self._output_index = output_details[0]["index"]
+            self._input_dtype = input_details[0]["dtype"]
 
             # infer input size from model
             input_shape = input_details[0]["shape"]  # e.g. [1, 224, 224, 3]
@@ -212,10 +229,10 @@ class ObjectDetector:
             return False
 
     def load_classifier(self) -> bool:
-        """load the scikit-learn svm classifier and label map.
+        """Load the scikit-learn svm classifier and label map.
 
-        returns:
-            true if the classifier was loaded successfully.
+        Returns:
+            True if the classifier was loaded successfully.
         """
         # load label map
         if os.path.isfile(self._label_map_path):
@@ -235,7 +252,9 @@ class ObjectDetector:
             return False
 
         if not os.path.isfile(self._classifier_path):
-            logger.info("classifier not found (expected on fresh install, falling back to YOLO): %s", self._classifier_path)
+            logger.info(
+                "classifier not found (expected on fresh install, falling back "
+                "to YOLO): %s", self._classifier_path)
             return False
 
         try:
@@ -258,13 +277,13 @@ class ObjectDetector:
     # ------------------------------------------------------------------
 
     def extract_features(self, frame: np.ndarray) -> np.ndarray:
-        """extract a 1280-dim feature vector from a frame using mobilenetv2.
+        """Extract a 1280-dim feature vector from a frame using mobilenetv2.
 
-        args:
-            frame: rgb numpy array of any size (will be resized).
+        Args:
+            frame: RGB numpy array of any size (will be resized).
 
-        returns:
-            1-d numpy array of shape (feature_dim,).  returns zeros
+        Returns:
+            1-d numpy array of shape (feature_dim,). Returns zeros
             if the model is not loaded.
         """
         if self.interpreter is None or frame is None:
@@ -277,23 +296,33 @@ class ObjectDetector:
         elif resized.shape[2] == 4:
             resized = resized[..., :3]
 
-        # prepare input tensor: (1, h, w, 3) float32 normalised to [0, 1]
-        input_data = np.expand_dims(resized.astype(np.float32) / 255.0, axis=0)
-
-        # check expected dtype from model
-        input_details = self.interpreter.get_input_details()
-        expected_dtype = input_details[0]["dtype"]
-        if expected_dtype == np.uint8:
+        # prepare input tensor based on expected dtype
+        if self._input_dtype == np.uint8:
             input_data = np.expand_dims(resized.astype(np.uint8), axis=0)
-        elif expected_dtype == np.int8:
+        elif self._input_dtype == np.int8:
             input_data = np.expand_dims((resized.astype(np.int32) - 128).astype(np.int8), axis=0)
+        else:
+            # default float32 normalised to [0, 1]
+            input_data = np.expand_dims(resized.astype(np.float32) / 255.0, axis=0)
 
         try:
             with self._lock:
                 self.interpreter.set_tensor(self._input_index, input_data)
                 self.interpreter.invoke()
                 output = self.interpreter.get_tensor(self._output_index)
-                features = output.flatten().astype(np.float32)
+
+                if output is None:
+                    return np.zeros(self.feature_dim, dtype=np.float32)
+
+                # explicitly copy to avoid memory leak of internal tflite buffers
+                features = np.copy(output).flatten().astype(np.float32)
+
+                # prevent bounds errors
+                if features.size > self.feature_dim:
+                    features = features[:self.feature_dim]
+                elif features.size < self.feature_dim:
+                    features = np.pad(features, (0, self.feature_dim -
+                                      features.size), mode='constant')
 
             return features
         except Exception as exc:
@@ -305,13 +334,13 @@ class ObjectDetector:
     # ------------------------------------------------------------------
 
     def classify(self, frame: np.ndarray) -> Tuple[str, float]:
-        """classify a frame: extract features then run svm prediction.
+        """Classify a frame: extract features then run svm prediction.
 
-        args:
-            frame: rgb numpy array.
+        Args:
+            frame: RGB numpy array.
 
-        returns:
-            (label, confidence) tuple.  returns ('unknown', 0.0) if
+        Returns:
+            (label, confidence) tuple. Returns ('unknown', 0.0) if
             models are not loaded.
         """
         if self.classifier is None:
@@ -351,17 +380,17 @@ class ObjectDetector:
         self,
         frame: np.ndarray,
     ) -> List[Dict]:
-        """detect objects using a sliding window approach.
+        """Detect objects using a sliding window approach.
 
-        tiles the frame at multiple scales, extracts features from each
-        tile, and classifies them.  returns tiles that exceed the
+        Tiles the frame at multiple scales, extracts features from each
+        tile, and classifies them. Returns tiles that exceed the
         confidence threshold.
 
-        args:
-            frame: rgb numpy array of shape (h, w, 3).
+        Args:
+            frame: RGB numpy array of shape (h, w, 3).
 
-        returns:
-            list of dicts, each with keys:
+        Returns:
+            List of dicts, each with keys:
                 'label'      — predicted class string.
                 'confidence' — float 0–1.
                 'bbox'       — [x, y, w, h] in pixel coordinates.
@@ -371,7 +400,7 @@ class ObjectDetector:
 
         h, w = frame.shape[:2]
         detections: List[Dict] = []
-        
+
         if hasattr(self, 'yolo') and self.yolo and self.yolo.model is not None:
             yolo_dets = self.yolo.detect_objects(frame)
             if yolo_dets is not None:
@@ -434,13 +463,13 @@ class ObjectDetector:
         frame: np.ndarray,
         target_label: str,
     ) -> Tuple[bool, float, List[int]]:
-        """check whether *target_label* is present in the frame.
+        """Check whether *target_label* is present in the frame.
 
-        args:
-            frame:        rgb numpy array.
-            target_label: label string to search for.
+        Args:
+            frame:        RGB numpy array.
+            target_label: Label string to search for.
 
-        returns:
+        Returns:
             (found, confidence, bbox) — bbox is [x, y, w, h] or empty list.
         """
         detections = self.detect_objects(frame)
@@ -456,10 +485,10 @@ class ObjectDetector:
     # ------------------------------------------------------------------
 
     def get_known_labels(self) -> List[str]:
-        """return the list of known class labels.
+        """Return the list of known class labels.
 
-        returns:
-            list of label strings, or empty list if no labels loaded.
+        Returns:
+            List of label strings, or empty list if no labels loaded.
         """
         return list(self.labels)
 
@@ -472,14 +501,14 @@ class ObjectDetector:
         frame: np.ndarray,
         size: Tuple[int, int],
     ) -> np.ndarray:
-        """resize a frame to (width, height) using pillow or numpy fallback.
+        """Resize a frame to (width, height) using pillow or numpy fallback.
 
-        args:
-            frame: rgb numpy array.
+        Args:
+            frame: RGB numpy array.
             size:  (width, height) target size.
 
-        returns:
-            resized numpy array.
+        Returns:
+            Resized numpy array.
         """
         if Image is not None:
             try:
@@ -505,17 +534,17 @@ class ObjectDetector:
         detections: List[Dict],
         iou_threshold: float = 0.5,
     ) -> List[Dict]:
-        """simple non-maximum suppression.
+        """Simple non-maximum suppression.
 
-        for each label, keeps the detection with the highest confidence
+        For each label, keeps the detection with the highest confidence
         and removes overlapping boxes exceeding *iou_threshold*.
 
-        args:
-            detections:    list of detection dicts.
-            iou_threshold: iou above which a detection is suppressed.
+        Args:
+            detections:    List of detection dicts.
+            iou_threshold: IOU above which a detection is suppressed.
 
-        returns:
-            filtered list of detection dicts.
+        Returns:
+            Filtered list of detection dicts.
         """
         if not detections:
             return []
@@ -543,14 +572,14 @@ class ObjectDetector:
 
     @staticmethod
     def _compute_iou(box_a: List[int], box_b: List[int]) -> float:
-        """compute intersection over union of two [x, y, w, h] boxes.
+        """Compute intersection over union of two [x, y, w, h] boxes.
 
-        args:
+        Args:
             box_a: [x, y, w, h].
             box_b: [x, y, w, h].
 
-        returns:
-            iou value (0.0–1.0).
+        Returns:
+            IOU value (0.0–1.0).
         """
         xa1, ya1 = box_a[0], box_a[1]
         xa2, ya2 = xa1 + box_a[2], ya1 + box_a[3]
