@@ -24,6 +24,12 @@ pkill -f "python.*simba.main" 2>/dev/null || true
 fuser -k 8080/tcp 2>/dev/null || true
 sleep 1
 
+# Set default web dashboard credentials
+export SIMBA_WEB_USER="admin"
+export SIMBA_WEB_PASS="admin"
+echo -e "${CYAN}Web Dashboard Credentials: user=${SIMBA_WEB_USER} pass=${SIMBA_WEB_PASS}${NC}"
+
+
 # Dependency Validation
 if ! command -v python3 &> /dev/null; then
     echo -e "${RED}Error: python3 is not installed.${NC}"

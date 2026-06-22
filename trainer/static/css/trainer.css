@@ -4,21 +4,26 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    --bg-primary: #0a0a0f;
-    --bg-secondary: #12121a;
-    --bg-card: rgba(255,255,255,0.04);
-    --bg-card-hover: rgba(255,255,255,0.06);
-    --border: rgba(255,255,255,0.08);
-    --border-hover: rgba(255,255,255,0.15);
-    --text: #e4e4e7;
-    --text-muted: #71717a;
-    --cyan: #00d4ff;
-    --cyan-dim: rgba(0,212,255,0.15);
-    --gold: #ffd700;
-    --gold-dim: rgba(255,215,0,0.15);
-    --red: #ef4444;
-    --green: #22c55e;
-    --purple: #a855f7;
+    /* — cyberpunk glassmorphism palette — */
+    --bg-primary: #05050A;
+    --bg-secondary: rgba(15, 15, 25, 0.4);
+    --bg-card: rgba(15, 15, 25, 0.4);
+    --bg-card-hover: rgba(25, 25, 45, 0.85);
+    
+    --border: rgba(255,255,255,0.1);
+    --border-hover: rgba(0, 240, 255, 0.25);
+    
+    --text: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.6);
+    
+    --cyan: #00f0ff;
+    --cyan-dim: rgba(0,240,255,0.15);
+    --gold: #b000ff; /* repurposed to magenta/purple to match accent */
+    --gold-dim: rgba(176,0,255,0.15);
+    --red: #ff003c;
+    --green: #00ff66;
+    --purple: #b000ff;
+    
     --radius: 16px;
     --radius-sm: 10px;
     --font: 'Inter', -apple-system, sans-serif;
@@ -28,11 +33,32 @@
 html { scroll-behavior: smooth; }
 body {
     font-family: var(--font);
-    background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 50%, var(--bg-primary) 100%);
+    background: var(--bg-primary);
     color: var(--text);
     min-height: 100vh;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+}
+
+/* dynamic neon mesh glow behind the page */
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200vw;
+    height: 200vh;
+    background: radial-gradient(circle at 50% 50%, rgba(176, 0, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 30%),
+                radial-gradient(circle at 20% 80%, rgba(255, 0, 60, 0.05) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: -1;
+    animation: rotateGlow 30s linear infinite;
+}
+
+@keyframes rotateGlow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* --- header --- */

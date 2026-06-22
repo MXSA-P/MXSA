@@ -1,14 +1,18 @@
 :root {
-    --bg-color: #050508;
-    --card-bg: rgba(20, 20, 30, 0.4);
-    --card-border: rgba(255, 255, 255, 0.08);
-    --primary: #00f0ff;
-    --secondary: #ff0055;
-    --accent: #7000ff;
-    --text-main: #ffffff;
-    --text-muted: #8b90a0;
-    --terminal-bg: rgba(5, 5, 10, 0.8);
-    --terminal-text: #00ff41;
+    /* — cyberpunk glassmorphism palette — */
+    --bg-deep:          #05050A;
+    --card-bg:          rgba(15, 15, 25, 0.4);
+    --card-border:      rgba(255, 255, 255, 0.1);
+    
+    --primary:          #00f0ff;
+    --secondary:        #ff003c;
+    --accent:           #b000ff;
+    
+    --text-main:        #ffffff;
+    --text-muted:       rgba(255, 255, 255, 0.6);
+    
+    --terminal-bg:      rgba(5, 5, 10, 0.8);
+    --terminal-text:    #00ff66;
 }
 
 * {
@@ -18,7 +22,7 @@
 }
 
 body {
-    background-color: var(--bg-color);
+    background-color: var(--bg-deep);
     color: var(--text-main);
     font-family: 'Inter', sans-serif;
     min-height: 100vh;

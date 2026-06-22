@@ -1,24 +1,54 @@
         :root {
-            --bg-color: #0a0a0f;
-            --card-bg: rgba(255, 255, 255, 0.03);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --accent: #00d4ff;
-            --accent-glow: rgba(0, 212, 255, 0.4);
-            --danger: #ff3366;
-            --text-main: #ffffff;
-            --text-muted: #8a8d98;
+            /* — cyberpunk glassmorphism palette — */
+            --bg-deep:          #05050A;
+            --bg-card:          rgba(15, 15, 25, 0.4);
+            --bg-card-alpha:    rgba(15, 15, 25, 0.65);
+            --bg-card-hover:    rgba(25, 25, 45, 0.85);
+            --bg-row-alt:       rgba(0, 240, 255, 0.05);
+            
+            --accent:           #00f0ff;
+            --accent-glow:      rgba(0, 240, 255, 0.4);
+            --accent-border:    rgba(0, 240, 255, 0.25);
+            
+            --danger:           #ff003c;
+            --danger-glow:      rgba(255, 0, 60, 0.4);
+            
+            --text-main:        #ffffff;
+            --text-muted:       rgba(255, 255, 255, 0.6);
+            --border-subtle:    rgba(255, 255, 255, 0.1);
+            
+            --radius:           16px;
+            --card-blur:        30px;
         }
 
         body {
-            background: var(--bg-color);
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(0, 212, 255, 0.05), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(255, 215, 0, 0.03), transparent 25%);
+            background: var(--bg-deep);
             color: var(--text-main);
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 20px;
             min-height: 100vh;
+        }
+
+        /* dynamic neon mesh glow behind the page */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200vw;
+            height: 200vh;
+            background: radial-gradient(circle at 50% 50%, rgba(176, 0, 255, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 30%),
+                        radial-gradient(circle at 20% 80%, rgba(255, 0, 60, 0.05) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: -1;
+            animation: rotateGlow 30s linear infinite;
+        }
+
+        @keyframes rotateGlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .header {
@@ -58,11 +88,22 @@
         }
 
         .card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid var(--border-subtle);
+            border-top: 1px solid rgba(255,255,255,0.15);
+            border-radius: var(--radius);
             padding: 20px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(var(--card-blur));
+            -webkit-backdrop-filter: blur(var(--card-blur));
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1), box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5),
+                        0 0 30px var(--accent-glow);
+            border-color: var(--accent-border);
         }
 
         .card h2 {
