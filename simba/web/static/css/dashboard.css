@@ -6,35 +6,42 @@
    ======================================================================== */
 
 :root {
-    /* — palette — */
-    --bg-deep:          #1a1612;
-    --bg-card:          #2d2520;
-    --bg-card-alpha:    rgba(45, 37, 32, 0.80);
-    --bg-card-hover:    rgba(45, 37, 32, 0.92);
-    --bg-row-alt:       rgba(61, 51, 42, 0.35);
-    --gold:             #c9a96e;
-    --gold-dim:         #8b7355;
-    --gold-bright:      #dfc289;
-    --gold-glow:        rgba(201, 169, 110, 0.30);
-    --gold-border:      rgba(201, 169, 110, 0.15);
-    --cream:            #f5f0e8;
-    --cream-dim:        rgba(245, 240, 232, 0.55);
-    --border-subtle:    #3d332a;
-    --red-soft:         #c97070;
-    --green-soft:       #7ac978;
-    --blue-soft:        #70a0c9;
-    --purple-soft:      #a077c9;
-    --orange-soft:      #c9a060;
+    /* — cyberpunk glassmorphism palette — */
+    --bg-deep:          #05050A;
+    --bg-card:          rgba(15, 15, 25, 0.4);
+    --bg-card-alpha:    rgba(15, 15, 25, 0.65);
+    --bg-card-hover:    rgba(25, 25, 45, 0.85);
+    --bg-row-alt:       rgba(0, 240, 255, 0.05);
+    
+    /* neon core */
+    --gold:             #00f0ff; /* repurposed gold to cyan */
+    --gold-dim:         #008b9e;
+    --gold-bright:      #80f8ff;
+    --gold-glow:        rgba(0, 240, 255, 0.4);
+    --gold-border:      rgba(0, 240, 255, 0.25);
+    
+    /* text */
+    --cream:            #ffffff;
+    --cream-dim:        rgba(255, 255, 255, 0.6);
+    --border-subtle:    rgba(255, 255, 255, 0.1);
+    
+    /* status accents */
+    --red-soft:         #ff003c;
+    --green-soft:       #00ff66;
+    --blue-soft:        #00a8ff;
+    --purple-soft:      #b000ff;
+    --orange-soft:      #ffb000;
 
     /* — typography — */
-    --font-heading:     'Playfair Display', 'Georgia', serif;
+    --font-heading:     'Inter', 'Segoe UI', system-ui, sans-serif;
     --font-body:        'Inter', 'Segoe UI', system-ui, sans-serif;
+    --font-mono:        'JetBrains Mono', 'Fira Code', monospace;
 
     /* — dimensions — */
-    --radius:           14px;
-    --radius-sm:        8px;
-    --card-blur:        20px;
-    --transition:       0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    --radius:           16px;
+    --radius-sm:        10px;
+    --card-blur:        30px;
+    --transition:       0.35s cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 
 /* ========================================================================
@@ -63,18 +70,25 @@ body {
     overflow-x: hidden;
 }
 
-/* subtle radial glow behind the page */
+/* dynamic neon mesh glow behind the page */
 body::before {
     content: '';
     position: fixed;
-    top: -30%;
-    left: 50%;
-    translate: -50% 0;
-    width: 120vw;
-    height: 80vh;
-    background: radial-gradient(ellipse, rgba(201, 169, 110, 0.06) 0%, transparent 70%);
+    top: -50%;
+    left: -50%;
+    width: 200vw;
+    height: 200vh;
+    background: radial-gradient(circle at 50% 50%, rgba(176, 0, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 30%),
+                radial-gradient(circle at 20% 80%, rgba(255, 0, 60, 0.05) 0%, transparent 40%);
     pointer-events: none;
     z-index: 0;
+    animation: rotateGlow 30s linear infinite;
+}
+
+@keyframes rotateGlow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* ========================================================================
@@ -126,22 +140,24 @@ body::before {
    ======================================================================== */
 
 .card {
-    background: var(--bg-card-alpha);
+    background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
     backdrop-filter: blur(var(--card-blur));
     -webkit-backdrop-filter: blur(var(--card-blur));
-    border: 1px solid var(--gold-border);
+    border: 1px solid var(--border-subtle);
+    border-top: 1px solid rgba(255,255,255,0.15);
     border-radius: var(--radius);
     padding: 24px 26px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     transition: transform var(--transition), box-shadow var(--transition),
                 border-color var(--transition);
-    animation: fadeIn 0.6s ease both;
+    animation: fadeIn 0.6s cubic-bezier(0.1, 0.9, 0.2, 1) both;
 }
 
 .card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35),
-                0 0 20px var(--gold-glow);
-    border-color: rgba(201, 169, 110, 0.28);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5),
+                0 0 30px var(--gold-glow);
+    border-color: var(--gold-border);
 }
 
 .card__title {
@@ -171,11 +187,13 @@ body::before {
     justify-content: space-between;
     padding: 18px 28px;
     margin-bottom: 24px;
-    background: var(--bg-card-alpha);
+    background: linear-gradient(90deg, rgba(0,240,255,0.03) 0%, rgba(176,0,255,0.03) 100%);
     backdrop-filter: blur(var(--card-blur));
     -webkit-backdrop-filter: blur(var(--card-blur));
-    border: 1px solid var(--gold-border);
+    border: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--gold-border);
     border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     animation: fadeIn 0.4s ease both;
 }
 
