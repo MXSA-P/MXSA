@@ -58,6 +58,13 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+echo -e "${YELLOW}Disabling system swap to prevent SD card wear and reduce latency...${NC}"
+mkdir -p /etc/rpi/swap.conf.d
+echo -e "[Main]\nMechanism=none" | tee /etc/rpi/swap.conf.d/90-disable-swap.conf >/dev/null
+swapoff -a || true
+rm -f /var/swap || true
+echo -e "${GREEN}  ✓ swap disabled${NC}"
+
 echo -e "${YELLOW}Validating GPU Memory for 5MP CSI Camera...${NC}"
 GPU_MEM=$(vcgencmd get_mem gpu | grep -o -E '[0-9]+' || echo "0")
 if [ "$GPU_MEM" -lt 128 ]; then
@@ -215,11 +222,11 @@ if ! pip install --prefer-binary -r scripts/requirements_pi.txt; then
     echo -e "${YELLOW}  ⚠ requirements.txt failed, installing individually...${NC}"
     pip install --prefer-binary pigpio smbus2 \
         || echo -e "${RED}  failed pigpio/smbus2${NC}"
-    pip install --prefer-binary numpy scikit-learn joblib \
+    pip install --prefer-binary numpy scikit-learn joblib matplotlib pandas-stubs \
         || echo -e "${RED}  failed numpy/ml${NC}"
     pip install --prefer-binary ai-edge-litert \
         || echo -e "${YELLOW}  ⚠ ai-edge-litert unavailable (no Python ${PY_VER} wheel) — tflite disabled${NC}"
-    pip install --prefer-binary flask flask-socketio flask-cors Flask-HTTPAuth \
+    pip install --prefer-binary flask flask-socketio flask-cors Flask-HTTPAuth Flask-SQLAlchemy \
         || echo -e "${RED}  failed flask stack${NC}"
     pip install --prefer-binary vosk sounddevice librosa soundfile \
         || echo -e "${YELLOW}  ⚠ vosk may lack a Python ${PY_VER} wheel — speech features may be disabled${NC}"

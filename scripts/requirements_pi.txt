@@ -31,9 +31,12 @@ flask==3.1.0
 flask-cors==5.0.0
 flask-socketio==5.6.1
 Flask-HTTPAuth==4.8.0
+Flask-SQLAlchemy==3.1.1
 
 psutil==6.1.0
 
 # utils
 pyyaml==6.0.2
 requests==2.32.3
+matplotlib==3.9.2
+pandas-stubs==2.2.3.241009

@@ -153,12 +153,13 @@ class VoiceListener:
             if np.isnan(indata).any() or np.isinf(indata).any():
                 return
 
-            # INMP441 wired with L/R to GND outputs exclusively
-            # on the Left channel (index 0)
-            if indata.shape[1] >= 2:
+            # Average channels to support both L/R INMP441 wiring
+            if indata.ndim == 2 and indata.shape[1] >= 2:
+                audio_data = np.mean(indata, axis=1)
+            elif indata.ndim == 2:
                 audio_data = indata[:, 0]
             else:
-                audio_data = indata[:, 0]
+                audio_data = indata
 
             # calculate rms energy
             energy = float(np.sqrt(np.mean(audio_data ** 2)))
