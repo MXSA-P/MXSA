@@ -53,7 +53,8 @@ class ChassisController:
 
     motor a = left wheel, motor b = right wheel.
     ball caster provides front support.
-    Uses ENA/ENB for PWM speed control, and IN1-IN4 for digital direction logic.
+    Uses ENA/ENB for PWM speed control,
+    and IN1-IN4 for digital direction logic.
     """
 
     def __init__(self, config: Dict[str, Any]) -> None:
@@ -95,7 +96,10 @@ class ChassisController:
         # set pin modes and frequency
         try:
             out_mode = pigpio.OUTPUT if _HAS_PIGPIO else 1
-            for pin in [self.in1, self.in2, self.in3, self.in4, self.ena, self.enb]:
+            for pin in [
+                self.in1, self.in2, self.in3,
+                self.in4, self.ena, self.enb
+            ]:
                 self.pi.set_mode(pin, out_mode)
 
             for pin in [self.in1, self.in2, self.in3, self.in4]:
@@ -173,44 +177,44 @@ class ChassisController:
 
     def forward(self, speed: Optional[float] = None) -> None:
         """move forward."""
-        speed = speed or self.cruise_speed
+        speed = self.cruise_speed if speed is None else speed
         self.set_speed(speed, speed)
         log_event("motion", f"chassis forward at {speed}%")
 
     def backward(self, speed: Optional[float] = None) -> None:
         """move backward."""
-        speed = speed or self.cruise_speed
+        speed = self.cruise_speed if speed is None else speed
         self.set_speed(-speed, -speed)
         log_event("motion", f"chassis backward at {speed}%")
 
     def turn_left(self, speed: Optional[float] = None) -> None:
         """turn left (right wheel faster)."""
-        speed = speed or self.turn_speed
+        speed = self.turn_speed if speed is None else speed
         self.set_speed(speed * 0.3, speed)
         log_event("motion", "chassis turning left")
 
     def turn_right(self, speed: Optional[float] = None) -> None:
         """turn right (left wheel faster)."""
-        speed = speed or self.turn_speed
+        speed = self.turn_speed if speed is None else speed
         self.set_speed(speed, speed * 0.3)
         log_event("motion", "chassis turning right")
 
     def spin_left(self, speed: Optional[float] = None) -> None:
         """spin in place to the left."""
-        speed = speed or self.turn_speed
+        speed = self.turn_speed if speed is None else speed
         self.set_speed(-speed, speed)
         log_event("motion", "chassis spinning left")
 
     def spin_right(self, speed: Optional[float] = None) -> None:
         """spin in place to the right."""
-        speed = speed or self.turn_speed
+        speed = self.turn_speed if speed is None else speed
         self.set_speed(speed, -speed)
         log_event("motion", "chassis spinning right")
 
     def stop(self) -> None:
         """stop both motors immediately."""
-        self._stop_event.set()
         with self._motion_lock:
+            self._stop_event.set()  # interrupt any timed move
             self.set_speed(0, 0)
             log_event("motion", "chassis stopped")
 
@@ -229,13 +233,15 @@ class ChassisController:
                 except Exception as e:
                     logger.error("pigpio brake error: %s", e)
                 self._current_speed = (0, 0)
-                self._motor_a_dir = None
-                self._motor_b_dir = None
+                self._motor_a_dir = 0
+                self._motor_b_dir = 0
                 self._motor_a_duty = 100
                 self._motor_b_duty = 100
             log_event("motion", "chassis active brake applied")
 
-    def move_for_duration(self, direction: str, speed: float, duration: float) -> None:
+    def move_for_duration(
+        self, direction: str, speed: float, duration: float
+    ) -> None:
         """move in a direction for a set duration.
 
         args:
@@ -266,7 +272,8 @@ class ChassisController:
                 self._stop_event.clear()
                 action(speed)
 
-                # wait returns False if the timeout occurred, True if the event was set.
+                # wait returns False if the timeout occurred,
+                # True if the event was set.
                 if not self._stop_event.wait(duration):
                     self.stop()
 
@@ -284,10 +291,12 @@ class ChassisController:
             interrupted = False
             if angle < 80:
                 self.spin_right(self.turn_speed)
-                interrupted = self._stop_event.wait(duration * (90 - angle) / 90)
+                wait_time = duration * (90 - angle) / 90
+                interrupted = self._stop_event.wait(wait_time)
             elif angle > 100:
                 self.spin_left(self.turn_speed)
-                interrupted = self._stop_event.wait(duration * (angle - 90) / 90)
+                wait_time = duration * (angle - 90) / 90
+                interrupted = self._stop_event.wait(wait_time)
 
             if not interrupted:
                 self.set_speed(0, 0)

@@ -21,6 +21,7 @@ logger = get_logger("simba.core.memory")
 
 class NumpyEncoder(json.JSONEncoder):
     """custom encoder to handle numpy arrays in json serialization."""
+
     def default(self, obj: Any) -> Any:
         """default behavior for json serialization of unknown objects.
 
@@ -72,23 +73,29 @@ class MemorySystem:
         # resolve database path relative to project root
         db_path = ai_cfg.get("memory_db_path", "data/memory.json")
         if not isinstance(db_path, str):
-            db_path = str(db_path) if db_path is not None else "data/memory.json"
+            db_path = (
+                str(db_path) if db_path is not None else "data/memory.json"
+            )
 
         if not os.path.isabs(db_path):
-            project_root = os.path.dirname(os.path.dirname(
-                os.path.dirname(os.path.abspath(__file__))
-            ))
+            project_root = os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            )
             db_path = os.path.join(project_root, db_path)
         self.db_path: str = db_path
 
         # load existing memory
         self.load()
 
-        log_event("memory", "memory system initialized", {
-            "objects_loaded": len(self._objects),
-            "db_path": self.db_path,
-            "max_items": self.max_items,
-        })
+        log_event(
+            "memory",
+            "memory system initialized",
+            {
+                "objects_loaded": len(self._objects),
+                "db_path": self.db_path,
+                "max_items": self.max_items,
+            },
+        )
 
     def remember_object(
         self,
@@ -128,9 +135,13 @@ class MemorySystem:
                     entry["x"] = x
                 if y is not None:
                     entry["y"] = y
-                logger.debug("updated object '%s' at (%.1f, %.1f) "
-                             "(seen %d times)", label, x or 0, y or 0,
-                             entry["times_seen"])
+                logger.debug(
+                    "updated object '%s' at (%.1f, %.1f) " "(seen %d times)",
+                    label,
+                    x or 0,
+                    y or 0,
+                    entry["times_seen"],
+                )
             else:
                 while len(self._objects) >= max(1, self.max_items):
                     self._evict_oldest()
@@ -143,21 +154,30 @@ class MemorySystem:
                     "first_seen_timestamp": now_iso,
                     "last_seen_ts": now_ts,
                     "times_seen": 1,
-                    "embedding": list(embedding) if embedding is not None else None,
+                    "embedding": (
+                        list(embedding) if embedding is not None else None
+                    ),
                     "x": x,
                     "y": y,
                 }
-                logger.info("remembered new object '%s' at angle %.1f",
-                            label, position_angle)
+                logger.info(
+                    "remembered new object '%s' at angle %.1f",
+                    label,
+                    position_angle,
+                )
 
             self._dirty = True
 
         self.save()
-        log_event("memory", f"remembered object: {label}", {
-            "label": label,
-            "position_angle": position_angle,
-            "confidence": round(confidence, 3),
-        })
+        log_event(
+            "memory",
+            f"remembered object: {label}",
+            {
+                "label": label,
+                "position_angle": position_angle,
+                "confidence": round(confidence, 3),
+            },
+        )
 
     def forget_object(self, label: str) -> bool:
         """remove an object from memory.
@@ -271,22 +291,31 @@ class MemorySystem:
             true if save succeeded, false otherwise.
         """
         with self._save_lock:
-            with self._lock:
-                if not self._dirty:
-                    return True
-                # serialize inside the lock to avoid expensive deepcopy
-                num_objects = len(self._objects)
-                json_str = json.dumps(
-                    self._objects, indent=2, ensure_ascii=False, cls=NumpyEncoder
-                )
-                self._dirty = False
+            try:
+                with self._lock:
+                    if not self._dirty:
+                        return True
+                    # serialize inside the lock to avoid expensive deepcopy
+                    num_objects = len(self._objects)
+                    json_str = json.dumps(
+                        self._objects,
+                        indent=2,
+                        ensure_ascii=False,
+                        cls=NumpyEncoder,
+                    )
+                    self._dirty = False
+            except Exception as exc:
+                logger.error("failed to serialize memory: %s", exc)
+                return False
 
             # disk I/O outside main lock but inside save lock
             tmp_path = None
             try:
                 os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
                 fd, tmp_path = tempfile.mkstemp(
-                    dir=os.path.dirname(self.db_path), prefix="memory_", suffix=".tmp"
+                    dir=os.path.dirname(self.db_path),
+                    prefix="memory_",
+                    suffix=".tmp",
                 )
                 with os.fdopen(fd, "w", encoding="utf-8") as fh:
                     fh.write(json_str)
@@ -294,7 +323,9 @@ class MemorySystem:
                     os.fsync(fh.fileno())
                 os.replace(tmp_path, self.db_path)
                 try:
-                    dir_fd = os.open(os.path.dirname(self.db_path), os.O_RDONLY)
+                    dir_fd = os.open(
+                        os.path.dirname(self.db_path), os.O_RDONLY
+                    )
                     os.fsync(dir_fd)
                     os.close(dir_fd)
                 except OSError:
@@ -322,8 +353,9 @@ class MemorySystem:
             true if load succeeded (or file doesn't exist yet), false on error.
         """
         if not os.path.isfile(self.db_path):
-            logger.info("no memory file found at %s — starting fresh",
-                        self.db_path)
+            logger.info(
+                "no memory file found at %s — starting fresh", self.db_path
+            )
             return True
 
         try:
@@ -331,15 +363,23 @@ class MemorySystem:
                 data = json.load(fh)
 
             if not isinstance(data, dict):
-                raise ValueError(f"Memory data must be a dictionary, got {type(data).__name__}")
+                raise ValueError(
+                    "Memory data must be a dictionary, "
+                    f"got {type(data).__name__}"
+                )
 
             with self._lock:
                 self._objects = {}
                 for label, entry in data.items():
                     if not isinstance(entry, dict):
-                        logger.warning("skipping non-dict entry for '%s'", label)
+                        logger.warning(
+                            "skipping non-dict entry for '%s'", label
+                        )
                         continue
-                    if "last_seen_ts" not in entry and "last_seen_timestamp" in entry:
+                    if (
+                        "last_seen_ts" not in entry
+                        and "last_seen_timestamp" in entry
+                    ):
                         try:
                             entry["last_seen_ts"] = datetime.fromisoformat(
                                 entry["last_seen_timestamp"]
@@ -351,17 +391,24 @@ class MemorySystem:
                     self._evict_oldest()
                 self._dirty = False
 
-            logger.info("memory loaded: %d objects from %s",
-                        len(self._objects), self.db_path)
+            logger.info(
+                "memory loaded: %d objects from %s",
+                len(self._objects),
+                self.db_path,
+            )
             return True
 
         except Exception as exc:
-            logger.error("failed to load memory (%s): %s", type(exc).__name__, exc)
+            logger.error(
+                "failed to load memory (%s): %s", type(exc).__name__, exc
+            )
             backup_path = self.db_path + ".bak"
             try:
                 if os.path.exists(self.db_path):
                     os.rename(self.db_path, backup_path)
-                    logger.info("Backed up corrupted memory file to %s", backup_path)
+                    logger.info(
+                        "Backed up corrupted memory file to %s", backup_path
+                    )
             except Exception as e:
                 logger.error("Failed to back up corrupted memory file: %s", e)
             return False
@@ -382,8 +429,14 @@ class MemorySystem:
                     "newest": None,
                 }
 
-            oldest_obj = min(self._objects.values(), key=lambda o: o.get("last_seen_ts", 0.0))
-            newest_obj = max(self._objects.values(), key=lambda o: o.get("last_seen_ts", 0.0))
+            oldest_obj = min(
+                self._objects.values(),
+                key=lambda o: o.get("last_seen_ts", 0.0),
+            )
+            newest_obj = max(
+                self._objects.values(),
+                key=lambda o: o.get("last_seen_ts", 0.0),
+            )
 
             return {
                 "count": count,
@@ -429,7 +482,10 @@ class MemorySystem:
                         removed += 1
                         self._dirty = True
                 except (ValueError, TypeError, KeyError):
-                    pass
+                    # remove corrupt entry
+                    del self._objects[label]
+                    removed += 1
+                    self._dirty = True
         if removed > 0:
             logger.info("decayed %d old memory objects", removed)
             self.save()

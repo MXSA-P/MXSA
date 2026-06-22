@@ -204,7 +204,7 @@ class IMUReader:
 
     def get_hand_orientation(self, accel: Optional[Tuple[float, float, float]] = None) -> str:
         """determine hand orientation from accelerometer."""
-        ax, ay, az = accel if accel else self.read_accel()
+        ax, ay, az = accel if accel is not None else self.read_accel()
 
         if abs(ay) > 0.8 and abs(ax) < 0.5 and abs(az) < 0.5:
             return "level"
@@ -238,13 +238,16 @@ class IMUReader:
             if self._stop_event.wait(0.01):
                 break
 
-        n = max(1, valid_samples)
-        self.accel_offset[0] += accel_sum[0] / n
-        self.accel_offset[1] += accel_sum[1] / n
-        self.accel_offset[2] += (accel_sum[2] / n) - 1.0  # z should be 1g at rest
-        self.gyro_offset[0] += gyro_sum[0] / n
-        self.gyro_offset[1] += gyro_sum[1] / n
-        self.gyro_offset[2] += gyro_sum[2] / n
+        if valid_samples == 0:
+            logger.warning("mpu6050 calibration failed: no valid samples")
+            return
+
+        self.accel_offset[0] += accel_sum[0] / valid_samples
+        self.accel_offset[1] += accel_sum[1] / valid_samples
+        self.accel_offset[2] += (accel_sum[2] / valid_samples) - 1.0  # z should be 1g at rest
+        self.gyro_offset[0] += gyro_sum[0] / valid_samples
+        self.gyro_offset[1] += gyro_sum[1] / valid_samples
+        self.gyro_offset[2] += gyro_sum[2] / valid_samples
 
         logger.info("mpu6050 calibration complete")
         log_event("imu", "calibration complete", {
@@ -301,25 +304,25 @@ class IMUReader:
 
     def detect_fall(self, accel: Optional[Tuple[float, float, float]] = None) -> bool:
         """detect if the device is falling (freefall)."""
-        ax, ay, az = accel if accel else self.read_accel()
+        ax, ay, az = accel if accel is not None else self.read_accel()
         magnitude = math.sqrt(ax * ax + ay * ay + az * az)
         return magnitude < 0.3
 
     def detect_shake(self, accel: Optional[Tuple[float, float, float]] = None) -> bool:
         """detect rapid shaking."""
-        ax, ay, az = accel if accel else self.read_accel()
+        ax, ay, az = accel if accel is not None else self.read_accel()
         magnitude = math.sqrt(ax * ax + ay * ay + (az - 1.0) ** 2)
         return magnitude > 1.5
 
     def detect_tap(self, accel: Optional[Tuple[float, float, float]] = None) -> bool:
         """detect a sharp tap."""
-        ax, ay, az = accel if accel else self.read_accel()
+        ax, ay, az = accel if accel is not None else self.read_accel()
         accel_mag = math.sqrt(ax * ax + ay * ay + az * az)
         return 1.5 < accel_mag < 3.0
 
     def is_moving(self, gyro: Optional[Tuple[float, float, float]] = None) -> bool:
         """detect if hand is in motion based on gyro readings."""
-        gx, gy, gz = gyro if gyro else self.read_gyro()
+        gx, gy, gz = gyro if gyro is not None else self.read_gyro()
         magnitude = math.sqrt(gx * gx + gy * gy + gz * gz)
         return magnitude > 10.0  # threshold in deg/s
 
@@ -384,9 +387,8 @@ if __name__ == "__main__":
     imu.calibrate()
     for _ in range(10):
         data = imu.read_all()
-        print(
-            f"orientation: {
-                data["orientation"] if data else "mock_orientation"}, tilt: {
-                data["tilt_angle"] if data else 0.0}°")
+        orientation = data['orientation'] if data else 'mock_orientation'
+        tilt = data['tilt_angle'] if data else 0.0
+        print(f"orientation: {orientation}, tilt: {tilt}°")
         time.sleep(0.2)
     imu.cleanup()

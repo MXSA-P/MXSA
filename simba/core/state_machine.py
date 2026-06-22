@@ -206,7 +206,7 @@ class StateMachine:
         self._lock = threading.Lock()
         self._state: str = "BOOTING"
         self._context: Dict[str, Any] = {}
-        self._state_start: float = time.time()
+        self._state_start: float = time.monotonic()
         self._max_history: int = 100
         self._history: deque[Dict[str, Any]] = deque(maxlen=self._max_history)
         self._transition_count: int = 0
@@ -248,7 +248,7 @@ class StateMachine:
             if old_state == new_state:
                 # allow context updates within the same state
                 if context is not None:
-                    self._context.update(context)
+                    self._context.update(copy.deepcopy(context))
                 return True
 
             # validate transition
@@ -259,15 +259,16 @@ class StateMachine:
                 invalid_transition = False
 
                 # calculate duration
-                now = time.time()
-                duration = now - self._state_start
+                now_mono = time.monotonic()
+                now_time = time.time()
+                duration = now_mono - self._state_start
 
                 # record transition history
                 self._history.append(
                     {
                         "from_state": old_state,
                         "to_state": new_state,
-                        "timestamp": now,
+                        "timestamp": now_time,
                         "duration_in_previous": round(duration, 2),
                         "context": copy.deepcopy(self._context),
                     }
@@ -276,7 +277,7 @@ class StateMachine:
                 # perform transition
                 self._state = new_state
                 self._context = copy.deepcopy(context) if context else {}
-                self._state_start = now
+                self._state_start = now_mono
                 self._transition_count += 1
 
         if invalid_transition:
@@ -326,7 +327,7 @@ class StateMachine:
         """
         with self._lock:
             if hasattr(self, "_state_start"):
-                return time.time() - self._state_start
+                return time.monotonic() - self._state_start
             return 0.0
 
     def get_context(self) -> Dict[str, Any]:
@@ -348,6 +349,8 @@ class StateMachine:
             list of transition dicts (most recent last).
         """
         with self._lock:
+            if count <= 0:
+                return []
             return copy.deepcopy(list(self._history)[-count:])
 
     def is_busy(self) -> bool:
@@ -377,7 +380,7 @@ class StateMachine:
         """
         with self._lock:
             state = self._state
-            duration = time.time() - self._state_start
+            duration = time.monotonic() - self._state_start
             context = copy.deepcopy(self._context)
             count = self._transition_count
             history = copy.deepcopy(list(self._history)[-10:])
@@ -411,13 +414,10 @@ class StateMachine:
         """return full state transition history as a json string.
 
         returns:
-            json string of the transition history list,
-            or '[]' if dump_history is unavailable.
+            json string of the transition history list.
         """
-        if hasattr(self, "dump_history"):
-            with self._lock:
-                return json.dumps(list(self._history))
-        return "[]"
+        with self._lock:
+            return json.dumps(list(self._history))
 
     def __repr__(self) -> str:
         """return a string representation of the state machine.
@@ -427,7 +427,7 @@ class StateMachine:
         """
         with self._lock:
             state = self._state
-            duration = time.time() - self._state_start
+            duration = time.monotonic() - self._state_start
             transitions = self._transition_count
         return (
             f"StateMachine(state='{state}', "

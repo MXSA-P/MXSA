@@ -36,7 +36,8 @@ def _similarity(a: str, b: str) -> float:
 _command_patterns: List[Tuple[List[str], str, bool]] = [
     # clear path commands
     (
-        ["clear path", "reset path", "forget the way home", "clear breadcrumbs"],
+        ["clear path", "reset path", "forget the way home",
+         "clear breadcrumbs"],
         "clear_path",
         False,
     ),
@@ -130,7 +131,8 @@ _command_patterns: List[Tuple[List[str], str, bool]] = [
         False,
     ),
     (
-        ["patrol", "explore", "look around", "go on patrol", "start patrolling"],
+        ["patrol", "explore", "go on patrol",
+         "start patrolling"],
         "patrol",
         False,
     ),
@@ -140,7 +142,7 @@ _command_patterns: List[Tuple[List[str], str, bool]] = [
         False,
     ),
     (
-        ["follow me", "come here", "follow"],
+        ["follow me", "follow"],
         "follow",
         False,
     ),
@@ -250,27 +252,6 @@ _command_patterns: List[Tuple[List[str], str, bool]] = [
         "scold",
         False,
     ),
-    # dance commands
-    (
-        ["dance", "do a dance", "show me some moves", "let's dance",
-         "dance for me", "break it down"],
-        "dance",
-        False,
-    ),
-    # status commands
-    (
-        ["what is your status", "how are you", "how are you doing",
-         "battery level", "are you ok", "report status"],
-        "status",
-        False,
-    ),
-    # patrol commands
-    (
-        ["patrol", "go on patrol", "guard the area", "start patrolling",
-         "keep watch"],
-        "patrol",
-        False,
-    ),
     # rest commands
     (
         ["go to sleep", "rest now", "shutdown", "power off", "go rest"],
@@ -328,13 +309,17 @@ _fillers_list = [
 ]
 _fillers_list.sort(key=len, reverse=True)
 _fillers_regex_str = "|".join(re.escape(f) for f in _fillers_list)
-_FILLER_RE = re.compile(rf"(?<![\w'-])(?:{_fillers_regex_str})(?![\w'-])", flags=re.IGNORECASE)
+_FILLER_RE = re.compile(
+    rf"(?<![\w'-])(?:{_fillers_regex_str})(?![\w'-])", flags=re.IGNORECASE
+)
 
 
 _compiled_patterns = {}
 for _patterns, _, _ in _command_patterns:
     for _pattern in _patterns:
-        _compiled_patterns[_pattern] = re.compile(rf"(?<![\w'-]){re.escape(_pattern)}(?![\w'-])")
+        _compiled_patterns[_pattern] = re.compile(
+            rf"(?<![\w'-]){re.escape(_pattern)}(?![\w'-])"
+        )
 
 
 class CommandParser:
@@ -372,7 +357,8 @@ class CommandParser:
 
         # prevent algorithmic complexity dos on massive strings
         if len(text) > 2000:
-            logger.warning("input text too long (%d chars), discarding", len(text))
+            logger.warning("input text too long (%d chars), discarding",
+                           len(text))
             return None
 
         self._parse_count += 1
@@ -411,10 +397,10 @@ class CommandParser:
         # remove punctuation and collapse spaces
         result = _PUNCTUATION_RE.sub('', text)
         result = _WHITESPACE_RE.sub(' ', result).strip()
-        
+
         # remove fillers using precompiled regex
         result = _FILLER_RE.sub(" ", result)
-        
+
         # collapse multiple spaces again
         result = _WHITESPACE_RE.sub(' ', result).strip()
         return result
@@ -434,7 +420,8 @@ class CommandParser:
         for patterns, action, has_target in _command_patterns:
             for pattern in patterns:
                 pattern_regex = _compiled_patterns[pattern]
-                if pattern_regex.search(cleaned) or pattern_regex.search(original):
+                if (pattern_regex.search(cleaned) or
+                        pattern_regex.search(original)):
                     target = None
                     modifier = None
 
@@ -463,7 +450,8 @@ class CommandParser:
             original: original normalized text.
 
         returns:
-            command dict if a sufficiently similar match is found, none otherwise.
+            command dict if a sufficiently similar match is found,
+            none otherwise.
         """
         best_score: float = 0.0
         best_action: Optional[str] = None
@@ -486,7 +474,7 @@ class CommandParser:
                         best_score = score
                         best_action = action
                         best_has_target = has_target
-                        best_pattern = window
+                        best_pattern = pattern
 
                 # also compare against the full cleaned text
                 score = _similarity(cleaned, pattern)
@@ -525,29 +513,38 @@ class CommandParser:
         if pattern_regex:
             match = pattern_regex.search(text)
         else:
-            match = re.search(rf"(?<![\w'-]){re.escape(pattern)}(?![\w'-])", text)
+            match = re.search(
+                rf"(?<![\w'-]){re.escape(pattern)}(?![\w'-])", text
+            )
 
         if not match:
             return None
-        
         remainder = text[match.end():].strip()
 
         # remove trailing filler words efficiently using string manipulation
         # to prevent O(N^2) regex behavior on massive strings
-        trailing_fillers = ("please", "now", "quickly", "fast", "right now", "for me")
+        trailing_fillers = (
+            "please", "now", "quickly", "fast", "right now", "for me"
+        )
         end_idx = len(remainder)
         remainder_lower = remainder.lower()
-        
+
         while end_idx > 0:
             matched = False
             for filler in trailing_fillers:
                 filler_len = len(filler)
-                if end_idx >= filler_len and remainder_lower[end_idx - filler_len : end_idx] == filler:
+                if (end_idx >= filler_len and
+                        remainder_lower[end_idx - filler_len:end_idx] ==
+                        filler):
                     idx = end_idx - filler_len
-                    if idx == 0 or not (remainder_lower[idx - 1].isalnum() or remainder_lower[idx - 1] in ("'", "-", "_")):
+                    if idx == 0 or not (
+                        remainder_lower[idx - 1].isalnum() or
+                        remainder_lower[idx - 1] in ("'", "-", "_")
+                    ):
                         end_idx = idx
                         matched = True
-                        while end_idx > 0 and remainder_lower[end_idx - 1].isspace():
+                        while (end_idx > 0 and
+                               remainder_lower[end_idx - 1].isspace()):
                             end_idx -= 1
                         break
             if not matched:

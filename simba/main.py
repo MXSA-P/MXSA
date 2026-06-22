@@ -12,15 +12,14 @@ import os
 import signal
 import sys
 import threading
-
 import yaml
 
-from simba.utils.logger import get_logger, log_event
-
-# add project root to path
+# add project root to path before any local imports
 _project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
+
+from simba.utils.logger import get_logger, log_event
 
 
 logger = get_logger("simba.main")

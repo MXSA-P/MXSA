@@ -25,6 +25,22 @@ class _MockPi:
         """Set the pulsewidth for the specified servo pin."""
         pass
 
+    def set_mode(self, pin, mode):
+        """Set the GPIO mode for the specified pin."""
+        pass
+
+    def write(self, pin, value):
+        """Write a value to the specified GPIO pin."""
+        pass
+
+    def set_PWM_dutycycle(self, pin, duty):
+        """Set PWM duty cycle for the specified pin."""
+        pass
+
+    def set_PWM_frequency(self, pin, freq):
+        """Set PWM frequency for the specified pin."""
+        pass
+
     def stop(self):
         """Stop the mock pigpio interface."""
         pass
@@ -295,58 +311,48 @@ class ArmController:
                 self._moving = True
                 start_angles = {k: self.current[k] for k in self.current}
 
-        targets = {
-            "rotation": max(
-                self.rotation_min, min(
-                    self.rotation_max, target_angles.get(
-                        "rotation", start_angles["rotation"]))), "elbow": max(
-                self.elbow_min, min(
-                    self.elbow_max, target_angles.get(
-                        "elbow", start_angles["elbow"]))), "elbow_2": max(
-                self.elbow_2_min, min(
-                    self.elbow_2_max, target_angles.get(
-                        "elbow_2", start_angles["elbow_2"]))), "wrist": max(
-                self.wrist_min, min(
-                    self.wrist_max, target_angles.get(
-                        "wrist", start_angles["wrist"]))), }
+            targets = {
+                "rotation": max(self.rotation_min, min(self.rotation_max, target_angles.get("rotation", start_angles["rotation"]))),
+                "elbow": max(self.elbow_min, min(self.elbow_max, target_angles.get("elbow", start_angles["elbow"]))),
+                "elbow_2": max(self.elbow_2_min, min(self.elbow_2_max, target_angles.get("elbow_2", start_angles["elbow_2"]))),
+                "wrist": max(self.wrist_min, min(self.wrist_max, target_angles.get("wrist", start_angles["wrist"])))
+            }
 
-        steps = max(
-            abs(targets["rotation"] - start_angles["rotation"]),
-            abs(targets["elbow"] - start_angles["elbow"]),
-            abs(targets["elbow_2"] - start_angles["elbow_2"]),
-            abs(targets["wrist"] - start_angles["wrist"]),
-        )
-        num_steps = max(1, int(steps / speed))
+            steps = max(
+                abs(targets["rotation"] - start_angles["rotation"]),
+                abs(targets["elbow"] - start_angles["elbow"]),
+                abs(targets["elbow_2"] - start_angles["elbow_2"]),
+                abs(targets["wrist"] - start_angles["wrist"])
+            )
+            num_steps = max(1, int(steps / speed))
 
-        interrupted = False
-        for i in range(1, num_steps + 1):
-            t = i / num_steps
-            ease_t = 6 * (t ** 5) - 15 * (t ** 4) + 10 * (t ** 3)
-            with self._lock:
-                for key, pin in [("rotation", self.rotation_pin),
-                                 ("elbow", self.elbow_pin),
-                                 ("elbow_2", self.elbow_2_pin),
-                                 ("wrist", self.wrist_pin)]:
-                    angle = start_angles[key] + ease_t * \
-                        (targets[key] - start_angles[key])
-                    self._set_servo(pin, angle)
-                    self.current[key] = angle
-
-            if self._stop_event.wait(0.02):
-                interrupted = True
+            interrupted = False
+            for i in range(1, num_steps + 1):
+                t = i / num_steps
+                ease_t = 6 * (t ** 5) - 15 * (t ** 4) + 10 * (t ** 3)
                 with self._lock:
-                    for key in targets:
-                        self.current[key] = start_angles[key] + \
-                            ease_t * (targets[key] - start_angles[key])
-                    self._moving = False
-                return
+                    for key, pin in [("rotation", self.rotation_pin),
+                                     ("elbow", self.elbow_pin),
+                                     ("elbow_2", self.elbow_2_pin),
+                                     ("wrist", self.wrist_pin)]:
+                        angle = start_angles[key] + ease_t * (targets[key] - start_angles[key])
+                        self._set_servo(pin, angle)
+                        self.current[key] = angle
 
-        # set final positions
-        with self._lock:
-            if not interrupted:
-                for key in targets:
-                    self.current[key] = targets[key]
-            self._moving = False
+                if self._stop_event.wait(0.02):
+                    interrupted = True
+                    with self._lock:
+                        for key in targets:
+                            self.current[key] = start_angles[key] + ease_t * (targets[key] - start_angles[key])
+                        self._moving = False
+                    return
+
+            # set final positions
+            with self._lock:
+                if not interrupted:
+                    for key in targets:
+                        self.current[key] = targets[key]
+                self._moving = False
 
     def move_to_xyz(self, x: float, y: float, z: float, wrist_roll: float = None) -> None:
         """Move arm to xyz coordinate using inverse kinematics.
@@ -406,12 +412,7 @@ class ArmController:
         else:
             wrist_angle = self.current.get("wrist", 90)
 
-        log_event(
-            "motion", f"IK calculated: rot={
-                rot_angle:.1f}, elbow={
-                elbow_angle:.1f}, elbow_2={
-                elbow_2_angle:.1f}, wrist={
-                wrist_angle:.1f} for xyz({x},{y},{z})")
+        log_event("motion", f"IK calculated: rot={rot_angle:.1f}, elbow={elbow_angle:.1f}, elbow_2={elbow_2_angle:.1f}, wrist={wrist_angle:.1f} for xyz({x},{y},{z})")
 
         # move arm smoothly to calculated angles
         self.move_smooth({

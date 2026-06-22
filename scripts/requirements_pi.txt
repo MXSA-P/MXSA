@@ -7,7 +7,8 @@ pigpio==1.78
 smbus2==0.4.3
 
 # camera
-picamera2==0.3.36
+# picamera2 is installed via apt (python3-picamera2), NOT pip.
+# Installing via pip in a --system-site-packages venv causes version conflicts.
 
 # ai / ml
 scikit-learn==1.5.2
@@ -36,7 +37,3 @@ psutil==6.1.0
 # utils
 pyyaml==6.0.2
 requests==2.32.3
-Flask-SQLAlchemy>=3.0.1
-matplotlib>=3.8
-pandas-stubs
-

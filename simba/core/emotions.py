@@ -23,12 +23,30 @@ from simba.utils.logger import get_logger, log_event
 logger = get_logger("simba.core.emotions")
 
 # all valid emotions
-_valid_emotions = frozenset({
-    "happy", "sad", "curious", "excited", "proud",
-    "love", "sleepy", "angry", "neutral",
-    "frustrated", "surprised", "relaxed", "focused", "anxious", "bored",
-    "scared", "confused", "lonely", "determined", "guilty"
-})
+_valid_emotions = frozenset(
+    {
+        "happy",
+        "sad",
+        "curious",
+        "excited",
+        "proud",
+        "love",
+        "sleepy",
+        "angry",
+        "neutral",
+        "frustrated",
+        "surprised",
+        "relaxed",
+        "focused",
+        "anxious",
+        "bored",
+        "scared",
+        "confused",
+        "lonely",
+        "determined",
+        "guilty",
+    }
+)
 
 # emoji mapping for each emotion
 _emotion_emojis: Dict[str, str] = {
@@ -330,9 +348,12 @@ class EmotionEngine:
         self._lock = threading.RLock()
 
         emotion_cfg = config.get("emotions", {}) or {}
-        self.decay_rate: float = float(emotion_cfg.get("mood_decay_rate", 0.01))
-        self.update_interval: float = float(emotion_cfg.get(
-            "mood_update_interval", 5))
+        self.decay_rate: float = float(
+            emotion_cfg.get("mood_decay_rate", 0.01)
+        )
+        self.update_interval: float = float(
+            emotion_cfg.get("mood_update_interval", 5)
+        )
 
         default_mood = emotion_cfg.get("default_mood", "curious")
         if default_mood not in _valid_emotions:
@@ -372,14 +393,22 @@ class EmotionEngine:
         # load reaction configs
         self._reactions: dict = emotion_cfg.get("reactions", {}) or {}
 
-        logger.info("emotion engine v2 initialized (mood=%s, intensity=%.2f, "
-                    "personality=%s)", self._emotion, self._intensity,
-                    self.personality)
-        log_event("emotion", "engine initialized", {
-            "mood": self._emotion,
-            "intensity": self._intensity,
-            "personality": self.personality,
-        })
+        logger.info(
+            "emotion engine v2 initialized (mood=%s, intensity=%.2f, "
+            "personality=%s)",
+            self._emotion,
+            self._intensity,
+            self.personality,
+        )
+        log_event(
+            "emotion",
+            "engine initialized",
+            {
+                "mood": self._emotion,
+                "intensity": self._intensity,
+                "personality": self.personality,
+            },
+        )
 
     # ------------------------------------------------------------------
     # primary emotion
@@ -393,7 +422,9 @@ class EmotionEngine:
             intensity: emotion intensity between 0.0 and 1.0.
         """
         if not isinstance(emotion, str):
-            logger.warning("invalid emotion type '%s' — ignoring", type(emotion))
+            logger.warning(
+                "invalid emotion type '%s' — ignoring", type(emotion)
+            )
             return
 
         emotion = emotion.strip().lower()
@@ -402,7 +433,10 @@ class EmotionEngine:
             return
 
         if not isinstance(intensity, (int, float)):
-            logger.warning("invalid intensity type '%s' — defaulting to 1.0", type(intensity))
+            logger.warning(
+                "invalid intensity type '%s' — defaulting to 1.0",
+                type(intensity),
+            )
             intensity = 1.0
         else:
             intensity = float(intensity)
@@ -423,50 +457,77 @@ class EmotionEngine:
             self._last_update = time.time()
 
             # update mood counter for long-term mood tracking
-            self._mood_counter[emotion] = self._mood_counter.get(
-                emotion, 0) + 1
+            self._mood_counter[emotion] = (
+                self._mood_counter.get(emotion, 0) + 1
+            )
             self._total_mood_updates += 1
             self._update_mood()
 
             # map emotion to arousal and valence
             affective_map = {
-                "happy": (0.7, 0.9), "sad": (0.3, 0.2), "curious": (0.6, 0.6),
-                "excited": (0.9, 0.9), "proud": (0.7, 0.8), "love": (0.8, 1.0),
-                "sleepy": (0.1, 0.5), "angry": (0.9, 0.1), "neutral": (0.5, 0.5),
-                "frustrated": (0.8, 0.3), "surprised": (0.9, 0.6), "relaxed": (0.3, 0.8),
-                "focused": (0.6, 0.5), "anxious": (0.8, 0.4), "bored": (0.2, 0.4),
-                "scared": (0.9, 0.1), "confused": (0.6, 0.4), "lonely": (0.2, 0.2),
-                "determined": (0.9, 0.7), "guilty": (0.3, 0.2)
+                "happy": (0.7, 0.9),
+                "sad": (0.3, 0.2),
+                "curious": (0.6, 0.6),
+                "excited": (0.9, 0.9),
+                "proud": (0.7, 0.8),
+                "love": (0.8, 1.0),
+                "sleepy": (0.1, 0.5),
+                "angry": (0.9, 0.1),
+                "neutral": (0.5, 0.5),
+                "frustrated": (0.8, 0.3),
+                "surprised": (0.9, 0.6),
+                "relaxed": (0.3, 0.8),
+                "focused": (0.6, 0.5),
+                "anxious": (0.8, 0.4),
+                "bored": (0.2, 0.4),
+                "scared": (0.9, 0.1),
+                "confused": (0.6, 0.4),
+                "lonely": (0.2, 0.2),
+                "determined": (0.9, 0.7),
+                "guilty": (0.3, 0.2),
             }
             if emotion in affective_map:
                 target_arousal, target_valence = affective_map[emotion]
                 # blend with intensity
-                self.arousal = (self.arousal * (1.0 - intensity)
-                                ) + (target_arousal * intensity)
-                self.valence = (self.valence * (1.0 - intensity)
-                                ) + (target_valence * intensity)
+                self.arousal = (self.arousal * (1.0 - intensity)) + (
+                    target_arousal * intensity
+                )
+                self.valence = (self.valence * (1.0 - intensity)) + (
+                    target_valence * intensity
+                )
 
             # record in history
-            self._history.append({
-                "from_emotion": old_emotion,
-                "from_intensity": round(old_intensity, 3),
-                "to_emotion": emotion,
-                "to_intensity": round(intensity, 3),
-                "arousal": round(self.arousal, 2),
-                "valence": round(self.valence, 2),
-                "timestamp": time.time(),
-            })
+            self._history.append(
+                {
+                    "from_emotion": old_emotion,
+                    "from_intensity": round(old_intensity, 3),
+                    "to_emotion": emotion,
+                    "to_intensity": round(intensity, 3),
+                    "arousal": round(self.arousal, 2),
+                    "valence": round(self.valence, 2),
+                    "timestamp": time.time(),
+                }
+            )
             if len(self._history) > self._max_history:
                 self._history.pop(0)
 
         if old_emotion != emotion:
-            logger.info("emotion changed: %s (%.2f) -> %s (%.2f)",
-                        old_emotion, old_intensity, emotion, intensity)
-            log_event("emotion", f"mood: {emotion}", {
-                "emotion": emotion,
-                "intensity": round(intensity, 3),
-                "previous": old_emotion,
-            })
+            logger.info(
+                "emotion changed: %s (%.2f) -> %s (%.2f)",
+                old_emotion,
+                old_intensity,
+                emotion,
+                intensity,
+            )
+            log_event(
+                "emotion",
+                f"mood: {emotion}",
+                {
+                    "emotion": emotion,
+                    "intensity": round(intensity, 3),
+                    "previous": old_emotion,
+                },
+            )
 
     def get_emotion(self) -> Tuple[str, float]:
         """get the current emotion and intensity.
@@ -503,26 +564,25 @@ class EmotionEngine:
         """
         mapping = _event_emotion_map.get(event_type, None)
         if mapping is None:
-            logger.debug("unknown event type '%s' — no emotion change",
-                         event_type)
+            logger.debug(
+                "unknown event type '%s' — no emotion change", event_type
+            )
             return self._emotion
 
         new_emotion, default_intensity = mapping
 
         # apply personality modifiers
         intensity = default_intensity
-        if new_emotion in (
-            "curious",
-            "excited") and event_type not in (
+        if new_emotion in ("curious", "excited") and event_type not in (
             "scolded",
         ):
-            intensity *= (0.7 + 0.3 * self.personality["curiosity"])
+            intensity *= 0.7 + 0.3 * self.personality["curiosity"]
         if new_emotion in ("happy", "excited", "love"):
-            intensity *= (0.7 + 0.3 * self.personality["playfulness"])
+            intensity *= 0.7 + 0.3 * self.personality["playfulness"]
         if new_emotion in ("sad", "angry"):
-            intensity *= (0.6 + 0.4 * self.personality["sensitivity"])
+            intensity *= 0.6 + 0.4 * self.personality["sensitivity"]
         if event_type in ("praised", "loved", "greeted"):
-            intensity *= (0.7 + 0.3 * self.personality["loyalty"])
+            intensity *= 0.7 + 0.3 * self.personality["loyalty"]
 
         intensity = min(1.0, intensity)
 
@@ -533,13 +593,21 @@ class EmotionEngine:
 
         self.set_emotion(new_emotion, intensity)
 
-        logger.info("event '%s' -> emotion '%s' (%.2f)",
-                    event_type, new_emotion, intensity)
-        log_event("emotion", f"event: {event_type}", {
-            "event": event_type,
-            "new_emotion": new_emotion,
-            "intensity": round(intensity, 3),
-        })
+        logger.info(
+            "event '%s' -> emotion '%s' (%.2f)",
+            event_type,
+            new_emotion,
+            intensity,
+        )
+        log_event(
+            "emotion",
+            f"event: {event_type}",
+            {
+                "event": event_type,
+                "new_emotion": new_emotion,
+                "intensity": round(intensity, 3),
+            },
+        )
 
         return new_emotion
 
@@ -570,7 +638,8 @@ class EmotionEngine:
             emotion = self._emotion
 
         responses = _emotion_responses.get(
-            emotion, _emotion_responses["neutral"])
+            emotion, _emotion_responses["neutral"]
+        )
         return random.choice(responses)
 
     # ------------------------------------------------------------------
@@ -600,15 +669,18 @@ class EmotionEngine:
             reaction = self._reactions.get("happy", {}) or {}
             behavior["speed_modifier"] = 1.0 + (0.2 * intensity)
             behavior["arm_behavior"] = "wiggle"
-            behavior["wiggle_speed"] = float(reaction.get(
-                "arm_wiggle_speed", 3.0)) * intensity
+            behavior["wiggle_speed"] = (
+                float(reaction.get("arm_wiggle_speed", 3.0)) * intensity
+            )
             behavior["wiggle_range"] = int(
-                float(reaction.get("arm_wiggle_range", 15)) * intensity)
+                float(reaction.get("arm_wiggle_range", 15)) * intensity
+            )
 
         elif emotion == "sad":
             reaction = self._reactions.get("sad", {}) or {}
-            behavior["speed_modifier"] = float(reaction.get(
-                "speed_modifier", 0.5))
+            behavior["speed_modifier"] = float(
+                reaction.get("speed_modifier", 0.5)
+            )
             behavior["arm_behavior"] = "droop"
 
         elif emotion == "curious":
@@ -616,15 +688,19 @@ class EmotionEngine:
             behavior["speed_modifier"] = 1.0
             behavior["arm_behavior"] = "scan"
             behavior["wiggle_speed"] = float(reaction.get("scan_speed", 1.0))
-            behavior["wiggle_range"] = int(float(reaction.get("head_tilt", 15)))
+            behavior["wiggle_range"] = int(
+                float(reaction.get("head_tilt", 15))
+            )
 
         elif emotion == "excited":
             reaction = self._reactions.get("excited", {}) or {}
-            behavior["speed_modifier"] = float(reaction.get(
-                "speed_modifier", 1.5))
+            behavior["speed_modifier"] = float(
+                reaction.get("speed_modifier", 1.5)
+            )
             behavior["arm_behavior"] = "wiggle"
-            behavior["wiggle_speed"] = float(reaction.get(
-                "arm_wiggle_speed", 4.0)) * intensity
+            behavior["wiggle_speed"] = (
+                float(reaction.get("arm_wiggle_speed", 4.0)) * intensity
+            )
             behavior["wiggle_range"] = int(25 * intensity)
 
         elif emotion == "proud":
@@ -637,10 +713,12 @@ class EmotionEngine:
             reaction = self._reactions.get("love", {}) or {}
             behavior["speed_modifier"] = 1.2
             behavior["arm_behavior"] = "wiggle"
-            behavior["wiggle_speed"] = float(reaction.get(
-                "arm_wiggle_speed", 5.0)) * intensity
+            behavior["wiggle_speed"] = (
+                float(reaction.get("arm_wiggle_speed", 5.0)) * intensity
+            )
             behavior["wiggle_range"] = int(
-                float(reaction.get("arm_wiggle_range", 30)) * intensity)
+                float(reaction.get("arm_wiggle_range", 30)) * intensity
+            )
 
         elif emotion == "sleepy":
             behavior["speed_modifier"] = 0.3
@@ -693,8 +771,11 @@ class EmotionEngine:
         if self._total_mood_updates < 5:
             return
         # mood = most frequent non-neutral emotion
-        candidates = {k: v for k, v in self._mood_counter.items()
-                      if k != "neutral" and v > 0}
+        candidates = {
+            k: v
+            for k, v in self._mood_counter.items()
+            if k != "neutral" and v > 0
+        }
         if candidates:
             self._mood = max(candidates, key=candidates.get)
 
@@ -764,7 +845,9 @@ class EmotionEngine:
             resistance = 1.0 + (self._intensity * 0.5)
 
             # mathematically simplify to reduce ops (1 division instead of 2)
-            decay_amount = (self.decay_rate * elapsed) / (self.update_interval * resistance)
+            decay_amount = (self.decay_rate * elapsed) / (
+                self.update_interval * resistance
+            )
 
             self._intensity -= decay_amount
 

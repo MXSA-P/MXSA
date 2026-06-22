@@ -10,7 +10,7 @@ numpy==1.26.4
 # vision
 opencv-python==4.10.0.84
 Pillow==10.4.0
-ai-edge-litert==1.2.0
+ai-edge-litert==2.1.5
 
 # voice
 librosa==0.10.2
@@ -27,6 +27,6 @@ pyyaml==6.0.2
 requests==2.32.3
 tqdm==4.67.1
 huggingface-hub==0.27.1
-Flask-SQLAlchemy>=3.0.1
-matplotlib>=3.8
-pandas-stubs
+
+# deployment (SSH to Raspberry Pi)
+paramiko>=3.0

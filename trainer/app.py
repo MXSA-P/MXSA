@@ -57,7 +57,12 @@ auth = HTTPBasicAuth()
 
 @auth.verify_password
 def verify_password(username: str, password: str) -> Optional[str]:
-    if secrets.compare_digest(username, "mxsa") and secrets.compare_digest(password, "0"):
+    valid_user = os.environ.get("TRAINER_USER", "mxsa")
+    valid_pass = os.environ.get("TRAINER_PASS")
+    if not valid_pass:
+        # Default password — CHANGE THIS via TRAINER_PASS env var!
+        valid_pass = "simba2024"
+    if secrets.compare_digest(username, valid_user) and secrets.compare_digest(password, valid_pass):
         return username
     return None
 
@@ -66,8 +71,11 @@ _project_root = Path(__file__).resolve().parent.parent
 
 # load config
 _config_path = _project_root / "config" / "simba_config.yaml"
-with open(_config_path, "r") as _f:
-    _config = yaml.safe_load(_f)
+try:
+    with open(_config_path, "r") as _f:
+        _config = yaml.safe_load(_f)
+except FileNotFoundError:
+    _config = {"robot": {"name": "simba", "version": "3.0"}}
 
 # data directories
 _data_dir = _project_root / "data"
@@ -423,7 +431,7 @@ def record_voice():
         return jsonify({"error": f"Failed to save audio: {e}"}), 500
 
     # count total samples
-    total = len(list(_voice_dir.glob("*.wav"))) + 1
+    total = len(list(_voice_dir.glob("*.wav")))
     return jsonify({
         "filename": filename,
         "total": total,
@@ -526,7 +534,9 @@ def test_voice():
     text = data.get("text", "")
 
     import sys
-    sys.path.append(str(_project_root))
+    _pr_str = str(_project_root)
+    if _pr_str not in sys.path:
+        sys.path.append(_pr_str)
     from simba.voice.command_parser import CommandParser
 
     parser = CommandParser()

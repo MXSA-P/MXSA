@@ -97,7 +97,9 @@ class HandController:
     def _set_finger(self, finger_id, angle):
         """set individual finger to angle."""
         if not isinstance(finger_id, int):
-            raise TypeError(f"finger_id must be an int, got {type(finger_id).__name__}")
+            raise TypeError(
+                f"finger_id must be an int, got {type(finger_id).__name__}"
+            )
         if not (0 <= finger_id < 3):
             raise IndexError(f"finger_id {finger_id} out of bounds")
 
@@ -112,7 +114,7 @@ class HandController:
             actual_angle = 180 - angle
         elif finger_id == 2:
             # Finger 3 (index 2) is mirrored and physically obstructed.
-            # It only goes 180-80. We map logical [0, 180] to physical [180, 80]
+            # It goes 180-80. We map logical [0, 180] to physical [180, 80]
             actual_angle = 180 - angle * (5.0 / 9.0)
             actual_angle = max(80, min(180, actual_angle))
 
@@ -120,7 +122,9 @@ class HandController:
         try:
             self.pi.set_servo_pulsewidth(self.finger_pins[finger_id], pw)
         except Exception as e:
-            logger.error(f"Failed to set servo pulsewidth for finger {finger_id}: {e}")
+            logger.error(
+                f"Failed to set servo pulsewidth for finger {finger_id}: {e}"
+            )
         self.finger_angles[finger_id] = angle
 
     def set_finger(self, finger_id, angle):
@@ -131,7 +135,9 @@ class HandController:
             angle: servo angle (open_angle to closed_angle)
         """
         if not isinstance(finger_id, int):
-            raise TypeError(f"finger_id must be an int, got {type(finger_id).__name__}")
+            raise TypeError(
+                f"finger_id must be an int, got {type(finger_id).__name__}"
+            )
         if not (0 <= finger_id < 3):
             raise IndexError(f"finger_id {finger_id} out of bounds")
 
@@ -198,10 +204,14 @@ class HandController:
         log_event("motion", "hand releasing!")
         speed = max(0.1, self.grab_speed)
         with self._motion_lock:
-            while True:
+            max_iters = 500  # safety valve: ~10s at 20ms/iter
+            iters = 0
+            while iters < max_iters:
                 with self._lock:
                     current_angles = list(self.finger_angles)
-                    all_open = all(abs(a - self.open_angle) < 0.1 for a in current_angles)
+                    all_open = all(
+                        abs(a - self.open_angle) < 0.1 for a in current_angles
+                    )
                 if all_open:
                     break
 
@@ -219,6 +229,7 @@ class HandController:
                 with self._lock:
                     for i in range(3):
                         self._set_finger(i, current_angles[i])
+                iters += 1
                 time.sleep(0.02)
 
             with self._lock:

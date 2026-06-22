@@ -59,8 +59,11 @@ _project_root = Path(__file__).resolve().parent.parent
 
 # load config
 _config_path = _project_root / "config" / "simba_config.yaml"
-with open(_config_path, "r") as _f:
-    _config = yaml.safe_load(_f)
+try:
+    with open(_config_path, "r") as _f:
+        _config = yaml.safe_load(_f)
+except FileNotFoundError:
+    _config = {"ai": {"vision_model_path": "models/mobilenetv2_feature_extractor.tflite"}}
 
 
 class VisionTrainer:
@@ -313,11 +316,21 @@ class VisionTrainer:
         
         # calculate max allowed folds based on smallest class count in training set
         min_class_count = min([list(y_train).count(c) for c in set(y_train)])
-        safe_cv = max(2, min(cv_folds, min_class_count)) if min_class_count >= 2 else "prefit"
-        
-        model = CalibratedClassifierCV(
-            base_svc, cv=safe_cv, n_jobs=-1)
-        model.fit(x_train, y_train)
+
+        if min_class_count >= 2:
+            safe_cv = max(2, min(cv_folds, min_class_count))
+            model = CalibratedClassifierCV(
+                base_svc, cv=safe_cv, n_jobs=-1)
+            model.fit(x_train, y_train)
+        else:
+            # Not enough samples for CV — fit base SVC first, then use prefit
+            logger.warning(
+                "min class count in training set is %d, using prefit calibration",
+                min_class_count)
+            base_svc.fit(x_train, y_train)
+            model = CalibratedClassifierCV(
+                base_svc, cv="prefit")
+            model.fit(x_train, y_train)
 
         # clear memory
         del x_train, y_train

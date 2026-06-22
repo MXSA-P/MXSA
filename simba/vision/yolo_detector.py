@@ -32,8 +32,14 @@ class YoloDetector:
 
         with _yolo_lock:
             try:
-                with torch.no_grad():
+                ctx = torch.no_grad() if torch is not None else None
+                if ctx is not None:
+                    ctx.__enter__()
+                try:
                     results = self.model(frame_np, verbose=False)
+                finally:
+                    if ctx is not None:
+                        ctx.__exit__(None, None, None)
                 detections = []
                 for r in results:
                     boxes = r.boxes
@@ -65,7 +71,7 @@ class YoloDetector:
         """
         detections = self.detect_objects(frame_np)
         for det in detections:
-            if det["label"] == target_label and det["confidence"] >= threshold:
+            if det["label"].lower() == target_label.lower() and det["confidence"] >= threshold:
                 return True, det["confidence"], det["bbox"]
         return False, 0.0, []
 

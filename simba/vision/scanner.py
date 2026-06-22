@@ -10,6 +10,7 @@ scan angles are loaded from config (ai.scan_sweep_angles).
 """
 
 import time
+import math
 import threading
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -136,7 +137,7 @@ class AreaScanner:
                 all_detections.extend(detections)
 
         if camera_failed:
-            return None
+            return []
 
         # return arm to centre
         mid_angle = self.angles[len(self.angles) // 2] if self.angles else 90
@@ -361,7 +362,7 @@ class AreaScanner:
         frame = self.camera.capture_frame()
         if frame is None:
             logger.warning("no frame at angle %d°", angle)
-            return None
+            return []
 
         detections = self.detector.detect_objects(frame)
         if detections is None:
@@ -393,7 +394,6 @@ class AreaScanner:
         for det in detections:
             self._last_known_positions[det["label"].lower()] = det["angle"]
 
-        import math
 
         if self.memory is None:
             return

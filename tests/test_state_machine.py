@@ -3,32 +3,36 @@
 import time
 from simba.core.state_machine import StateMachine
 
+
 def test_initial_state():
     sm = StateMachine()
     assert sm.get_state() == "BOOTING"
-    assert sm.is_busy() == False
-    assert sm.can_accept_command() == False
+    assert sm.is_busy() is False
+    assert sm.can_accept_command() is False
+
 
 def test_valid_transitions():
     sm = StateMachine()
     # BOOTING -> IDLE
-    assert sm.transition("IDLE") == True
+    assert sm.transition("IDLE") is True
     assert sm.get_state() == "IDLE"
-    
+
     # IDLE -> SCANNING
-    assert sm.transition("SCANNING") == True
+    assert sm.transition("SCANNING") is True
     assert sm.get_state() == "SCANNING"
-    
+
     # SCANNING -> FETCHING
-    assert sm.transition("FETCHING") == True
+    assert sm.transition("FETCHING") is True
     assert sm.get_state() == "FETCHING"
-    assert sm.is_busy() == True
+    assert sm.is_busy() is True
+
 
 def test_invalid_transitions():
     sm = StateMachine()
     # BOOTING -> FETCHING is invalid
-    assert sm.transition("FETCHING") == False
+    assert sm.transition("FETCHING") is False
     assert sm.get_state() == "BOOTING"
+
 
 def test_context_handling():
     sm = StateMachine()
@@ -37,11 +41,13 @@ def test_context_handling():
     assert sm.get_state() == "FETCHING"
     assert sm.get_context() == {"target": "bottle"}
 
+
 def test_state_duration():
     sm = StateMachine()
     time.sleep(0.01)
     duration = sm.get_state_duration()
     assert duration > 0
+
 
 def test_history():
     sm = StateMachine()

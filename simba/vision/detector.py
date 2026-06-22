@@ -12,7 +12,6 @@ Models are lazy-loaded: if model files are missing the module degrades
 gracefully (returns 'unknown' labels with zero confidence).
 """
 
-import gc
 import json
 import os
 import threading
@@ -42,7 +41,7 @@ except ImportError:
 try:
     from PIL import Image
 except ImportError:
-    Image = None
+    Image = None  # type: ignore
 
 logger = get_logger("simba.vision.detector")
 
@@ -91,7 +90,7 @@ class ObjectDetector:
         classifier:          scikit-learn svm pipeline (or none).
         labels:              list of known class labels.
         confidence_threshold: minimum svm probability to accept a detection.
-        input_size:          expected input image size (w, h) — typically (224, 224).
+        input_size:          expected input size (w, h) — typically (224, 224).
         feature_dim:         output feature vector dimensionality (1280).
     """
 
@@ -102,7 +101,8 @@ class ObjectDetector:
 
         feature_model = ai_cfg.get(
             "vision_model_path", "models/mobilenetv2_feature_extractor.tflite")
-        if not isinstance(feature_model, str) or not feature_model.lower().endswith(".tflite"):
+        if not isinstance(feature_model, str) or not \
+                feature_model.lower().endswith(".tflite"):
             logger.error("invalid vision_model_path format: %s", feature_model)
             feature_model = "models/mobilenetv2_feature_extractor.tflite"
 
@@ -112,9 +112,11 @@ class ObjectDetector:
             if os.path.isfile(fallback_path):
                 try:
                     os.rename(fallback_path, self._feature_model_path)
-                    logger.info(f"Renamed {fallback_path} to {self._feature_model_path}")
+                    logger.info(f"Renamed {fallback_path} to "
+                                f"{self._feature_model_path}")
                 except Exception as e:
-                    logger.warning(f"Failed to rename model, using fallback path: {e}")
+                    logger.warning(f"Failed to rename model, using fallback "
+                                   f"path: {e}")
                     self._feature_model_path = fallback_path
 
         self._classifier_path: str = _resolve_path(
@@ -158,7 +160,7 @@ class ObjectDetector:
             self.yolo = YoloDetector()
         except Exception as e:
             logger.warning(f"Failed to load YoloDetector: {e}")
-            self.yolo = None
+            self.yolo = None  # type: ignore
 
         log_event("vision", "object detector initialised", {
             "feature_model": os.path.basename(self._feature_model_path),
@@ -191,13 +193,15 @@ class ObjectDetector:
             self.interpreter = tflite.Interpreter(
                 model_path=self._feature_model_path)
 
+            assert self.interpreter is not None
             try:
                 self.interpreter.allocate_tensors()
             except RuntimeError as exc:
                 err_str = str(exc).lower()
                 if ("delegate" in err_str or "unresolved custom op" in err_str
                         or "custom op" in err_str):
-                    logger.error("hardware delegate failed silently or unsupported ops: %s", exc)
+                    logger.error("hardware delegate failed silently or "
+                                 "unsupported ops: %s", exc)
                     self.interpreter = None
                     return False
                 raise exc
@@ -253,8 +257,8 @@ class ObjectDetector:
 
         if not os.path.isfile(self._classifier_path):
             logger.info(
-                "classifier not found (expected on fresh install, falling back "
-                "to YOLO): %s", self._classifier_path)
+                "classifier not found (expected on fresh install, "
+                "falling back to YOLO): %s", self._classifier_path)
             return False
 
         try:
@@ -263,7 +267,7 @@ class ObjectDetector:
 
             # if no explicit label map, try to get labels from the classifier
             if not self.labels and hasattr(self.classifier, "classes_"):
-                self.labels = list(self.classifier.classes_)
+                self.labels = list(self.classifier.classes_)  # type: ignore
 
             return True
 
@@ -300,10 +304,12 @@ class ObjectDetector:
         if self._input_dtype == np.uint8:
             input_data = np.expand_dims(resized.astype(np.uint8), axis=0)
         elif self._input_dtype == np.int8:
-            input_data = np.expand_dims((resized.astype(np.int32) - 128).astype(np.int8), axis=0)
+            input_data = np.expand_dims(
+                (resized.astype(np.int32) - 128).astype(np.int8), axis=0)
         else:
             # default float32 normalised to [0, 1]
-            input_data = np.expand_dims(resized.astype(np.float32) / 255.0, axis=0)
+            input_data = np.expand_dims(
+                resized.astype(np.float32) / 255.0, axis=0)
 
         try:
             with self._lock:
@@ -314,7 +320,7 @@ class ObjectDetector:
                 if output is None:
                     return np.zeros(self.feature_dim, dtype=np.float32)
 
-                # explicitly copy to avoid memory leak of internal tflite buffers
+                # copy to avoid memory leak of internal tflite buffers
                 features = np.copy(output).flatten().astype(np.float32)
 
                 # prevent bounds errors
@@ -395,7 +401,8 @@ class ObjectDetector:
                 'confidence' — float 0–1.
                 'bbox'       — [x, y, w, h] in pixel coordinates.
         """
-        if frame is None or not hasattr(frame, 'shape') or len(frame.shape) < 2:
+        if frame is None or not hasattr(frame, 'shape') or \
+                len(frame.shape) < 2:
             return []
 
         h, w = frame.shape[:2]
@@ -428,10 +435,11 @@ class ObjectDetector:
             if label in self._trackers:
                 prev_bbox = self._trackers[label]
                 new_bbox = [
-                    int(prev * (1 - self._smoothing_factor) + curr * self._smoothing_factor)
+                    int(prev * (1 - self._smoothing_factor) +
+                        curr * self._smoothing_factor)
                     for prev, curr in zip(prev_bbox, bbox)
                 ]
-                self._trackers[label] = new_bbox
+                self._trackers[label] = new_bbox  # type: ignore
                 det["bbox"] = new_bbox
             else:
                 self._trackers[label] = [float(v) for v in bbox]

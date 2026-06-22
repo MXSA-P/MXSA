@@ -6,6 +6,7 @@ and mjpeg camera stream. pushes status updates every second
 via websocket to all connected clients.
 """
 
+from simba.utils.logger import get_logger, log_event, get_log_history
 import os
 import secrets
 import threading
@@ -28,26 +29,33 @@ except ImportError:
         def __init__(self, *args, **kwargs):
             """initialize stub."""
             pass
+
         def on(self, *args, **kwargs):
             """stub for on decorator."""
             return lambda f: f
+
         def on_error_default(self, f):
             """stub for on_error_default decorator."""
             return f
+
         def start_background_task(self, target, *args, **kwargs):
             """stub for start_background_task."""
             t = threading.Thread(target=target, args=args, kwargs=kwargs, daemon=True)
             t.start()
             return t
+
         def sleep(self, seconds):
             """stub for sleep."""
             time.sleep(seconds)
+
         def run(self, app, host=None, port=None, debug=None, **kwargs):
             """stub for run."""
             app.run(host=host, port=port, debug=debug)
+
         def emit(self, *args, **kwargs):
             """stub for emit."""
             pass
+
     def emit(*args, **kwargs):
         """stub for emit."""
         pass
@@ -58,18 +66,30 @@ except ImportError:
 try:
     from flask_httpauth import HTTPBasicAuth
 except ImportError:
+    from functools import wraps as _wraps
     class HTTPBasicAuth:
         def __init__(self):
             """initialize stub."""
-            pass
+            self._verify_func = None
+
         def login_required(self, f):
-            """stub for login_required."""
-            return f
+            """deny all requests when flask_httpauth is not installed."""
+            @_wraps(f)
+            def _denied(*args, **kwargs):
+                return Response(
+                    'Authentication required (flask_httpauth not installed)',
+                    401,
+                    {'WWW-Authenticate': 'Basic realm="Login Required"'}
+                )
+            return _denied
+
         def verify_password(self, f):
             """stub for verify_password."""
+            self._verify_func = f
             return f
 
 auth = HTTPBasicAuth()
+
 
 @auth.verify_password
 def verify_password(username: str, password: str) -> Optional[str]:
@@ -82,11 +102,17 @@ def verify_password(username: str, password: str) -> Optional[str]:
     returns:
         username if valid, else None.
     """
-    if secrets.compare_digest(username, "admin") and secrets.compare_digest(password, "mxsa123"):
+    valid_user = os.environ.get("SIMBA_WEB_USER", "admin")
+    valid_pass = os.environ.get("SIMBA_WEB_PASS")
+    
+    # If no password is provided via environment, deny all by using a random unguessable string
+    if not valid_pass:
+        valid_pass = secrets.token_hex(32)
+
+    if secrets.compare_digest(username, valid_user) and secrets.compare_digest(password, valid_pass):
         return username
     return None
 
-from simba.utils.logger import get_logger, log_event, get_log_history
 
 logger = get_logger("simba.web.server")
 
@@ -101,8 +127,15 @@ _config_path = os.path.join(
     "config",
     "simba_config.yaml")
 
-with open(_config_path, "r") as _f:
-    _config = yaml.safe_load(_f)
+try:
+    with open(_config_path, "r") as _f:
+        _config = yaml.safe_load(_f)
+except FileNotFoundError:
+    logger.warning("config file not found at %s — using defaults", _config_path)
+    _config = {}
+except Exception as _exc:
+    logger.warning("failed to load config: %s — using defaults", _exc)
+    _config = {}
 
 _web_config = _config.get("web", {})
 
@@ -137,14 +170,16 @@ else:
         returns:
             the modified flask response object.
         """
-        response.headers['Access-Control-Allow-Origin'] = '*'
+        _cors_origin = _web_config.get("cors_origins", "*")
+        response.headers['Access-Control-Allow-Origin'] = _cors_origin
         response.headers['Access-Control-Allow-Headers'] = '*'
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
         return response
 app.url_map.strict_slashes = False
-app.config["SECRET_KEY"] = "simba_mxsa_dashboard_2026"
+app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", secrets.token_hex(32))
 
 socketio = SocketIO(app, cors_allowed_origins=_web_config.get("cors_origins", "*"), async_mode="threading")
+
 
 @socketio.on_error_default
 def default_error_handler(e):
@@ -154,6 +189,7 @@ def default_error_handler(e):
         e: the error that occurred.
     """
     logger.error(f"WebSocket error: {e}")
+
 
 # ---------------------------------------------------------------------------
 # brain reference — set by main entry point via get_brain_ref()
@@ -300,6 +336,7 @@ def _get_robot_state() -> dict:
 _last_slow_update = 0.0
 _slow_payload_cache = {"system": {}, "robot_base": {}, "logs": []}
 
+
 def _build_status_payload() -> dict:
     """build the comprehensive status payload for the dashboard.
 
@@ -308,12 +345,12 @@ def _build_status_payload() -> dict:
     """
     global _last_slow_update, _slow_payload_cache
     now = time.time()
-    
+
     if now - _last_slow_update > 1.0:
         system = _get_system_stats()
         robot_base = _get_robot_state()
         logs = get_log_history(30)
-        
+
         # if brain has get_status(), use that for more complete data
         if _brain is not None and hasattr(_brain, "get_status"):
             try:
@@ -336,7 +373,7 @@ def _build_status_payload() -> dict:
                 })
             except Exception as exc:
                 logger.debug(f"brain get_status error: {exc}")
-                
+
         _slow_payload_cache = {"system": system, "robot_base": robot_base, "logs": logs}
         _last_slow_update = now
 
@@ -526,7 +563,7 @@ def _status_push_loop() -> None:
                 # We use str() on isolated high-freq dicts and combine hashes
                 r = payload.get("robot", {})
                 fast_str = str(r.get("servo_angles")) + str(r.get("motor_state")) + str(r.get("imu_data"))
-                slow_hash = _last_slow_update # Changes every 1s
+                slow_hash = _last_slow_update  # Changes every 1s
                 current_hash = hash(fast_str) ^ hash(slow_hash)
             except Exception:
                 current_hash = None  # Fallback if not serializable
@@ -570,7 +607,7 @@ def api_diagnostics_run():
     """run automated hardware diagnostics tests."""
     if _brain is None:
         return jsonify({"error": "brain not connected"}), 503
-        
+
     data = request.get_json(silent=True) or {}
     if not isinstance(data, dict):
         return jsonify({"error": "invalid payload format"}), 400
@@ -578,7 +615,7 @@ def api_diagnostics_run():
     if not isinstance(test_name, str):
         return jsonify({"error": "test must be a string"}), 400
     test_name = test_name.lower().replace(" ", "_")
-    
+
     if test_name == "arm_sweep":
         def run_sweep():
             """run a full arm sweep test."""
@@ -592,10 +629,10 @@ def api_diagnostics_run():
                 _brain.arm.move_smooth({"rotation": 90, "elbow": 90, "elbow_2": 90, "wrist": 90}, duration=0.5)
             except Exception as e:
                 logger.error(f"arm sweep failed: {e}")
-        
+
         threading.Thread(target=run_sweep, daemon=True).start()
         return jsonify({"status": "arm sweep started"})
-            
+
     elif test_name == "chassis_spin":
         def run_spin():
             """run a chassis spin test."""
@@ -607,10 +644,10 @@ def api_diagnostics_run():
                 _brain.chassis.stop()
             except Exception as e:
                 logger.error(f"chassis spin failed: {e}")
-                
+
         threading.Thread(target=run_spin, daemon=True).start()
         return jsonify({"status": "chassis spin started"})
-            
+
     elif test_name == "camera_feed":
         try:
             if hasattr(_brain, 'camera') and _brain.camera.is_active():
@@ -619,7 +656,7 @@ def api_diagnostics_run():
                 return jsonify({"error": "camera feed is offline"}), 500
         except Exception as e:
             return jsonify({"error": f"camera test failed: {e}"}), 500
-            
+
     elif test_name == "voice_module":
         try:
             if hasattr(_brain, 'listener') and _brain.listener.is_listening():
@@ -629,7 +666,7 @@ def api_diagnostics_run():
                 return jsonify({"error": "voice module is offline"}), 500
         except Exception as e:
             return jsonify({"error": f"voice test failed: {e}"}), 500
-            
+
     elif test_name == "path_recorder":
         try:
             pr = _brain.path_recorder
@@ -712,7 +749,7 @@ def api_hardware_servo_test():
     """test raw servo limits and angles directly using the formula."""
     if _brain is None:
         return jsonify({"error": "brain not connected"}), 503
-    
+
     data = request.get_json(silent=True) or {}
     if not isinstance(data, dict):
         return jsonify({"error": "invalid payload format"}), 400
@@ -723,10 +760,10 @@ def api_hardware_servo_test():
         p_min = int(data.get("pulse_min", 500))
         p_max = int(data.get("pulse_max", 2500))
         angle = float(data.get("angle", 90))
-        
+
         # calculate pulse using the standard formula
         pulse = int(round(p_min + (angle / 180.0) * (p_max - p_min)))
-        
+
         # actuate directly using pigpio instance
         if hasattr(_brain, "arm") and hasattr(_brain.arm, "pi"):
             _brain.arm.pi.set_servo_pulsewidth(pin, pulse)
@@ -850,7 +887,7 @@ def handle_connect():
     if not auth_ok:
         logger.warning("websocket connection rejected: auth failed")
         return False
-        
+
     logger.info("dashboard client connected")
     log_event("web", "dashboard client connected")
     _connected_clients.add(request.sid)
@@ -881,7 +918,7 @@ def handle_command_ws(data):
     command = data.get("command")
     if not isinstance(command, str):
         return
-        
+
     # Sanitize incoming command
     command = "".join(char for char in command if char.isprintable()).strip().lower()
     if not command:
@@ -905,7 +942,7 @@ def handle_servo_stream():
     if sid is None or sid in _streaming_clients["servo"]:
         return
     _streaming_clients["servo"].add(sid)
-    
+
     while sid in _streaming_clients["servo"]:
         if _brain is not None and hasattr(_brain, "arm"):
             try:
@@ -1005,10 +1042,10 @@ def api_command():
     if not isinstance(data, dict):
         return jsonify({"error": "invalid payload format"}), 400
     command = data.get("command")
-    
+
     if not isinstance(command, str):
         return jsonify({"error": "command must be a string"}), 400
-        
+
     # Sanitize incoming command
     command = "".join(char for char in command if char.isprintable()).strip()
     if not command:
@@ -1050,6 +1087,7 @@ def api_path():
 
 
 @app.route("/video_feed")
+@auth.login_required
 def video_feed():
     """serve mjpeg camera stream."""
     return Response(

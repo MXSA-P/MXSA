@@ -108,7 +108,8 @@ class VoiceListener:
         })
 
     def _audio_callback(
-        self, indata: np.ndarray, frames: int, time_info: Dict[str, Any], status: Any
+        self, indata: np.ndarray, frames: int,
+        time_info: Dict[str, Any], status: Any
     ) -> None:
         """sounddevice input stream callback — process incoming audio.
 
@@ -121,7 +122,10 @@ class VoiceListener:
         if status:
             logger.warning("portaudio status: %s", status)
             if hasattr(status, 'input_overflow') and status.input_overflow:
-                logger.warning("buffer overrun detected (input overflow) - clearing audio queue")
+                logger.warning(
+                    "buffer overrun detected (input overflow) - "
+                    "clearing audio queue"
+                )
                 self._audio_queue.clear()
 
         # Guard against invalid frame sizes and bad input types
@@ -136,8 +140,10 @@ class VoiceListener:
 
         # Guard against size mismatch
         if indata.shape[0] != frames:
-            logger.debug("invalid frame size or mismatch: frames=%s, indata.shape=%s",
-                         frames, indata.shape)
+            logger.debug(
+                "invalid frame size or mismatch: frames=%s, indata.shape=%s",
+                frames, indata.shape
+            )
             return
 
         # convert float32 numpy array to int16 bytes for vosk
@@ -147,7 +153,8 @@ class VoiceListener:
             if np.isnan(indata).any() or np.isinf(indata).any():
                 return
 
-            # INMP441 wired with L/R to GND outputs exclusively on the Left channel (index 0)
+            # INMP441 wired with L/R to GND outputs exclusively
+            # on the Left channel (index 0)
             if indata.shape[1] >= 2:
                 audio_data = indata[:, 0]
             else:
@@ -162,7 +169,9 @@ class VoiceListener:
 
             # update ambient energy (dynamic threshold)
             # adapt slowly to background noise
-            self._ambient_energy = self._ambient_energy * 0.995 + energy * 0.005
+            self._ambient_energy = (
+                self._ambient_energy * 0.995 + energy * 0.005
+            )
             self._energy_threshold = max(0.01, self._ambient_energy * 2.5)
 
             if energy > self._energy_threshold:
@@ -170,17 +179,22 @@ class VoiceListener:
                 self._silence_frames = 0
             else:
                 self._silence_frames += 1
-                if self._silence_frames > 5:  # about 1 sec of silence at 4000 chunks/16khz
+                # about 1 sec of silence at 4000 chunks/16khz
+                if self._silence_frames > 5:
                     self._is_speaking = False
 
             audio_data_clipped = np.clip(audio_data * 32767, -32768, 32767)
             audio_bytes = audio_data_clipped.astype(np.int16).tobytes()
             if len(self._audio_queue) == self._audio_queue.maxlen:
-                logger.warning("audio queue full, buffer overrun. dropping oldest frame")
+                logger.warning(
+                    "audio queue full, buffer overrun. dropping oldest frame"
+                )
             self._audio_queue.append(audio_bytes)
         except Exception as exc:
             logger.error("audio processing error: %s", exc)
-            raise sd.CallbackAbort
+            # Don't raise CallbackAbort — a single corrupt chunk
+            # shouldn't permanently kill the audio stream
+            return
 
     def _process_audio(self) -> None:
         """background thread for processing audio queue with vosk."""
@@ -191,7 +205,8 @@ class VoiceListener:
                 time.sleep(0.01)
                 continue
 
-            # Guard against unexpected byte lengths for 16-bit PCM (must be a multiple of 2)
+            # Guard against unexpected byte lengths for 16-bit PCM
+            # (must be a multiple of 2)
             if (not isinstance(audio_bytes, bytes) or len(audio_bytes) == 0 or
                     len(audio_bytes) % 2 != 0):
                 continue
@@ -223,14 +238,16 @@ class VoiceListener:
         logger.info("recognized: '%s'", text)
         log_event("voice", "speech recognized", {"text": text})
 
-        for callback in self._callbacks:
+        for callback in list(self._callbacks):
             def _run(cb, t):
                 try:
                     cb(t)
                 except Exception as exc:
                     logger.error("callback error for text '%s': %s", t, exc)
 
-            threading.Thread(target=_run, args=(callback, text), daemon=True).start()
+            threading.Thread(
+                target=_run, args=(callback, text), daemon=True
+            ).start()
 
     def start(self) -> bool:
         """begin continuous listening on the i2s microphone.
@@ -258,18 +275,23 @@ class VoiceListener:
                 for i, dev in enumerate(devices):
                     name = dev['name'].lower()
                     if dev['max_input_channels'] > 0 and (
-                            'i2s' in name or 'inmp441' in name or 'snd' in name or 'mic' in name):
+                            'i2s' in name or 'inmp441' in name or
+                            'snd' in name or 'mic' in name):
                         device_id = i
                         logger.info(
-                            "Found potential I2S microphone at device index %d: %s",
+                            "Found potential I2S microphone "
+                            "at device index %d: %s",
                             i, dev['name']
                         )
-                        if 'i2s' in name or 'snd' in name or 'voicehat' in name:
+                        if ('i2s' in name or 'snd' in name or
+                                'voicehat' in name):
                             is_i2s = True
                             self.channels = 2
                             self.sample_rate = 48000
                             from vosk import KaldiRecognizer
-                            self.recognizer = KaldiRecognizer(self.model, self.sample_rate)
+                            self.recognizer = KaldiRecognizer(
+                                self.model, self.sample_rate
+                            )
                         break
             except Exception as e:
                 logger.warning("Failed to query devices for I2S mic: %s", e)
@@ -285,13 +307,19 @@ class VoiceListener:
                 )
             except Exception as e_default:
                 if not is_i2s:
-                    logger.warning("failed to open audio stream (device=%s): %s",
-                                   device_id, e_default)
+                    logger.warning(
+                        "failed to open audio stream (device=%s): %s",
+                        device_id, e_default
+                    )
                     if "sample rate" in str(e_default).lower():
-                        logger.warning("Falling back to 48000Hz for compatibility.")
+                        logger.warning(
+                            "Falling back to 48000Hz for compatibility."
+                        )
                         self.sample_rate = 48000
                         from vosk import KaldiRecognizer
-                        self.recognizer = KaldiRecognizer(self.model, self.sample_rate)
+                        self.recognizer = KaldiRecognizer(
+                            self.model, self.sample_rate
+                        )
 
                 try:
                     self._stream = sd.InputStream(
@@ -306,23 +334,21 @@ class VoiceListener:
                     if ("device -1" in str(e_fallback) or
                             "Error querying device" in str(e_fallback)):
                         logger.warning(
-                            "No microphone detected (device -1). Voice listener disabled.")
+                            "No microphone detected (device -1). "
+                            "Voice listener disabled."
+                        )
                     else:
-                        logger.error("failed to open 2-channel audio fallback: %s", e_fallback)
+                        logger.error(
+                            "failed to open 2-channel audio fallback: %s",
+                            e_fallback
+                        )
                     return False
-
-            # Close any existing stream before creating a new one (safety measure)
-            if (getattr(self, '_stream', None) is not None and
-                    getattr(self._stream, 'active', False)):
-                try:
-                    self._stream.stop()
-                    self._stream.close()
-                except Exception:
-                    pass
 
             self._stream.start()
             self._listening = True
-            self._process_thread = threading.Thread(target=self._process_audio, daemon=True)
+            self._process_thread = threading.Thread(
+                target=self._process_audio, daemon=True
+            )
             self._process_thread.start()
             logger.info("voice listener started (rate=%d, chunk=%d)",
                         self.sample_rate, self.chunk_size)

@@ -37,13 +37,14 @@ class HybridDetector:
         else:
             logger.info("[fallback] Hybrid Detector (SVM Only) initialized")
 
-
     def __del__(self):
         """Clean up resources by shutting down the executor."""
-        if hasattr(self, 'executor'):
+        if hasattr(self, "executor"):
             self.executor.shutdown(wait=False)
 
-    def detect_objects(self, frame_np: Optional[np.ndarray]) -> List[Dict[str, Any]]:
+    def detect_objects(
+        self, frame_np: Optional[np.ndarray]
+    ) -> List[Dict[str, Any]]:
         """Detect objects using both models.
 
         Since SVM only returns one main dominant object without bounding boxes,
@@ -51,16 +52,18 @@ class HybridDetector:
         """
         if frame_np is None:
             return []
-        
+
         detections: List[Dict[str, Any]] = []
 
         yolo_future = None
         if self.yolo:
             try:
-                yolo_future = self.executor.submit(self.yolo.detect_objects, frame_np)
+                yolo_future = self.executor.submit(
+                    self.yolo.detect_objects, frame_np
+                )
             except Exception as e:
                 logger.error(f"Failed to submit YOLO detect_objects task: {e}")
-            
+
         try:
             svm_label, svm_conf = self.svm.classify(frame_np)
         except Exception as e:
@@ -85,7 +88,7 @@ class HybridDetector:
                 logger.error("YOLO detection was cancelled.")
             except Exception as e:
                 logger.error(f"YOLO detection failed: {e}")
-            
+
         try:
             svm_conf_float = float(svm_conf)
             if math.isnan(svm_conf_float):
@@ -98,14 +101,21 @@ class HybridDetector:
         if svm_label != "unknown" and svm_conf > 0.5:
             # check if YOLO already found this exact label (unlikely for custom
             # objects, but possible)
-            if not any(d["label"] == svm_label for d in detections):
+            if not any(d.get("label") == svm_label for d in detections):
                 h, w = frame_np.shape[:2]
                 # SVM doesn't have boxes, we provide a full-frame pseudo-box
-                detections.append({
-                    "label": svm_label,
-                    "confidence": svm_conf,
-                    "bbox": [int(w * 0.1), int(h * 0.1), int(w * 0.8), int(h * 0.8)]
-                })
+                detections.append(
+                    {
+                        "label": svm_label,
+                        "confidence": svm_conf,
+                        "bbox": [
+                            int(w * 0.1),
+                            int(h * 0.1),
+                            int(w * 0.8),
+                            int(h * 0.8),
+                        ],
+                    }
+                )
 
         return detections
 
@@ -113,7 +123,7 @@ class HybridDetector:
         self,
         frame_np: Optional[np.ndarray],
         target_label: str,
-        threshold: float = 0.5
+        threshold: float = 0.5,
     ) -> Tuple[bool, float, Optional[List[float]]]:
         """check if a specific object is in the frame using both models."""
         if frame_np is None:
@@ -123,25 +133,33 @@ class HybridDetector:
         if self.yolo:
             try:
                 yolo_future = self.executor.submit(
-                    self.yolo.is_object_in_frame, frame_np, target_label, threshold
+                    self.yolo.is_object_in_frame,
+                    frame_np,
+                    target_label,
+                    threshold,
                 )
             except Exception as e:
-                logger.error(f"Failed to submit YOLO is_object_in_frame task: {e}")
+                logger.error(
+                    f"Failed to submit YOLO is_object_in_frame task: {e}"
+                )
 
         try:
             svm_label, svm_conf = self.svm.classify(frame_np)
             try:
                 svm_conf_float = float(svm_conf)
-                if math.isnan(svm_conf_float): svm_conf_float = 0.0
+                if math.isnan(svm_conf_float):
+                    svm_conf_float = 0.0
             except (ValueError, TypeError):
                 svm_conf_float = 0.0
             svm_conf_float = max(0.0, min(1.0, svm_conf_float))
             if svm_label == target_label and svm_conf_float >= threshold:
+                if yolo_future:
+                    yolo_future.cancel()
                 h, w = frame_np.shape[:2]
                 return (
                     True,
                     svm_conf_float,
-                    [int(w * 0.1), int(h * 0.1), int(w * 0.8), int(h * 0.8)]
+                    [int(w * 0.1), int(h * 0.1), int(w * 0.8), int(h * 0.8)],
                 )
         except Exception as e:
             logger.error(f"SVM is_object_in_frame failed: {e}")
@@ -178,15 +196,18 @@ class HybridDetector:
         yolo_future = None
         if self.yolo:
             try:
-                yolo_future = self.executor.submit(self.yolo.classify, frame_np)
+                yolo_future = self.executor.submit(
+                    self.yolo.classify, frame_np
+                )
             except Exception as e:
                 logger.error(f"Failed to submit YOLO classify task: {e}")
-            
+
         try:
             svm_label, svm_conf = self.svm.classify(frame_np)
             try:
                 svm_conf_float = float(svm_conf)
-                if math.isnan(svm_conf_float): svm_conf_float = 0.0
+                if math.isnan(svm_conf_float):
+                    svm_conf_float = 0.0
             except (ValueError, TypeError):
                 svm_conf_float = 0.0
             svm_conf_float = max(0.0, min(1.0, svm_conf_float))

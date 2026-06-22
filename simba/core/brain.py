@@ -94,7 +94,9 @@ class HardwareLockProxy:
 
 class _MockArm:
     """mock class for _MockArm."""
-    current = {"rotation": 90, "elbow": 90, "wrist": 90}
+    def __init__(self):
+        """initialize."""
+        self.current = {"rotation": 90, "elbow": 90, "wrist": 90}
     def rotate(self, a):
         """rotate."""
         self.current["rotation"] = a
@@ -143,7 +145,7 @@ class _MockArm:
         """shake_head."""
         log_event("motion", "mock shake_head")
 
-    def move_to_xyz(self, x, y, z):
+    def move_to_xyz(self, x, y, z, wrist_roll=None):
         """move_to_xyz."""
         log_event("motion", f"mock move_to_xyz {x},{y},{z}")
 
@@ -311,7 +313,9 @@ class _MockIMU:
 
 class _MockCamera:
     """mock class for _MockCamera."""
-    _running = False
+    def __init__(self):
+        """initialize."""
+        self._running = False
     def start(self):
         """start."""
         self._running = True
@@ -325,11 +329,9 @@ class _MockCamera:
         return np.zeros((480, 640, 3), dtype=np.uint8)
 
 
-    def capture_for_inference(
-        self, size=(
-            """capture_for_inference."""
-            224, 224)): return np.zeros(
-        (size[1], size[0], 3), dtype=np.float32)
+    def capture_for_inference(self, size=(224, 224)):
+        """capture_for_inference."""
+        return np.zeros((size[1], size[0], 3), dtype=np.float32)
 
     def get_mjpeg_frame(self):
         """get_mjpeg_frame."""
@@ -820,7 +822,7 @@ class SimbaBrain:
                     elif gesture == "fall":
                         self._worker_pool.submit(lambda: (
                             self.generate_thought("help, i've fallen!"),
-                            self.emotions.update_from_event("fallen"),
+                            self.emotions.update_from_event("fell"),
                             self.state.can_accept_command() and self._handle_stop()
                         ))
 
@@ -1359,7 +1361,7 @@ class SimbaBrain:
         self.emotions.update_from_event("playing")
         log_event("action", "play mode activated")
 
-        play_duration = self.config["behavior"].get("play_mode_timeout", 120)
+        play_duration = self.config.get("behavior", {}).get("play_mode_timeout", 120)
         start = time.time()
 
         while self._running and time.time() - start < play_duration:
@@ -1479,6 +1481,7 @@ class SimbaBrain:
         self.arm.home()
         if self.state.get_state() == "PLAYING":
             self.state.transition("IDLE")
+        self._idle_since = time.time()
 
     def _handle_who_am_i(self):
         """Respond to who am i."""
@@ -1505,7 +1508,6 @@ class SimbaBrain:
 
     def _handle_joke(self):
         """Tell a random joke."""
-        import random
         jokes = [
             "Why do robots never get afraid? Because they have nerves of steel.",
             "What is a robot's favorite kind of music? Heavy metal.",
@@ -1513,9 +1515,10 @@ class SimbaBrain:
             "I'm reading a book on anti-gravity. I can't put it down."]
         msg = random.choice(jokes)
         self.generate_thought(msg)
-        self.emotions.set_emotion("playful", 0.9)
+        self.emotions.set_emotion("excited", 0.9)
         self.hand.thumbs_up()
         self.state.transition("idle")
+        self._idle_since = time.time()
 
     def _handle_follow(self):
         """Track and follow the user or an object autonomously."""
@@ -1560,13 +1563,13 @@ class SimbaBrain:
 
     def _handle_time(self):
         """Respond with the current time."""
-        import datetime
-        now = datetime.datetime.now().strftime("%I:%M %p")
+        now = time.strftime("%I:%M %p")
         msg = f"The current time is {now}."
         self.generate_thought(msg)
         self.hand.point()
         self.arm.nod()
         self.state.transition("idle")
+        self._idle_since = time.time()
 
     def _handle_sing(self):
         """Sing a little song."""
@@ -1575,6 +1578,7 @@ class SimbaBrain:
         self.emotions.set_emotion("happy", 0.9)
         self.hand.rock()
         self.state.transition("idle")
+        self._idle_since = time.time()
 
     def _handle_story(self):
         """Tell a short story."""
@@ -1584,6 +1588,7 @@ class SimbaBrain:
         self.emotions.set_emotion("curious", 0.8)
         self.arm.wiggle()
         self.state.transition("idle")
+        self._idle_since = time.time()
 
     def _handle_status(self):
         """report current status."""
@@ -1791,8 +1796,8 @@ class SimbaBrain:
                 "prompt": prompt,
                 "stream": False,
                 "options": {
-                    "temperature": self.config["ai"].get("llm_temperature", 0.7),
-                    "num_predict": self.config["ai"].get("llm_max_tokens", 128),
+                    "temperature": self.config.get("ai", {}).get("llm_temperature", 0.7),
+                    "num_predict": self.config.get("ai", {}).get("llm_max_tokens", 128),
                     "num_ctx": 512,
                     "num_thread": 2
                 }

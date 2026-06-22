@@ -94,16 +94,33 @@ if ! grep -q "dtparam=i2s=on" "${BOOT_CFG}" 2>/dev/null; then
 fi
 
 # enable inmp441 i2s microphone
-if ! grep -q "dtoverlay=googlevoicehat-soundcard" "${BOOT_CFG}" 2>/dev/null; then
-    echo "dtoverlay=googlevoicehat-soundcard" >> "${BOOT_CFG}" || echo -e "${RED}Failed to enable I2S mic overlay${NC}"
-    echo -e "${GREEN}  ✓ inmp441 overlay enabled${NC}"
+# Note: googlevoicehat-soundcard is for the AIY Voice HAT, NOT the INMP441.
+# The INMP441 uses the generic i2s-mmap overlay.
+if ! grep -q "dtoverlay=i2s-mmap" "${BOOT_CFG}" 2>/dev/null; then
+    echo "dtoverlay=i2s-mmap" >> "${BOOT_CFG}" || echo -e "${RED}Failed to enable I2S mic overlay${NC}"
+    echo -e "${GREEN}  ✓ inmp441 i2s overlay enabled${NC}"
 fi
 
-# enable camera
-if ! grep -q "start_x=1" "${BOOT_CFG}" 2>/dev/null; then
-    echo "start_x=1" >> "${BOOT_CFG}" || echo -e "${RED}Failed to enable camera${NC}"
-    echo "gpu_mem=128" >> "${BOOT_CFG}"
-    echo -e "${GREEN}  ✓ camera enabled${NC}"
+# enable camera — detect OS version to use correct method
+OS_VERSION=$(grep VERSION_CODENAME /etc/os-release 2>/dev/null | cut -d= -f2)
+if [ "$OS_VERSION" = "bookworm" ] || [ "$OS_VERSION" = "trixie" ]; then
+    # Bookworm+ uses libcamera, NOT the legacy camera stack
+    if ! grep -q "camera_auto_detect=1" "${BOOT_CFG}" 2>/dev/null; then
+        echo "camera_auto_detect=1" >> "${BOOT_CFG}" || echo -e "${RED}Failed to enable camera${NC}"
+        echo -e "${GREEN}  ✓ camera enabled (libcamera)${NC}"
+    fi
+    # Remove legacy start_x if present (conflicts with libcamera)
+    if grep -q "start_x=1" "${BOOT_CFG}" 2>/dev/null; then
+        sed -i '/^start_x=1/d' "${BOOT_CFG}"
+        echo -e "${YELLOW}  ⚠ removed legacy start_x=1 (conflicts with libcamera on Bookworm)${NC}"
+    fi
+else
+    # Bullseye and earlier use the legacy camera stack
+    if ! grep -q "start_x=1" "${BOOT_CFG}" 2>/dev/null; then
+        echo "start_x=1" >> "${BOOT_CFG}" || echo -e "${RED}Failed to enable camera${NC}"
+        echo "gpu_mem=128" >> "${BOOT_CFG}"
+        echo -e "${GREEN}  ✓ camera enabled (legacy)${NC}"
+    fi
 fi
 
 # ---- install system dependencies ----
@@ -243,7 +260,7 @@ if [ ! -f "${MODELS_DIR}/mobilenetv2_feature_extractor.tflite" ]; then
     wget -q "https://storage.googleapis.com/download.tensorflow.org/models/tflite_11_05_08/mobilenet_v2_1.0_224.tgz" -O mn.tgz || { echo -e "${RED}wget failed${NC}"; exit 1; }
     tar xzf mn.tgz || { echo -e "${RED}tar extract failed${NC}"; exit 1; }
     mv mobilenet_v2_1.0_224.tflite "${MODELS_DIR}/mobilenetv2_feature_extractor.tflite" 2>/dev/null || true
-    rm -f mn.tgz *.tflite 2>/dev/null || true
+    rm -f mn.tgz mobilenet_v2_1.0_224.tflite 2>/dev/null || true
     echo -e "${GREEN}  ✓ mobilenetv2 model downloaded${NC}"
 else
     echo -e "${GREEN}  ✓ mobilenetv2 model already exists${NC}"

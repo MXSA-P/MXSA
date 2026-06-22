@@ -75,7 +75,7 @@ class CV2CameraProcess:
 
     def __init__(self, resolution, framerate):
         """initialise the cv2 camera process.
-        
+
         args:
             resolution: (width, height) for capture.
             framerate: target framerate.
@@ -101,7 +101,7 @@ class CV2CameraProcess:
 
     def capture_array(self):
         """read a frame from the cv2 capture and return as rgb array.
-        
+
         returns:
             rgb numpy array of the captured frame.
         """
@@ -136,11 +136,13 @@ class RamdiskCameraProcess:
         self._running = False
         self._thread = None
 
-        # Use /tmp as it is universally writable on Linux and mapped to RAM by default
+        # Use /tmp as it is universally writable on Linux and mapped to RAM by
+        # default
         self.shm_dir = "/tmp"
         self.target_file = f"{self.shm_dir}/simba_capture.jpg"
 
-        self._latest_frame = np.zeros((resolution[1], resolution[0], 3), dtype=np.uint8)
+        self._latest_frame = np.zeros(
+            (resolution[1], resolution[0], 3), dtype=np.uint8)
         self._lock = threading.Lock()
 
     def start(self):
@@ -153,10 +155,14 @@ class RamdiskCameraProcess:
                 pass
 
         self._running = True
-        self._thread = threading.Thread(target=self._capture_loop, daemon=True, name="rpicam-loop")
+        self._thread = threading.Thread(
+            target=self._capture_loop,
+            daemon=True,
+            name="rpicam-loop")
         self._thread.start()
 
-        # Wait up to 10 seconds for the first frame to ensure it actually works on slower Pis
+        # Wait up to 10 seconds for the first frame to ensure it actually works
+        # on slower Pis
         start_wait = time.time()
         while time.time() - start_wait < 10.0:
             if os.path.exists(self.target_file):
@@ -164,7 +170,8 @@ class RamdiskCameraProcess:
             time.sleep(0.1)
 
         self.stop()
-        raise RuntimeError("rpicam-still failed to capture a frame within 10 seconds")
+        raise RuntimeError(
+            "rpicam-still failed to capture a frame within 10 seconds")
 
     def _capture_loop(self):
         """continuously capture frames to ramdisk using rpicam-still."""
@@ -208,7 +215,7 @@ class RamdiskCameraProcess:
 
     def capture_array(self):
         """return the latest frame captured from ramdisk.
-        
+
         returns:
             rgb numpy array of the latest frame.
         """
@@ -241,7 +248,7 @@ class FallbackCameraProcess:
 
     def _find_executable(self):
         """find a suitable executable for streaming (rpicam-vid, libcamera-vid, or ffmpeg).
-        
+
         returns:
             tuple of (command_name, command_args_list) or (none, none) if not found.
         """
@@ -278,7 +285,7 @@ class FallbackCameraProcess:
 
     def capture_array(self):
         """read the next frame from the subprocess stream.
-        
+
         returns:
             rgb numpy array of the latest frame.
         """
@@ -304,17 +311,20 @@ class FallbackCameraProcess:
                 continue
 
             # Find the LAST end marker to cleanly bypass any embedded thumbnails.
-            # If we grab multiple frames, Image.open() automatically decodes the first one.
+            # If we grab multiple frames, Image.open() automatically decodes
+            # the first one.
             b = self._buffer.rfind(b'\xff\xd9')
             if b != -1 and b > a:
                 jpg = self._buffer[a:b + 2]
 
-                # Aggressively clear the buffer to drop stale frames and stay realtime
+                # Aggressively clear the buffer to drop stale frames and stay
+                # realtime
                 self._buffer = b""
 
                 try:
                     import cv2
-                    # Use buffer protocol (zero-copy) to convert bytes to numpy array
+                    # Use buffer protocol (zero-copy) to convert bytes to numpy
+                    # array
                     arr = np.frombuffer(jpg, dtype=np.uint8)
                     bgr = cv2.imdecode(arr, cv2.IMREAD_COLOR)
                     if bgr is not None:
@@ -328,9 +338,14 @@ class FallbackCameraProcess:
                         return np.array(img.convert("RGB"))
                     except Exception:
                         pass
-                return np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8)
+                return np.zeros(
+                    (self.resolution[1], self.resolution[0], 3), dtype=np.uint8)
 
-        return np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8)
+        return np.zeros(
+            (self.resolution[1],
+             self.resolution[0],
+             3),
+            dtype=np.uint8)
 
     def stop(self):
         """terminate the fallback subprocess and release resources."""
@@ -387,7 +402,8 @@ class CameraController:
         self._frame_lock = threading.Lock()
         self._capture_thread: Optional[threading.Thread] = None
 
-        # picamera2 instance (initialized in start() to prevent sequencer lockups)
+        # picamera2 instance (initialized in start() to prevent sequencer
+        # lockups)
         self.camera = None
 
         log_event("vision", "camera controller initialised", {
@@ -435,7 +451,8 @@ class CameraController:
                 success = True
                 break
             except Exception as e:
-                logger.warning(f"{name} camera failed: {e}. Trying next fallback...")
+                logger.warning(
+                    f"{name} camera failed: {e}. Trying next fallback...")
                 if self.camera:
                     try:
                         self.camera.stop()
@@ -451,7 +468,8 @@ class CameraController:
                     self.camera = Picamera2()
                     break
                 except Exception as exc:
-                    logger.warning("Picamera2 init attempt %d failed: %s", attempt + 1, exc)
+                    logger.warning(
+                        "Picamera2 init attempt %d failed: %s", attempt + 1, exc)
                     self.camera = None
                     time.sleep(1.0)
 
@@ -459,12 +477,16 @@ class CameraController:
                 for attempt in range(3):
                     try:
                         config = self.camera.create_video_configuration(
-                            main={"size": self.resolution, "format": self._format},
-                            transform=Transform(hflip=False, vflip=False) if Transform else None
-                        )
+                            main={
+                                "size": self.resolution,
+                                "format": self._format},
+                            transform=Transform(
+                                hflip=False,
+                                vflip=False) if Transform else None)
                         self.camera.configure(config)
                         try:
-                            self.camera.set_controls({"AfMode": 1, "AwbMode": 1})
+                            self.camera.set_controls(
+                                {"AfMode": 1, "AwbMode": 1})
                         except Exception:
                             pass
 
@@ -474,12 +496,14 @@ class CameraController:
                             target=self._capture_loop, daemon=True, name="camera-capture")
                         self._capture_thread.start()
 
-                        logger.info("camera started (picamera2 secondary mode)")
+                        logger.info(
+                            "camera started (picamera2 secondary mode)")
                         log_event("vision", "camera started via picamera2")
                         success = True
                         break
                     except Exception as exc:
-                        logger.warning("Picamera2 start attempt %d failed: %s", attempt + 1, exc)
+                        logger.warning(
+                            "Picamera2 start attempt %d failed: %s", attempt + 1, exc)
                         try:
                             self.camera.stop()
                         except Exception:
@@ -488,7 +512,8 @@ class CameraController:
 
         # 3. FALLBACK TO SIMULATION
         if not success:
-            logger.error("All physical cameras failed. Dropping to simulation.")
+            logger.error(
+                "All physical cameras failed. Dropping to simulation.")
             self.camera = None
             self._running = True
             logger.info("camera started (simulation mode)")
@@ -524,26 +549,33 @@ class CameraController:
     def _capture_loop(self) -> None:
         """continuously capture frames at the configured framerate."""
         interval = 1.0 / self._framerate
+        gc_counter = 0
         while self._running:
             try:
                 if self.camera is not None:
                     frame = self.camera.capture_array()
                     with self._frame_lock:
-                        if self._frame is not None:
-                            del self._frame
                         self._frame = frame
             except Exception as exc:
                 logger.error("capture error: %s", exc)
             time.sleep(interval)
 
-            # GC to prevent memory leaks from picamera buffer reallocation
-            gc.collect()
+            # GC only every ~300 frames (~20s at 15fps) to prevent
+            # memory leaks without destroying frame rate
+            gc_counter += 1
+            if gc_counter >= 300:
+                gc.collect()
+                gc_counter = 0
 
     # ------------------------------------------------------------------
     # frame access
     # ------------------------------------------------------------------
 
-    def _validate_frame(self, frame: np.ndarray, expected_w: int, expected_h: int) -> np.ndarray:
+    def _validate_frame(
+            self,
+            frame: np.ndarray,
+            expected_w: int,
+            expected_h: int) -> np.ndarray:
         """mathematically validate array shape and dtype."""
         if not isinstance(frame, np.ndarray):
             raise TypeError(f"Frame must be a numpy array, got {type(frame)}")
@@ -557,12 +589,15 @@ class CameraController:
             raise ValueError(f"Frame must have 3 channels (RGB), got {c}")
         if w != expected_w or h != expected_h:
             raise ValueError(
-                f"Frame shape must be ({expected_h}, {expected_w}, 3), got {frame.shape}")
+                f"Frame shape must be ({expected_h}, {expected_w}, 3), got {
+                    frame.shape}")
 
         # Mathematical memory layout validation
         expected_size = expected_w * expected_h * 3
         if frame.size != expected_size:
-            raise ValueError(f"Frame size mismatch: expected {expected_size}, got {frame.size}")
+            raise ValueError(
+                f"Frame size mismatch: expected {expected_size}, got {
+                    frame.size}")
 
         return frame
 
@@ -589,8 +624,15 @@ class CameraController:
             # Add some random static
             noise = np.random.randint(
                 0, 50, (self.resolution[1], self.resolution[0], 3), dtype=np.uint8)
-            result = np.clip(frame.astype(np.int16) + noise, 0, 255).astype(np.uint8)
-            return self._validate_frame(result, self.resolution[0], self.resolution[1])
+            result = np.clip(
+                frame.astype(
+                    np.int16) +
+                noise,
+                0,
+                255).astype(
+                np.uint8)
+            return self._validate_frame(
+                result, self.resolution[0], self.resolution[1])
 
         if self.camera is not None and self._running:
             for _ in range(10):
@@ -629,8 +671,6 @@ class CameraController:
         try:
             import cv2
             result = cv2.resize(frame, size, interpolation=cv2.INTER_LINEAR)
-            del frame
-            gc.collect()
             return self._validate_frame(result, size[0], size[1])
         except Exception:
             pass
@@ -642,8 +682,6 @@ class CameraController:
                     resample = getattr(Image, "Resampling", Image).BILINEAR
                     img = img.resize(size, resample)
                     result = np.array(img)
-                    del frame
-                    gc.collect()
                     return self._validate_frame(result, size[0], size[1])
                 except Exception as e:
                     logger.warning(f"Pillow resize failed: {e}")
@@ -654,10 +692,9 @@ class CameraController:
             row_idx = (np.arange(target_h) * h // target_h).astype(int)
             col_idx = (np.arange(target_w) * w // target_w).astype(int)
             result = frame[np.ix_(row_idx, col_idx)]
-            del frame
-            gc.collect()
             return self._validate_frame(result, size[0], size[1])
         finally:
+            frame = None
             gc.collect()
 
     def get_mjpeg_frame(self) -> Optional[bytes]:
@@ -741,7 +778,10 @@ class CameraController:
 
         if self.camera is not None:
             try:
-                self.camera.close()
+                if hasattr(self.camera, 'close'):
+                    self.camera.close()
+                elif hasattr(self.camera, 'release'):
+                    self.camera.release()
             except Exception as exc:
                 logger.warning("camera close error: %s", exc)
             self.camera = None

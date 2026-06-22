@@ -35,8 +35,11 @@ _project_root = Path(__file__).resolve().parent.parent
 
 # load config
 _config_path = _project_root / "config" / "simba_config.yaml"
-with open(_config_path, "r") as _f:
-    _config = yaml.safe_load(_f)
+try:
+    with open(_config_path, "r") as _f:
+        _config = yaml.safe_load(_f)
+except FileNotFoundError:
+    _config = {"ai": {}, "robot": {}}
 
 
 # --- feature encoding ---
@@ -99,7 +102,11 @@ def _generate_training_data() -> Tuple[np.ndarray, np.ndarray]:
 
     # --- greeting scenarios ---
     # owner present + greeting command -> greet/wave/handshake
+    # Note: happy(0) and love(4) are excluded here because they
+    # have specific handshake behavior defined below (lines ~198-199)
     for emotion in range(6):
+        if emotion in (EMOTION_MAP["happy"], EMOTION_MAP["love"]):
+            continue  # these emotions use handshake instead
         # voice greeting, owner present
         scenarios.append(([emotion, 0, 1, 0, 2, 0, 1], "greet"))
         scenarios.append(([emotion, 0, 1, 0, 1, 0, 1], "greet"))

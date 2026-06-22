@@ -83,11 +83,14 @@ fi
 python3 -c 'from simba.core.brain import SimbaBrain; print("brain import OK")' 2>/dev/null || echo 'WARNING: brain import failed'
 
 # trap for clean shutdown
+PID=""
 cleanup() {
     echo ""
     echo -e "${YELLOW}shutting down simba...${NC}"
-    kill $PID 2>/dev/null || true
-    wait $PID 2>/dev/null || true
+    if [ -n "${PID:-}" ]; then
+        kill $PID 2>/dev/null || true
+        wait $PID 2>/dev/null || true
+    fi
     echo -e "${GREEN}goodbye! 🦁${NC}"
 }
 trap cleanup EXIT

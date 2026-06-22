@@ -230,7 +230,9 @@ class PathRecorder:
         try:
             with self._lock:
                 stack_copy = list(self._stack)
-            os.makedirs(os.path.dirname(self._save_path), exist_ok=True)
+            save_dir = os.path.dirname(self._save_path)
+            if save_dir:
+                os.makedirs(save_dir, exist_ok=True)
             import tempfile
             fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(self._save_path), prefix="path_", suffix=".tmp")
             with os.fdopen(fd, "w", encoding="utf-8") as f:
