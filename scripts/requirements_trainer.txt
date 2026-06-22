@@ -29,6 +29,7 @@ requests==2.32.3
 tqdm==4.67.1
 huggingface-hub==0.27.1
 matplotlib==3.9.2
+pandas==2.2.3
 pandas-stubs==2.2.3.241009
 
 # deployment (SSH to Raspberry Pi)

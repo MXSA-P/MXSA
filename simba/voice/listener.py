@@ -153,10 +153,15 @@ class VoiceListener:
             if np.isnan(indata).any() or np.isinf(indata).any():
                 return
 
-            # Average channels to support both L/R INMP441 wiring
+            # The INMP441 L/R pin is wired to GND, which means it transmits on
+            # the physical Left channel.
+            # We explicitly select index 0 (Left channel).
             if indata.ndim == 2 and indata.shape[1] >= 2:
-                audio_data = np.mean(indata, axis=1)
+                audio_data = indata[:, 0]
             elif indata.ndim == 2:
+                audio_data = indata[:, 0]
+            else:
+                audio_data = indata
                 audio_data = indata[:, 0]
             else:
                 audio_data = indata
@@ -284,15 +289,9 @@ class VoiceListener:
                             "at device index %d: %s",
                             i, dev['name']
                         )
-                        if ('i2s' in name or 'snd' in name or
-                                'voicehat' in name):
+                        if 'i2s' in name or 'snd' in name or 'voicehat' in name:
                             is_i2s = True
                             self.channels = 2
-                            self.sample_rate = 48000
-                            from vosk import KaldiRecognizer
-                            self.recognizer = KaldiRecognizer(
-                                self.model, self.sample_rate
-                            )
                         break
             except Exception as e:
                 logger.warning("Failed to query devices for I2S mic: %s", e)

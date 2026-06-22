@@ -222,7 +222,7 @@ if ! pip install --prefer-binary -r scripts/requirements_pi.txt; then
     echo -e "${YELLOW}  ⚠ requirements.txt failed, installing individually...${NC}"
     pip install --prefer-binary pigpio smbus2 \
         || echo -e "${RED}  failed pigpio/smbus2${NC}"
-    pip install --prefer-binary numpy scikit-learn joblib matplotlib pandas-stubs \
+    pip install --prefer-binary numpy scikit-learn joblib matplotlib pandas pandas-stubs \
         || echo -e "${RED}  failed numpy/ml${NC}"
     pip install --prefer-binary ai-edge-litert \
         || echo -e "${YELLOW}  ⚠ ai-edge-litert unavailable (no Python ${PY_VER} wheel) — tflite disabled${NC}"
