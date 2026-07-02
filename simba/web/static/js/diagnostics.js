@@ -1,6 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
     "use strict";
 
+    // Ensure HTTP Basic Auth credentials are sent with all API fetch requests
+    const _originalFetch = window.fetch;
+    window.fetch = function(url, options = {}) {
+        options = options || {};
+        if (!options.credentials) {
+            options.credentials = 'include';
+        }
+        return _originalFetch.call(this, url, options);
+    };
+
     const buttons = document.querySelectorAll('.diag-btn');
     const terminal = document.getElementById('terminal-output');
 

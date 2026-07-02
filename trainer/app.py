@@ -57,9 +57,11 @@ auth = HTTPBasicAuth()
 
 @auth.verify_password
 def verify_password(username: str, password: str) -> Optional[str]:
-    valid_user = os.environ.get("TRAINER_USER", "mxsa")
-    valid_pass = os.environ.get("TRAINER_PASS", "mx")
-    if secrets.compare_digest(username, valid_user) and secrets.compare_digest(password, valid_pass):
+    if not username or not password:
+        return None
+    valid_user = os.environ.get("TRAINER_USER", "mxsa").strip()
+    valid_pass = os.environ.get("TRAINER_PASS", "mx").strip()
+    if secrets.compare_digest(username.strip().lower(), valid_user.lower()) and secrets.compare_digest(password.strip(), valid_pass):
         return username
     return None
 
@@ -147,6 +149,7 @@ def _update_status(
 # --- routes ---
 
 @app.route("/")
+@auth.login_required
 def index():
     """render the main training interface."""
     return render_template(
@@ -157,6 +160,7 @@ def index():
 
 
 @app.route('/test')
+@auth.login_required
 def test_page():
     return render_template('test.html')
 

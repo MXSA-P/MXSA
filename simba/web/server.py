@@ -93,19 +93,13 @@ auth = HTTPBasicAuth()
 
 @auth.verify_password
 def verify_password(username: str, password: str) -> Optional[str]:
-    """verify basic auth credentials.
+    """verify basic auth credentials."""
+    if not username or not password:
+        return None
+    valid_user = os.environ.get("SIMBA_WEB_USER", "mxsa").strip()
+    valid_pass = os.environ.get("SIMBA_WEB_PASS", "mx").strip()
 
-    args:
-        username: the provided username.
-        password: the provided password.
-
-    returns:
-        username if valid, else None.
-    """
-    valid_user = os.environ.get("SIMBA_WEB_USER", "mxsa")
-    valid_pass = os.environ.get("SIMBA_WEB_PASS", "mx")
-
-    if secrets.compare_digest(username, valid_user) and secrets.compare_digest(password, valid_pass):
+    if secrets.compare_digest(username.strip().lower(), valid_user.lower()) and secrets.compare_digest(password.strip(), valid_pass):
         return username
     return None
 

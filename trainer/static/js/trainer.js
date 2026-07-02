@@ -1,5 +1,15 @@
 // _max_cyan_ — project_mxsa — trainer v2 javascript
 
+// Ensure HTTP Basic Auth credentials are sent with all API fetch requests
+const _originalFetch = window.fetch;
+window.fetch = function(url, options = {}) {
+    options = options || {};
+    if (!options.credentials) {
+        options.credentials = 'include';
+    }
+    return _originalFetch.call(this, url, options);
+};
+
 // ---- state ----
 let selectedFiles = [];
 let isRecording = false;
