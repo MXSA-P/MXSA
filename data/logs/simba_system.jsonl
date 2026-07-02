@@ -1243,3 +1243,5 @@
 {"timestamp": "2026-06-22T16:40:41", "level": "INFO", "name": "simba.core.state_machine", "message": "state machine initialized in BOOTING state"}
 {"timestamp": "2026-06-22T16:40:41", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: BOOTING -> IDLE (was in BOOTING for 0.0s)"}
 {"timestamp": "2026-06-22T16:40:41", "level": "INFO", "name": "simba.core.state_machine", "message": "state transition: IDLE -> SCANNING (was in IDLE for 0.0s)"}
+{"timestamp": "2026-07-02T18:03:15", "level": "INFO", "name": "simba.web.server", "message": "status push thread started \u2014 interval 1.0s"}
+{"timestamp": "2026-07-02T18:03:15", "level": "INFO", "name": "simba.web.server", "message": "simba dashboard starting on http://0.0.0.0:8080"}

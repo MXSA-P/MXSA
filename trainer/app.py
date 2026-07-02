@@ -58,10 +58,7 @@ auth = HTTPBasicAuth()
 @auth.verify_password
 def verify_password(username: str, password: str) -> Optional[str]:
     valid_user = os.environ.get("TRAINER_USER", "mxsa")
-    valid_pass = os.environ.get("TRAINER_PASS")
-    if not valid_pass:
-        # Default password — CHANGE THIS via TRAINER_PASS env var!
-        valid_pass = "simba2024"
+    valid_pass = os.environ.get("TRAINER_PASS", "mx")
     if secrets.compare_digest(username, valid_user) and secrets.compare_digest(password, valid_pass):
         return username
     return None

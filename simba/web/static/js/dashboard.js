@@ -37,8 +37,8 @@
         ramText:         document.getElementById("ram-value"),
         tempValue:       document.getElementById("temp-value"),
         ramDetail:       document.getElementById("ram-detail"),
-        stateName:       document.getElementById("state-name"),
-        stateDesc:       document.getElementById("state-desc"),
+        stateBadge:      document.getElementById("state-badge"),
+        stateContext:    document.getElementById("state-context-text"),
         emotionEmoji:    document.getElementById("emotion-emoji"),
         thinkingBox:     document.getElementById("thinking-text"),
         logContainer:    document.getElementById("log-container"),
@@ -144,17 +144,17 @@
 
     function updateRobotState(robot) {
         // state badge
-        if (dom.stateName && robot.state !== lastState) {
-            dom.stateName.style.opacity = "0";
+        if (dom.stateBadge && robot.state !== lastState) {
+            dom.stateBadge.style.opacity = "0";
             setTimeout(function () {
-                dom.stateName.textContent = robot.state;
-                dom.stateName.style.opacity = "1";
+                dom.stateBadge.textContent = robot.state;
+                dom.stateBadge.style.opacity = "1";
             }, 200);
             lastState = robot.state;
         }
 
-        if (dom.stateDesc) {
-            dom.stateDesc.textContent = robot.state_description || "";
+        if (dom.stateContext) {
+            dom.stateContext.textContent = robot.state_description || "";
         }
 
         // emotion

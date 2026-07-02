@@ -67,7 +67,15 @@ Simba is a 2WD differential drive robot powered by a Raspberry Pi 4, utilizing e
 
 ## 🖥️ Usage Commands
 
-Simba is split into two primary modes: the operational **Brain** and the **Trainer**.
+Simba is split into two primary modes: the operational **Brain** and the **Trainer**. Both web interfaces are protected with HTTP Basic Authentication.
+
+### 🔑 Web Interface Credentials
+| Interface | URL | Default Username | Default Password | Environment Overrides |
+| :--- | :--- | :---: | :---: | :--- |
+| **Simba Brain Dashboard** | `http://<PI_IP>:8080/` | `mxsa` | `mx` | `SIMBA_WEB_USER` / `SIMBA_WEB_PASS` |
+| **AI Profile Trainer** | `http://localhost:5000/` | `mxsa` | `mx` | `TRAINER_USER` / `TRAINER_PASS` |
+
+> **Security Note:** For deployment on open or shared networks, always override default passwords using the respective environment variables before launching the services.
 
 ### 1. The Brain (Main Dashboard & Hardware Control)
 To boot Simba into operational mode (where the AI is active):

@@ -1,6 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
+    "use strict";
+
     const buttons = document.querySelectorAll('.diag-btn');
     const terminal = document.getElementById('terminal-output');
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
 
     function addTerminalLine(text, type = 'info') {
         const line = document.createElement('div');
@@ -23,14 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
             buttons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
             
-            addTerminalLine(`Initiating test sequence: <span style="color:#fff">${testName}</span>...`, 'info');
+            addTerminalLine(`Initiating test sequence: <span style="color:#fff">${escapeHtml(testName)}</span>...`, 'info');
 
             try {
                 const response = await fetch('/api/diagnostics/run', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Basic ' + btoa('admin:mxsa123')
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ test: testName })
                 });
@@ -41,12 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
                 
-                // Assuming the API returns a message or output in the JSON
-                const resultMsg = data.message || data.output || `Test '${testName}' completed successfully.`;
-                addTerminalLine(resultMsg, 'success');
+                const resultMsg = data.status || data.message || data.output || `Test '${escapeHtml(testName)}' completed successfully.`;
+                addTerminalLine(escapeHtml(resultMsg), 'success');
 
             } catch (error) {
-                addTerminalLine(`Error executing test: ${error.message}`, 'error');
+                addTerminalLine(`Error executing test: ${escapeHtml(error.message)}`, 'error');
             } finally {
                 setTimeout(() => {
                     button.classList.remove('active');

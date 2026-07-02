@@ -102,8 +102,8 @@ def verify_password(username: str, password: str) -> Optional[str]:
     returns:
         username if valid, else None.
     """
-    valid_user = os.environ.get("SIMBA_WEB_USER", "admin")
-    valid_pass = os.environ.get("SIMBA_WEB_PASS", "admin")
+    valid_user = os.environ.get("SIMBA_WEB_USER", "mxsa")
+    valid_pass = os.environ.get("SIMBA_WEB_PASS", "mx")
 
     if secrets.compare_digest(username, valid_user) and secrets.compare_digest(password, valid_pass):
         return username
@@ -541,7 +541,9 @@ def _status_push_loop() -> None:
     last_emit_hash = None
 
     while _push_thread_running:
-        if not _connected_clients:
+        with _push_lock:
+            has_clients = bool(_connected_clients)
+        if not has_clients:
             socketio.sleep(interval)
             continue
 
@@ -886,7 +888,8 @@ def handle_connect():
 
     logger.info("dashboard client connected")
     log_event("web", "dashboard client connected")
-    _connected_clients.add(request.sid)
+    with _push_lock:
+        _connected_clients.add(request.sid)
     payload = _build_status_payload()
     emit("status_update", payload)
 
@@ -896,9 +899,10 @@ def handle_disconnect(*args):
     """log when a client disconnects."""
     sid = getattr(request, "sid", None)
     if sid:
-        _connected_clients.discard(sid)
-        for clients in _streaming_clients.values():
-            clients.discard(sid)
+        with _push_lock:
+            _connected_clients.discard(sid)
+            for clients in _streaming_clients.values():
+                clients.discard(sid)
     logger.info("dashboard client disconnected")
 
 
