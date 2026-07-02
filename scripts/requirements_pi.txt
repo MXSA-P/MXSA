@@ -3,41 +3,41 @@
 # install: pip install -r requirements_pi.txt
 
 # hardware control
-pigpio==1.78
-smbus2==0.4.3
+pigpio>=1.78
+smbus2>=0.4.3
 
 # camera
 # picamera2 is installed via apt (python3-picamera2), NOT pip.
 # Installing via pip in a --system-site-packages venv causes version conflicts.
 
 # ai / ml
-scikit-learn==1.5.2
-joblib==1.4.2
-numpy==1.26.4
-ai-edge-litert==2.1.5
+scikit-learn>=1.5.0
+joblib>=1.4.0
+numpy>=1.26.0
+ai-edge-litert>=2.1.0
 
 # vision
-opencv-python-headless==4.10.0.84
-Pillow==10.4.0
+opencv-python-headless>=4.10.0
+Pillow>=10.4.0
 
 # voice
-vosk==0.3.45
-sounddevice==0.5.1
-librosa==0.10.2
-soundfile==0.12.1
+vosk>=0.3.45
+sounddevice>=0.5.1
+librosa>=0.10.2
+soundfile>=0.12.1
 
 # web dashboard
-flask==3.1.0
-flask-cors==5.0.0
-flask-socketio==5.6.1
-Flask-HTTPAuth==4.8.0
-Flask-SQLAlchemy==3.1.1
+flask>=3.0.0
+flask-cors>=5.0.0
+flask-socketio>=5.6.0
+Flask-HTTPAuth>=4.8.0
+Flask-SQLAlchemy>=3.1.0
 
-psutil==6.1.0
+psutil>=6.0.0
 
 # utils
-pyyaml==6.0.2
-requests==2.32.3
-matplotlib==3.9.2
-pandas==2.2.3
-pandas-stubs==2.2.3.241009
+pyyaml>=6.0.0
+requests>=2.32.0
+matplotlib>=3.9.0
+pandas>=2.2.0
+pandas-stubs>=2.2.0
