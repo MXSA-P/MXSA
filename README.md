@@ -90,10 +90,9 @@ To boot Simba into operational mode (where the AI is active):
 - **`failed to start audio stream: Error querying device -1`**: No default microphone is set in your OS. The system will gracefully fallback to `device 0`, but you can set a default by configuring PulseAudio/ALSA.
 
 ### 2. The Trainer (AI Profile Management)
-To boot the trainer interface to add new objects or voice samples:
-```bash
-./scripts/start_trainer.sh
-```
+To install and boot the trainer interface on your Windows PC:
+* **Install:** Double-click `install_trainer.bat` (or run `scripts\install_trainer.bat`) to install dependencies.
+* **Start:** Double-click `start_trainer.bat` (or run `scripts\start_trainer.bat`) to launch the Trainer dashboard.
 *   **Trainer UI:** Navigate to `http://localhost:5000/` to use your computer's webcam to capture training data and deploy the updated AI models directly to the Pi. (Note: The trainer runs on your development PC, not the Pi.)
 *   **Image Management:** The Trainer includes a robust REST API (`GET /api/objects/<name>/images` and `DELETE /api/objects/<name>/<filename>`) and a visual gallery interface allowing you to easily view, manage, and delete individual training snapshots directly from the browser.
 
