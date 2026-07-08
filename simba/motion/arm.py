@@ -147,15 +147,32 @@ class ArmController:
         self.servo_max_angle = servo_cfg.get("max_angle", 180.0)
 
         limits = servo_cfg["arm_limits"]
-        self.rotation_min = limits["rotation_min"]  # 0
-        self.rotation_max = limits["rotation_max"]  # 180
-        self.elbow_min = limits["elbow_min"]        # 10
-        self.elbow_max = limits["elbow_max"]        # 170
-        self.elbow_2_min = limits.get("elbow_2_min", 10)
-        self.elbow_2_max = limits.get("elbow_2_max", 170)
-        self.wrist_min = limits["wrist_min"]        # 0
-        self.wrist_max = limits["wrist_max"]        # 150
         self.move_speed = limits["move_speed"]      # 1.5 deg/step
+
+        # --- per-servo calibration from config ---
+        cal = config.get("calibration", {}).get("servos", {})
+        _default_cal = {"inverted": False, "min_angle": 0, "max_angle": 180, "trim": 0}
+
+        self._servo_cal = {
+            "rotation": {**_default_cal, "min_angle": limits["rotation_min"], "max_angle": limits["rotation_max"],
+                         **cal.get("arm_rotation", {})},
+            "elbow": {**_default_cal, "min_angle": limits["elbow_min"], "max_angle": limits["elbow_max"],
+                      **cal.get("arm_elbow", {})},
+            "elbow_2": {**_default_cal, "min_angle": limits.get("elbow_2_min", 10), "max_angle": limits.get("elbow_2_max", 170),
+                        **cal.get("arm_elbow_2", {})},
+            "wrist": {**_default_cal, "min_angle": limits["wrist_min"], "max_angle": limits["wrist_max"],
+                      **cal.get("arm_wrist", {})},
+        }
+
+        # expose min/max for external use (e.g. raise_arm clamping)
+        self.rotation_min = self._servo_cal["rotation"]["min_angle"]
+        self.rotation_max = self._servo_cal["rotation"]["max_angle"]
+        self.elbow_min = self._servo_cal["elbow"]["min_angle"]
+        self.elbow_max = self._servo_cal["elbow"]["max_angle"]
+        self.elbow_2_min = self._servo_cal["elbow_2"]["min_angle"]
+        self.elbow_2_max = self._servo_cal["elbow_2"]["max_angle"]
+        self.wrist_min = self._servo_cal["wrist"]["min_angle"]
+        self.wrist_max = self._servo_cal["wrist"]["max_angle"]
 
         home = servo_cfg["home_position"]
         self.home_angles = {
@@ -178,6 +195,14 @@ class ArmController:
         self._moving = False
         self._stop_event = threading.Event()
 
+        # map joint name -> pin for convenience
+        self._pin_map = {
+            "rotation": self.rotation_pin,
+            "elbow": self.elbow_pin,
+            "elbow_2": self.elbow_2_pin,
+            "wrist": self.wrist_pin,
+        }
+
         # initialize pigpio
         if _HAS_PIGPIO:
             self.pi = pigpio.pi()
@@ -198,7 +223,37 @@ class ArmController:
 
         # move to home position
         self.home()
-        logger.info("arm controller initialized")
+        logger.info("arm controller initialized (with calibration)")
+
+    def _calibrate_angle(self, joint: str, angle: float) -> float:
+        """Apply calibration (inversion, clamp, trim) for a joint.
+
+        Args:
+            joint: one of 'rotation', 'elbow', 'elbow_2', 'wrist'
+            angle: the logical angle (0-180)
+
+        Returns:
+            The physical angle to send to the servo.
+        """
+        cal = self._servo_cal.get(joint, {})
+        min_a = cal.get("min_angle", 0)
+        max_a = cal.get("max_angle", 180)
+        inverted = cal.get("inverted", False)
+        trim = cal.get("trim", 0)
+
+        # clamp to calibrated range
+        angle = max(min_a, min(max_a, angle))
+
+        # apply inversion
+        if inverted:
+            angle = 180.0 - angle
+
+        # apply trim
+        angle = angle + trim
+
+        # final safety clamp
+        angle = max(0, min(180, angle))
+        return angle
 
     def _angle_to_pulse(self, angle: float) -> int:
         """Convert angle to pulse width (500-2500 microseconds)."""
@@ -206,15 +261,17 @@ class ArmController:
         return int(round(self.pulse_min + (angle / self.servo_max_angle) *
                    (self.pulse_max - self.pulse_min)))
 
-    def _set_servo(self, pin: int, angle: float) -> None:
-        """Set a servo to a specific angle."""
+    def _set_servo(self, pin: int, angle: float, joint: str = None) -> None:
+        """Set a servo to a specific angle, applying calibration if joint is known."""
+        if joint:
+            angle = self._calibrate_angle(joint, angle)
         pw = self._angle_to_pulse(angle)
         try:
             self.pi.set_servo_pulsewidth(pin, pw)
         except Exception as e:
             logger.error("pigpio error setting pin %d to pw %d: %s", pin, pw, e)
 
-    def _move_smooth(self, pin, current_angle, target_angle, speed=None):
+    def _move_smooth(self, pin, current_angle, target_angle, speed=None, joint=None):
         """Smoothly interpolate servo from current to target angle with ease-in-out."""
         if speed is None:
             speed = self.move_speed
@@ -232,13 +289,13 @@ class ArmController:
             ease_t = 6 * (t ** 5) - 15 * (t ** 4) + 10 * (t ** 3)
             angle = current_angle + distance * ease_t
             with self._lock:
-                self._set_servo(pin, angle)
+                self._set_servo(pin, angle, joint=joint)
             if self._stop_event.wait(0.02):
                 return angle
 
         # final position
         with self._lock:
-            self._set_servo(pin, target_angle)
+            self._set_servo(pin, target_angle, joint=joint)
         return target_angle
 
     def rotation(self, angle):
@@ -250,7 +307,7 @@ class ArmController:
                 current_angle = self.current["rotation"]
 
             final_angle = self._move_smooth(
-                self.rotation_pin, current_angle, angle
+                self.rotation_pin, current_angle, angle, joint="rotation"
             )
 
             with self._lock:
@@ -266,11 +323,10 @@ class ArmController:
             angle: target angle (elbow_min to elbow_max)
         """
         angle1 = max(self.elbow_min, min(self.elbow_max, angle))
-        # Invert elbow 2 since it's physically mirrored
-        inverted_angle = 180 - angle1
-        angle2 = max(self.elbow_2_min, min(self.elbow_2_max, inverted_angle))
+        # elbow_2 mirrors elbow — inversion is handled by calibration config
+        angle2 = max(self.elbow_2_min, min(self.elbow_2_max, angle1))
         self.move_smooth({"elbow": angle1, "elbow_2": angle2})
-        log_event("motion", f"arm elbows to {angle}° (elbow_2 inverted to {angle2}°)")
+        log_event("motion", f"arm elbows to {angle}° (elbow_2={angle2}°)")
 
     def wrist(self, angle):
         """Move wrist up/down."""
@@ -281,7 +337,7 @@ class ArmController:
                 current_angle = self.current["wrist"]
 
             final_angle = self._move_smooth(
-                self.wrist_pin, current_angle, angle
+                self.wrist_pin, current_angle, angle, joint="wrist"
             )
 
             with self._lock:
@@ -336,7 +392,7 @@ class ArmController:
                                      ("elbow_2", self.elbow_2_pin),
                                      ("wrist", self.wrist_pin)]:
                         angle = start_angles[key] + ease_t * (targets[key] - start_angles[key])
-                        self._set_servo(pin, angle)
+                        self._set_servo(pin, angle, joint=key)
                         self.current[key] = angle
 
                 if self._stop_event.wait(0.02):
@@ -467,21 +523,21 @@ class ArmController:
                 if self._stop_event.is_set():
                     break
                 final = self._move_smooth(
-                    self.rotation_pin, self.current["rotation"], target_high, speed)
+                    self.rotation_pin, self.current["rotation"], target_high, speed, joint="rotation")
                 with self._lock:
                     self.current["rotation"] = final
 
                 if self._stop_event.is_set():
                     break
                 final = self._move_smooth(
-                    self.rotation_pin, self.current["rotation"], target_low, speed)
+                    self.rotation_pin, self.current["rotation"], target_low, speed, joint="rotation")
                 with self._lock:
                     self.current["rotation"] = final
 
             # return to center
             if not self._stop_event.is_set():
                 final = self._move_smooth(
-                    self.rotation_pin, self.current["rotation"], center, speed)
+                    self.rotation_pin, self.current["rotation"], center, speed, joint="rotation")
                 with self._lock:
                     self.current["rotation"] = final
 

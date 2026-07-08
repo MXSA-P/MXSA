@@ -53,6 +53,16 @@ class HandController:
         self.grab_speed = finger_cfg["grab_speed"]  # 2.0
         self._pulse_range_per_deg = (self.pulse_max - self.pulse_min) / 180.0
 
+        # --- per-finger calibration from config ---
+        cal = config.get("calibration", {}).get("servos", {})
+        _default_cal = {"inverted": False, "min_angle": 0, "max_angle": 180, "trim": 0}
+
+        self._finger_cal = [
+            {**_default_cal, **cal.get("finger_1", {})},
+            {**_default_cal, **cal.get("finger_2", {})},
+            {**_default_cal, **cal.get("finger_3", {})},
+        ]
+
         home = servo_cfg["home_position"]
         self.finger_angles = [
             home["finger_1"],
@@ -85,7 +95,37 @@ class HandController:
         for i in range(3):
             self._set_finger(i, self.finger_angles[i])
 
-        logger.info("hand controller initialized (3-finger triangle)")
+        logger.info("hand controller initialized (3-finger, calibration-aware)")
+
+    def _calibrate_finger(self, finger_id, angle):
+        """Apply per-finger calibration (inversion, clamp, trim).
+
+        Args:
+            finger_id: 0, 1, or 2
+            angle: logical angle
+
+        Returns:
+            Physical angle to send to servo.
+        """
+        cal = self._finger_cal[finger_id]
+        min_a = cal.get("min_angle", 0)
+        max_a = cal.get("max_angle", 180)
+        inverted = cal.get("inverted", False)
+        trim = cal.get("trim", 0)
+
+        # clamp to calibrated range
+        angle = max(min_a, min(max_a, angle))
+
+        # apply inversion
+        if inverted:
+            angle = 180.0 - angle
+
+        # apply trim
+        angle = angle + trim
+
+        # final safety clamp
+        angle = max(0, min(180, angle))
+        return angle
 
     def _angle_to_pulse(self, angle):
         """convert angle to pulsewidth."""
@@ -95,7 +135,7 @@ class HandController:
         return max(500, min(2500, pw))
 
     def _set_finger(self, finger_id, angle):
-        """set individual finger to angle."""
+        """set individual finger to angle, applying calibration."""
         if not isinstance(finger_id, int):
             raise TypeError(
                 f"finger_id must be an int, got {type(finger_id).__name__}"
@@ -108,15 +148,8 @@ class HandController:
         max_limit = max(self.open_angle, self.closed_angle)
         angle = max(min_limit, min(max_limit, angle))
 
-        actual_angle = angle
-        if finger_id == 0:
-            # Finger 1 (index 0) is the top finger mounted upside down
-            actual_angle = 180 - angle
-        elif finger_id == 2:
-            # Finger 3 (index 2) is mirrored and physically obstructed.
-            # It goes 180-80. We map logical [0, 180] to physical [180, 80]
-            actual_angle = 180 - angle * (5.0 / 9.0)
-            actual_angle = max(80, min(180, actual_angle))
+        # Apply per-finger calibration (inversion, limits, trim)
+        actual_angle = self._calibrate_finger(finger_id, angle)
 
         pw = self._angle_to_pulse(actual_angle)
         try:

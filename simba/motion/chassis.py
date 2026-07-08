@@ -86,6 +86,11 @@ class ChassisController:
         self._motor_b_duty = 0
         self._stop_event = threading.Event()
 
+        # --- per-motor speed multipliers from calibration config ---
+        cal_motors = config.get("calibration", {}).get("motors", {})
+        self._motor_a_mult = max(0.0, min(2.0, float(cal_motors.get("motor_a_multiplier", 1.0))))
+        self._motor_b_mult = max(0.0, min(2.0, float(cal_motors.get("motor_b_multiplier", 1.0))))
+
         if _HAS_PIGPIO:
             self.pi = pigpio.pi()
             if not self.pi.connected:
@@ -117,7 +122,7 @@ class ChassisController:
 
     def _set_motor_a(self, speed: float) -> None:
         """set left motor speed. positive = forward, negative = backward."""
-        duty = min(int(round(abs(speed))), 100)  # 0-100
+        duty = min(int(round(abs(speed) * self._motor_a_mult)), 100)  # 0-100, with multiplier
         new_dir = 1 if speed > 0 else (-1 if speed < 0 else 0)
         try:
             if duty != self._motor_a_duty:
@@ -140,7 +145,7 @@ class ChassisController:
 
     def _set_motor_b(self, speed: float) -> None:
         """set right motor speed. positive = forward, negative = backward."""
-        duty = min(int(round(abs(speed))), 100)  # 0-100
+        duty = min(int(round(abs(speed) * self._motor_b_mult)), 100)  # 0-100, with multiplier
         new_dir = 1 if speed > 0 else (-1 if speed < 0 else 0)
         try:
             if duty != self._motor_b_duty:

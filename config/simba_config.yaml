@@ -140,6 +140,56 @@ voice:
   speaker_model_path: models/speaker_model.joblib
   speaker_threshold: 0.65
   vosk_model_path: models/vosk-model-small-en-us-0.15
+calibration:
+  # Per-servo calibration. Each servo can have:
+  #   inverted: true/false  — flip 0↔180 (for servos mounted backwards)
+  #   min_angle: 0-180      — mechanical minimum the servo can reach
+  #   max_angle: 0-180      — mechanical maximum the servo can reach
+  #   trim: -20 to +20      — fine offset in degrees added after all other math
+  servos:
+    arm_rotation:
+      inverted: false
+      min_angle: 0
+      max_angle: 180
+      trim: 0
+    arm_elbow:
+      inverted: false
+      min_angle: 10
+      max_angle: 170
+      trim: 0
+    arm_elbow_2:
+      inverted: true
+      min_angle: 10
+      max_angle: 170
+      trim: 0
+    arm_wrist:
+      inverted: false
+      min_angle: 0
+      max_angle: 150
+      trim: 0
+    finger_1:
+      inverted: true
+      min_angle: 0
+      max_angle: 180
+      trim: 0
+    finger_2:
+      inverted: false
+      min_angle: 0
+      max_angle: 180
+      trim: 0
+    finger_3:
+      inverted: false
+      min_angle: 0
+      max_angle: 50
+      trim: 0
+
+  # Per-motor speed multiplier (0.0 to 2.0)
+  # Adjust these to balance left/right tire speeds
+  # e.g. if right tire is faster, lower motor_b_multiplier
+  motors:
+    motor_a_multiplier: 1.0
+    motor_b_multiplier: 1.0
+
 web:
   debug: false
   host: 0.0.0.0

@@ -162,9 +162,6 @@ class VoiceListener:
                 audio_data = indata[:, 0]
             else:
                 audio_data = indata
-                audio_data = indata[:, 0]
-            else:
-                audio_data = indata
 
             # calculate rms energy
             energy = float(np.sqrt(np.mean(audio_data ** 2)))
