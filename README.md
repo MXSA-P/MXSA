@@ -8,101 +8,356 @@
 ███████║██║██║ ╚═╝ ██║██████╔╝██║  ██║      ██║ ╚═╝ ██║██╔╝ ██╗███████║██║  ██║
 ╚══════╝╚═╝╚═╝     ╚═╝╚═════╝ ╚═╝  ╚═╝      ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
   </pre>
-  <p><b>Autonomous Edge AI Bionic Robot</b></p>
+
+  <p><b>Autonomous Edge AI Bionic Arm Robot</b></p>
+  <p><i>Built from scratch — no ROS, no cloud, no training wheels.</i></p>
+
+  <p>
+    <img src="https://img.shields.io/badge/platform-Raspberry_Pi_4-c51a4a?style=for-the-badge&logo=raspberrypi&logoColor=white" alt="Platform">
+    <img src="https://img.shields.io/badge/python-3.11+-3776ab?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+    <img src="https://img.shields.io/badge/AI-Edge_LLM-ff6f00?style=for-the-badge&logo=tensorflow&logoColor=white" alt="AI">
+    <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License">
+  </p>
+
   <br>
   <img src="docs/MXSA_BP.png" alt="MXSA Blueprint" width="800">
 </div>
 
-Welcome to **Project MXSA**, the official codebase for the Simba autonomous robot. 
-Simba is a 2WD differential drive robot powered by a Raspberry Pi 4, utilizing edge AI (Qwen2.5-0.5B via Ollama), a 5MP CSI camera for computer vision, an MPU6050 IMU, and localized speech processing.
+---
+
+## What is Simba?
+
+Simba is a fully autonomous bionic arm robot that runs **entirely offline** on a Raspberry Pi 4. It combines edge AI inference, computer vision, voice recognition, emotional awareness, and a 4-DOF articulated arm with a 3-finger gripper — all without any cloud dependencies.
+
+At its core, Simba uses **Qwen2.5-0.5B** (via Ollama) for real-time conversational intelligence, **MobileNetV2 + SVM** for custom object detection, **Vosk** for offline speech recognition, and **pigpio** for hardware-timed servo control. Everything is configurable, trainable, and deployable from a sleek web interface.
 
 ---
 
-## 👁️🗨️ Vision, Voice & Motion
+## ✨ Key Features
 
-*   **Vision:** MobileNetV2 feature extraction + SVM classifier pipeline for edge object detection via a 5MP CSI camera, with optional YOLOv8n acceleration.
-*   **Voice:** Offline local speech recognition with Vosk for conversational capability without cloud limits.
-*   **Motion:** Precise 2WD differential drive logic combined with a 4-DOF robotic arm using SG90 servos and the L298N motor driver.
+### 🧠 Autonomous Brain
+- Real-time LLM inference (Qwen2.5-0.5B) for conversations, decisions, and emotional responses
+- Finite state machine with 8 behavioral states (idle, roaming, tracking, fetching, playing, charging, resting, error)
+- Persistent memory system that remembers objects, people, and past interactions
+- Dynamic emotion engine with mood decay, excitement thresholds, and reactive animations
+
+### 👁️ Edge Computer Vision
+- Hybrid detection pipeline: MobileNetV2 feature extraction → LinearSVC classifier
+- Native support for the **5MP CSI Camera (OV5647)** at full `2592×1944` resolution
+- Optional YOLOv8n acceleration for enhanced detection
+- Environmental scanning with 5-angle servo sweep (0°, 45°, 90°, 135°, 180°)
+
+### 🎙️ Offline Voice Recognition
+- Vosk-based speech recognition — no internet required
+- 50+ voice commands across motion, gestures, personality, and system control
+- Speaker verification for owner recognition
+- INMP441 I2S MEMS microphone with automatic channel/sample-rate fallback
+
+### 🦾 Precision Motion Control
+- **Arm:** 4-DOF articulated arm (rotation, elbow×2, wrist) with inverse kinematics
+- **Hand:** 3-finger triangle gripper with adaptive grip based on object width
+- **Chassis:** 2WD differential drive via L298N motor driver with active braking
+- **IMU:** MPU6050 for orientation tracking and tilt detection
+- Per-servo calibration: inversion, angle limits, trim offsets, speed multipliers
+
+### 🎓 Custom Training Studio
+- Dark glassmorphism web UI for training custom vision and voice profiles
+- Capture training data directly from your webcam
+- One-click model training with real-time progress tracking
+- Deploy trained models to the Pi over SSH
+
+### 🕹️ Hardware Command Center
+- Web-based remote control dashboard with live camera feed
+- WASD chassis controls with active motor braking
+- Individual servo sliders for all 7 servos (4 arm + 3 fingers)
+- Real-time telemetry: emotions, IMU data, motor speeds, grip state
 
 ---
 
-## 🌟 Key Features
+## 📐 Architecture
 
-*   **Autonomous Brain:** Real-time LLM inference allowing Simba to hold conversations, make decisions, and show emotions via its web dashboard.
-*   **Edge Computer Vision:** Hybrid object detection (MobileNetV2 + LinearSVC) tuned to natively support the Raspberry Pi **5MP CSI Camera (OV5647)** at `2592x1944` resolution with hardware ISP acceleration.
-*   **Custom Training Studio:** A dark glassmorphism web UI that lets you train custom vision and voice profiles dynamically using your own camera.
-*   **Hardware Command Center:** Bypass the AI and directly control the robot's hardware (Chassis, Arm, Hand) via a stunning web-based remote control dashboard with WASD controls, active motor braking, and precise servo sliders.
+```
+┌─────────────────────────────────────────────────────┐
+│                    SIMBA BRAIN                       │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────────┐  │
+│  │ State    │  │ Emotion  │  │ Memory           │  │
+│  │ Machine  │◄─┤ Engine   │  │ (JSON persistent)│  │
+│  └────┬─────┘  └────┬─────┘  └──────────────────┘  │
+│       │              │                               │
+│  ┌────▼──────────────▼──────────────────────────┐   │
+│  │              Brain Controller                 │   │
+│  │  (Qwen2.5-0.5B via Ollama + decision logic)  │   │
+│  └──────┬───────────┬───────────┬────────────┘   │   │
+│         │           │           │                │   │
+│  ┌──────▼───┐ ┌─────▼────┐ ┌───▼──────┐        │   │
+│  │ Vision   │ │ Voice    │ │ Motion   │        │   │
+│  │ Pipeline │ │ Listener │ │ Control  │        │   │
+│  │          │ │          │ │          │        │   │
+│  │ Camera   │ │ Vosk STT │ │ Arm(4)  │        │   │
+│  │ Detector │ │ Speaker  │ │ Hand(3) │        │   │
+│  │ Scanner  │ │ Verify   │ │ Chassis │        │   │
+│  │ YOLO     │ │ Commands │ │ IMU     │        │   │
+│  └──────────┘ └──────────┘ └─────────┘        │   │
+│                                                │   │
+│  ┌────────────────────────────────────────────┐│   │
+│  │            Web Dashboard (Flask+SocketIO)  ││   │
+│  │  Dashboard │ Hardware Control │ Diagnostics││   │
+│  └────────────────────────────────────────────┘│   │
+└─────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│              TRAINER (Windows PC)                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────────┐  │
+│  │ Vision   │  │ Voice    │  │ Model            │  │
+│  │ Trainer  │  │ Trainer  │  │ Exporter (SSH)   │  │
+│  └──────────┘  └──────────┘  └──────────────────┘  │
+│  ┌────────────────────────────────────────────────┐ │
+│  │         Trainer Web UI (Flask)                  │ │
+│  └────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## ⚙️ Hardware Requirements
 
-*   **Raspberry Pi 4 Model B** (4GB+ RAM recommended)
-*   **5MP CSI Camera Module V1 (OV5647)**
-    *   *Note: Ensure your Pi's GPU memory is allocated to at least `128MB` (`sudo raspi-config` -> Performance Options) to support 5MP streaming.*
-*   **Motor Driver:** L298N (6-pin setup with ENA/ENB for 2WD chassis).
-*   **Servos:** 4 for the Arm (Rotation, Elbow 1, Elbow 2, Wrist), 3 for the Hand/Gripper (7 total).
-*   **IMU:** MPU6050 (I2C).
-*   **Audio:** INMP441 I2S MEMS Microphone + USB/I2S Speaker.
+| Component | Part | Notes |
+| :--- | :--- | :--- |
+| **SBC** | Raspberry Pi 4 Model B | 4GB+ RAM recommended |
+| **Camera** | 5MP CSI Module V1 (OV5647) | Set GPU memory ≥128MB |
+| **Motor Driver** | L298N (6-pin) | ENA/ENB for PWM speed control |
+| **Servos** | 7× SG90 (or equivalent) | 4 arm + 3 fingers |
+| **IMU** | MPU6050 | I2C on GPIO 2/3 |
+| **Microphone** | INMP441 I2S MEMS | Wired to GPIO 18/19/20 |
+| **Motors** | 2× TT DC Motors | With wheels and ball caster |
+| **Power** | 2×18650 + 5V Powerbank | Batteries for motors, powerbank for Pi |
 
-*For precise wiring connections, see the [Hardware Connections Guide](hardware/connections.md).*
-
----
-
-## 🚀 Installation & Setup
-
-1.  **Clone the Repository:**
-    ```bash
-    git clone https://github.com/MXSA-P/MXSA.git
-    cd MXSA
-    ```
-
-2.  **Run the Installer Script:**
-    This script automatically installs all apt dependencies, creates the Python virtual environment, configures I2C/I2S, and verifies your GPU memory for the 5MP camera.
-    ```bash
-    sudo bash scripts/install_pi.sh
-    ```
+> 📌 **Wiring:** See the full [Hardware Connections Guide](hardware/connections.md) for GPIO pinout, logic tables, and power connections.
 
 ---
 
-## 🖥️ Usage Commands
+## 🚀 Installation
 
-Simba is split into two primary modes: the operational **Brain** and the **Trainer**. Both web interfaces are protected with HTTP Basic Authentication.
+### Raspberry Pi (Robot)
 
-### 🔑 Web Interface Credentials
-| Interface | URL | Default Username | Default Password | Environment Overrides |
-| :--- | :--- | :---: | :---: | :--- |
-| **Simba Brain Dashboard** | `http://<PI_IP>:8080/` | `mxsa` | `mx` | `SIMBA_WEB_USER` / `SIMBA_WEB_PASS` |
-| **AI Profile Trainer** | `http://localhost:5000/` | `mxsa` | `mx` | `TRAINER_USER` / `TRAINER_PASS` |
-
-> **Security Note:** For deployment on open or shared networks, always override default passwords using the respective environment variables before launching the services.
-
-### 1. The Brain (Main Dashboard & Hardware Control)
-To boot Simba into operational mode (where the AI is active):
 ```bash
+# 1. Clone
+git clone https://github.com/MXSA-P/MXSA.git
+cd MXSA
+
+# 2. Install everything (apt packages, venv, I2C/I2S config, GPU memory check)
+sudo bash scripts/install_pi.sh
+
+# 3. Download AI models (Vosk, MobileNetV2)
+bash scripts/download_models.sh
+
+# 4. Start Simba
 ./scripts/start_simba.sh
 ```
-*   **Dashboard:** Open a browser on any device in the same network and navigate to `http://<PI_IP>:8080/`. Here you can view Simba's thoughts, emotions, and telemetry.
-*   **Hardware Command Center:** Navigate to `http://<PI_IP>:8080/hardware` for the manual remote control interface (live camera feed, D-Pad, servo sliders, and active braking).
 
-### 🔧 Troubleshooting Hardware
-- **`failed to initialise picamera2: list index out of range`**: This means your camera isn't enabled. Run `sudo raspi-config`, navigate to Interfacing Options, and enable the Legacy Camera / Libcamera interface. Ensure the ribbon cable is seated correctly.
-- **`failed to start audio stream: Error querying device -1`**: No default microphone is set in your OS. The system will gracefully fallback to `device 0`, but you can set a default by configuring PulseAudio/ALSA.
+### Windows PC (Trainer)
 
-### 2. The Trainer (AI Profile Management)
-To install and boot the trainer interface on your Windows PC:
-* **Install:** Double-click `install_trainer.bat` (or run `scripts\install_trainer.bat`) to install dependencies.
-* **Start:** Double-click `start_trainer.bat` (or run `scripts\start_trainer.bat`) to launch the Trainer dashboard.
-*   **Trainer UI:** Navigate to `http://localhost:5000/` to use your computer's webcam to capture training data and deploy the updated AI models directly to the Pi. (Note: The trainer runs on your development PC, not the Pi.)
-*   **Image Management:** The Trainer includes a robust REST API (`GET /api/objects/<name>/images` and `DELETE /api/objects/<name>/<filename>`) and a visual gallery interface allowing you to easily view, manage, and delete individual training snapshots directly from the browser.
+```batch
+:: 1. Clone (if not already done)
+git clone https://github.com/MXSA-P/MXSA.git
+cd MXSA
 
----
+:: 2. Install dependencies
+install_trainer.bat
 
-## 🛡️ Fortification Details
-*   **Memory Management:** The machine learning algorithms forcefully collect garbage (`gc.collect()`) after matrix operations to prevent OOM errors.
-*   **Log Rotation:** `simba_system.jsonl` is hard-capped at 5MB with 3 backups, ensuring infinite runtime without filling your SD card.
-*   **Hardware Fallbacks:** If a limb or sensor is disconnected, `brain.py` dynamically falls back to mock drivers to keep the rest of the system running smoothly.
+:: 3. Start the trainer
+start_trainer.bat
+```
 
 ---
 
-_max_cyan_ — project_mxsa
+## 🖥️ Web Interfaces
+
+Both web interfaces are protected with HTTP Basic Authentication.
+
+### 🔑 Credentials
+
+| Interface | URL | User | Pass | Env Overrides |
+| :--- | :--- | :---: | :---: | :--- |
+| **Simba Dashboard** | `http://<PI_IP>:8080/` | `mxsa` | `mx` | `SIMBA_WEB_USER` / `SIMBA_WEB_PASS` |
+| **Trainer UI** | `http://localhost:5000/` | `mxsa` | `mx` | `TRAINER_USER` / `TRAINER_PASS` |
+
+> ⚠️ **Security:** Always override default passwords via environment variables on shared networks.
+
+### Simba Dashboard (`http://<PI_IP>:8080/`)
+- **Dashboard:** Live telemetry — emotions, detected objects, system health, conversation log
+- **Hardware Control:** Remote control with WASD, servo sliders, camera feed, active braking
+- **Diagnostics:** System diagnostics, sensor checks, log viewer
+
+### Trainer UI (`http://localhost:5000/`)
+- **Vision Training:** Capture images via webcam, train custom object classifiers, manage training data
+- **Voice Training:** Record voice samples, train speaker verification models
+- **Deployment:** One-click model export to the Pi over SSH
+
+---
+
+## 🔧 Calibration
+
+Simba supports per-servo calibration and per-motor speed balancing via `config/simba_config.yaml`:
+
+```yaml
+calibration:
+  servos:
+    arm_rotation:
+      inverted: false     # flip 0↔180 for backwards-mounted servos
+      min_angle: 0        # mechanical minimum
+      max_angle: 180      # mechanical maximum
+      trim: 0             # fine offset in degrees (-20 to +20)
+    finger_3:
+      inverted: false
+      min_angle: 0
+      max_angle: 50       # this servo only goes 50°
+      trim: 0
+
+  motors:
+    motor_a_multiplier: 1.0   # left tire speed multiplier (0.0–2.0)
+    motor_b_multiplier: 1.0   # right tire speed multiplier (0.0–2.0)
+```
+
+**Common calibration tasks:**
+- **Servo mounted backwards?** → Set `inverted: true`
+- **Servo has limited range?** → Adjust `min_angle` / `max_angle`
+- **Servo doesn't center properly?** → Add a `trim` offset
+- **One tire faster than the other?** → Lower that motor's multiplier
+
+---
+
+## 🗣️ Voice Commands
+
+Simba understands **50+ voice commands** across 5 categories. Full list: [Voice Commands Reference](docs/voice_commands.md)
+
+**Quick examples:**
+```
+"go forward"           → drives forward
+"fetch the ball"       → locates, grabs, and returns the ball
+"scan"                 → sweeps the environment for objects
+"who are you"          → Simba introduces himself
+"good boy"             → increases happiness
+"go charge"            → retraces path to charging station
+```
+
+---
+
+## 📁 Project Structure
+
+```
+MXSA/
+├── config/
+│   └── simba_config.yaml          # All robot configuration + calibration
+├── data/
+│   └── path_log.json              # Movement breadcrumb trail
+├── docs/
+│   ├── MXSA_BP.png                # Blueprint diagram
+│   ├── simba_manual.html          # Full manual
+│   └── voice_commands.md          # Voice command reference
+├── hardware/
+│   └── connections.md             # GPIO wiring guide
+├── models/                        # AI model files (downloaded)
+│   ├── vosk-model-small-en-us-0.15/
+│   ├── mobilenetv2_feature_extractor.tflite
+│   ├── object_classifier.joblib
+│   └── object_labels.json
+├── scripts/
+│   ├── install_pi.sh              # Pi installer (apt + venv + I2S)
+│   ├── install_trainer.bat        # Windows trainer installer
+│   ├── start_simba.sh             # Start the robot
+│   ├── start_trainer.bat          # Start the trainer
+│   ├── download_models.sh         # Download AI models
+│   ├── requirements_pi.txt        # Pi Python dependencies
+│   └── requirements_trainer.txt   # Trainer Python dependencies
+├── simba/                         # Robot runtime (runs on Pi)
+│   ├── core/
+│   │   ├── brain.py               # Main brain controller (70KB)
+│   │   ├── emotions.py            # Emotion engine with mood decay
+│   │   ├── memory.py              # Persistent JSON memory
+│   │   ├── path_recorder.py       # Movement breadcrumb recorder
+│   │   └── state_machine.py       # 8-state behavioral FSM
+│   ├── motion/
+│   │   ├── arm.py                 # 4-DOF arm with inverse kinematics
+│   │   ├── chassis.py             # 2WD differential drive
+│   │   ├── hand.py                # 3-finger triangle gripper
+│   │   └── imu.py                 # MPU6050 orientation tracker
+│   ├── vision/
+│   │   ├── camera.py              # CSI camera interface
+│   │   ├── detector.py            # MobileNetV2+SVM object detector
+│   │   ├── hybrid_detector.py     # Multi-backend detector
+│   │   ├── scanner.py             # Environmental sweep scanner
+│   │   └── yolo_detector.py       # Optional YOLOv8n backend
+│   ├── voice/
+│   │   ├── command_parser.py      # NLU command extraction
+│   │   ├── listener.py            # Vosk STT + I2S mic
+│   │   └── speaker_verify.py      # Speaker identification
+│   ├── web/
+│   │   ├── server.py              # Flask+SocketIO dashboard
+│   │   ├── static/                # CSS + JS assets
+│   │   └── templates/             # HTML templates
+│   ├── utils/
+│   │   └── logger.py              # Structured JSON logging
+│   └── main.py                    # Entry point
+├── trainer/                       # Training studio (runs on Windows PC)
+│   ├── app.py                     # Flask trainer web app
+│   ├── export_model.py            # SSH model deployer
+│   ├── train_behavior.py          # Behavior model trainer
+│   ├── train_vision.py            # Vision model trainer
+│   ├── static/                    # CSS + JS assets
+│   └── templates/                 # HTML templates
+├── tests/                         # Unit tests
+├── install_trainer.bat            # Quick-start installer
+├── start_trainer.bat              # Quick-start launcher
+├── LICENSE                        # MIT License
+└── README.md                      # You are here
+```
+
+---
+
+## 🛡️ Reliability & Safety
+
+| Feature | Details |
+| :--- | :--- |
+| **Memory Management** | Forced `gc.collect()` after ML operations to prevent Pi OOM |
+| **Log Rotation** | `simba_system.jsonl` hard-capped at 5MB with 3 backups |
+| **Hardware Fallbacks** | Disconnected sensors fall back to mock drivers automatically |
+| **Servo Stagger** | Servos initialize one-at-a-time with 150ms delays to prevent power brownouts |
+| **Per-Servo Calibration** | Inversion, angle limits, and trim offsets per servo |
+| **Auto-Return** | Movement breadcrumb trail with path reversal for charging |
+| **Auth Protected** | All web interfaces require HTTP Basic Authentication |
+
+---
+
+## 🔍 Troubleshooting
+
+| Problem | Solution |
+| :--- | :--- |
+| `list index out of range` on camera init | Enable camera in `raspi-config` → Interface Options. Check ribbon cable. |
+| `Error querying device -1` for audio | No default mic set. Listener auto-falls back to device 0. |
+| Servos jitter on startup | Check power supply. Simba staggers servo init to reduce current spikes. |
+| One tire faster than the other | Adjust `calibration.motors.motor_X_multiplier` in config. |
+| Login loops on web interface | Ensure `Flask-HTTPAuth` is installed. Check browser isn't blocking Basic Auth. |
+| Can't connect to dashboard SocketIO | WebSocket connections don't need separate auth — page-level auth suffices. |
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/awesome-feature`)
+3. Commit your changes (`git commit -m 'Add awesome feature'`)
+4. Push to the branch (`git push origin feature/awesome-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+  <sub><b>_max_cyan_</b> — project_mxsa</sub>
+</div>
