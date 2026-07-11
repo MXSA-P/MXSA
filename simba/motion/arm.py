@@ -221,9 +221,15 @@ class ArmController:
             except Exception as e:
                 logger.error("pigpio mode setting error: %s", e)
 
-        # move to home position
-        self.home()
-        logger.info("arm controller initialized (with calibration)")
+        # Force each servo to its calibrated home position one at a time.
+        # Using move_smooth would do nothing because current == target.
+        # Stagger commands to prevent simultaneous current draw spikes
+        # that cause power brownouts and erratic servo behavior on boot.
+        for joint in ["rotation", "elbow", "elbow_2", "wrist"]:
+            pin = self._pin_map[joint]
+            self._set_servo(pin, self.home_angles[joint], joint=joint)
+            self.current[joint] = self.home_angles[joint]
+            time.sleep(0.15)  # 150ms between servos
 
     def _calibrate_angle(self, joint: str, angle: float) -> float:
         """Apply calibration (inversion, clamp, trim) for a joint.

@@ -91,9 +91,10 @@ class HandController:
             except Exception as e:
                 logger.error("pigpio mode setting error: %s", e)
 
-        # set initial position
+        # set initial position — stagger to prevent power spikes
         for i in range(3):
             self._set_finger(i, self.finger_angles[i])
+            time.sleep(0.15)  # 150ms between finger servos
 
         logger.info("hand controller initialized (3-finger, calibration-aware)")
 

@@ -48,10 +48,32 @@ except ImportError:
 try:
     from flask_httpauth import HTTPBasicAuth
 except ImportError:
+    from functools import wraps as _wraps
+
     class HTTPBasicAuth:
-        def __init__(self): pass
-        def login_required(self, f): return f
-        def verify_password(self, f): return f
+        """Manual Basic Auth fallback when flask_httpauth is not installed."""
+
+        def __init__(self):
+            self._verify_func = None
+
+        def login_required(self, f):
+            @_wraps(f)
+            def _check_auth(*args, **kwargs):
+                auth = request.authorization
+                if auth and self._verify_func:
+                    result = self._verify_func(auth.username or '', auth.password or '')
+                    if result:
+                        return f(*args, **kwargs)
+                return (
+                    'Authentication required', 401,
+                    {'WWW-Authenticate': 'Basic realm="Trainer Login"',
+                     'Content-Type': 'text/plain'}
+                )
+            return _check_auth
+
+        def verify_password(self, f):
+            self._verify_func = f
+            return f
 
 auth = HTTPBasicAuth()
 
@@ -870,7 +892,7 @@ def main():
     print("=" * 60)
 
     try:
-        app.run(host="127.0.0.1", port=5000, debug=True, use_reloader=False)
+        app.run(host="127.0.0.1", port=5000, debug=False, use_reloader=False)
     except Exception as e:
         print(f"\nCRITICAL: Failed to start trainer server: {e}")
         import sys

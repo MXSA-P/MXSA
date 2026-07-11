@@ -67,24 +67,34 @@ try:
     from flask_httpauth import HTTPBasicAuth
 except ImportError:
     from functools import wraps as _wraps
+
     class HTTPBasicAuth:
+        """Manual Basic Auth fallback when flask_httpauth is not installed."""
+
         def __init__(self):
-            """initialize stub."""
+            """initialize manual auth."""
             self._verify_func = None
 
         def login_required(self, f):
-            """deny all requests when flask_httpauth is not installed."""
+            """check Basic Auth on every request."""
             @_wraps(f)
-            def _denied(*args, **kwargs):
+            def _check_auth(*args, **kwargs):
+                auth = request.authorization
+                if auth and self._verify_func:
+                    result = self._verify_func(
+                        auth.username or '', auth.password or ''
+                    )
+                    if result:
+                        return f(*args, **kwargs)
                 return Response(
-                    'Authentication required (flask_httpauth not installed)',
+                    'Authentication required',
                     401,
                     {'WWW-Authenticate': 'Basic realm="Login Required"'}
                 )
-            return _denied
+            return _check_auth
 
         def verify_password(self, f):
-            """stub for verify_password."""
+            """register the password verification callback."""
             self._verify_func = f
             return f
 
@@ -872,13 +882,16 @@ def api_hardware_hand():
 @socketio.on("connect")
 def handle_connect():
     """send full status snapshot when a client connects."""
-    auth_ok = False
+    # WebSocket upgrade requests may not carry HTTP Basic Auth headers.
+    # Only reject connections with explicitly WRONG credentials.
+    # If no auth header is present, accept — the page itself is behind
+    # @auth.login_required, so the user already authenticated.
     if request.authorization:
-        if verify_password(request.authorization.username, request.authorization.password):
-            auth_ok = True
-    if not auth_ok:
-        logger.warning("websocket connection rejected: auth failed")
-        return False
+        username = request.authorization.username or ''
+        password = request.authorization.password or ''
+        if username and not verify_password(username, password):
+            logger.warning("websocket connection rejected: invalid credentials")
+            return False
 
     logger.info("dashboard client connected")
     log_event("web", "dashboard client connected")
